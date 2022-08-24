@@ -1,0 +1,1 @@
+Renders a spinning 3D cube using `glam` to an `egui` window.
