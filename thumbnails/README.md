@@ -1,0 +1,1 @@
+Display images as thumbnails that fill a 200x200 squares
