@@ -1,0 +1,11 @@
+[package]
+name = "text-image"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.3.23"
+rgb = "0.8"
+image = "0.24"
+imageproc = "0.23"
+rusttype = "0.9"
