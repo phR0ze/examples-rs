@@ -1,0 +1,8 @@
+[package]
+name = "parallax"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.3.23"
+macroquad_tantan_toolbox = { git = "https://github.com/phR0ze/macroquad_tantan_toolbox" }
