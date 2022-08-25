@@ -8,3 +8,9 @@ The `.vscode` config simply sets up a hot key `Ctrl+Shift+r` to run the project
 $ cargo new --bin <NAME>
 $ cp -r egui-miniquad/.vscode <NAME>
 ```
+
+## Backlog
+* Display grid of images like a character backpack or storage device
+
+## Changelog
+* 

@@ -9,7 +9,6 @@ enum CatAnimationIdentifier {
 fn window_conf() -> Conf {
     Conf {
         window_title: "Pakémon".to_owned(),
-        // fullscreen: true,
         window_width: 320,
         window_height: 240,
         ..Default::default()
@@ -30,8 +29,8 @@ async fn main() {
     let mut position_foreground = texture_foreground.width();
 
     let mut animation = AnimationInstance::<CatAnimationIdentifier>::new(
-        6f32,
-        12f32,
+        6.,
+        12.,
         texture_cat,
         CatAnimationIdentifier::Run,
     );
@@ -57,7 +56,12 @@ async fn main() {
         }
 
         draw_texture(texture_back, position_back, -30., WHITE);
-        draw_texture(texture_back, position_back - texture_back.width(), -30., WHITE);
+        draw_texture(
+            texture_back,
+            position_back - texture_back.width(),
+            -30.,
+            WHITE,
+        );
 
         position_foreground -= 0.5;
         if position_foreground < 0. {
@@ -65,7 +69,12 @@ async fn main() {
         }
 
         draw_texture(texture_foreground, position_foreground, 50., WHITE);
-        draw_texture(texture_foreground, position_foreground - texture_foreground.width(), 50., WHITE);
+        draw_texture(
+            texture_foreground,
+            position_foreground - texture_foreground.width(),
+            50.,
+            WHITE,
+        );
 
         if position_title <= 30. {
             position_title += 0.5;
@@ -73,7 +82,12 @@ async fn main() {
             draw_text("PRESS START", 124.0, 120.0, 16.0, WHITE);
         }
 
-        draw_texture(texture_title, 160. - texture_title.width() / 2., position_title, WHITE);
+        draw_texture(
+            texture_title,
+            160. - texture_title.width() / 2.,
+            position_title,
+            WHITE,
+        );
 
         animation.update(time);
         animation.draw(&vec2(160., 210.), false);

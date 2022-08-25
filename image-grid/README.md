@@ -1,0 +1,1 @@
+Display a grid of images, useful for game storage device
