@@ -6,8 +6,10 @@
 //! Inspiration for this work around comes from https://github.com/fishfolks/jumpy
 use macroquad::{
     prelude::*,
-    ui::{widgets, Id, Skin, Ui},
+    ui::{root_ui, widgets, Id, Skin, Ui},
 };
+
+use crate::position::Position;
 
 const NO_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.0);
 
@@ -15,57 +17,52 @@ pub struct Panel {
     id: Id,
     size: Vec2,
     skin: Skin,
-    position: Vec2,
+    margin: RectOffset,
+    position: Position,
 }
 
 impl Panel {
-    // Create a new panel instance.
-    // WARNING: Call this outside the main ui loop to avoid odd ui behavior
-    pub fn new(ui: &mut Ui, id: Id, size: Vec2, panel_bg: Image) -> Self {
-        // Configure panel skin for work around solution
+    /// Create a new panel instance.
+    /// WARNING: Call this outside the main ui loop to avoid odd ui behavior
+    pub fn new(id: Id, size: Vec2, panel_bg: Image) -> Self {
+        // Configure panel skin for relative positioning work around
         let skin = {
-            let group_style = ui
+            let group_style = root_ui()
                 .style_builder()
-                .color(NO_COLOR)
-                .color_hovered(NO_COLOR)
-                .color_clicked(NO_COLOR)
+                //.color(NO_COLOR)
+                //.color_hovered(NO_COLOR)
+                //.color_clicked(NO_COLOR)
+                //.margin(RectOffset::new(1000., 0., 0., 0.))
                 .build();
-            let button_style = ui
+            let button_style = root_ui()
                 .style_builder()
-                .background(panel_bg.clone())
-                .background_hovered(panel_bg.clone())
-                .background_clicked(panel_bg)
-                .background_margin(RectOffset::new(52.0, 52.0, 52.0, 52.0))
+                .background(panel_bg)
+                //.background_hovered(panel_bg.clone())
+                //.background_clicked(panel_bg)
+                .background_margin(RectOffset::new(30., 30., 10., 10.))
                 .build();
-            Skin {
-                group_style,
-                button_style,
-                ..ui.default_skin()
-            }
+            Skin { group_style, button_style, ..root_ui().default_skin() }
         };
 
-        Panel {
-            id,
-            size,
-            skin,
-            position: vec2(0., 0.),
-        }
+        Panel { id, size, skin, margin: RectOffset::new(0., 0., 0., 0.), position: Position::default() }
     }
 
-    // Center the position of the panel on the app window
+    /// Reduce content size to the given rectangle from the original panel size
     #[allow(dead_code)]
-    pub fn center(&mut self) -> &Self {
-        self.position = vec2(
-            screen_width() / 2.0 - self.size.x / 2.0,
-            screen_height() / 2.0 - self.size.y / 2.0,
-        );
-        self
+    pub fn margin(self, margin: RectOffset) -> Self {
+        Panel { margin, ..self }
     }
 
-    // Set the position of the panel
+    /// Return the size of the panel
     #[allow(dead_code)]
-    pub fn position(&mut self, pos: Vec2) -> &Self {
-        self.position = pos;
+    pub fn size(&self) -> Vec2 {
+        self.size
+    }
+
+    /// Configure initial position of the panel on the screen
+    #[allow(dead_code)]
+    pub fn position<T: Into<Position>>(&mut self, pos: T) -> &Self {
+        self.position = pos.into();
         self
     }
 
@@ -74,29 +71,34 @@ impl Panel {
     pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&self, ui: &mut Ui, f: F) {
         ui.push_skin(&self.skin);
 
-        // Non-interactive button provides ability to draw the panel background
-        let _ = widgets::Button::new("")
-            .position(self.position)
-            .size(self.size)
-            .ui(ui);
+        // Calculate desired position
+        let bg_position = match self.position {
+            Position::Center => vec2(screen_width() - self.size.x, screen_height() - self.size.y) / 2.0,
+            Position::Absolute(position) => position,
+        };
 
-        // // TEST
-        // draw_rectangle(
-        //     self.position.x + Self::BG_OFFSET,
-        //     self.position.y + Self::BG_OFFSET,
-        //     self.size.x - (Self::BG_OFFSET * 2.0),
-        //     self.size.y - (Self::BG_OFFSET * 2.0),
-        //     background_color,
-        // );
+        // Draw solid blue rectangle the same size as the panel as first layer.
+        // This is useful for understanding margins and sizing while designing
+        //draw_rectangle(bg_position.x, bg_position.y, self.size.x, self.size.y, BLUE);
+
+        // Draw button as workaround for background image
+        widgets::Button::new("").size(self.size).position(bg_position).ui(ui);
+
+        // Calculate group size and position taking margin into account.
+        // Margin reduces the group size and shifts position to even it out.
+        let group_size = vec2(
+            self.size.x - self.margin.left - self.margin.right,
+            self.size.y - self.margin.top - self.margin.bottom,
+        );
+        let group_position = vec2(bg_position.x + self.margin.left, bg_position.y + self.margin.top);
+        //draw_rectangle(group_position.x, group_position.y, group_size.x, group_size.y, GREEN);
 
         // Group provides a box to layout out any widgets inside that overlays
         // the non-interactive button.
-        widgets::Group::new(self.id, self.size)
-            .position(self.position)
-            .ui(ui, |ui| {
-                ui.pop_skin();
-                f(ui, self.size)
-            });
+        widgets::Group::new(self.id, group_size).position(group_position).ui(ui, |ui| {
+            ui.pop_skin();
+            f(ui, group_size)
+        });
 
         // Together they form window like functionality that can resize dynamnically
         // based on the application window size changes. MQ's stock window doesn't
