@@ -4,12 +4,11 @@
 //! changes.
 //!
 //! Inspiration for this work around comes from https://github.com/fishfolks/jumpy
+use crate::position::Position;
 use macroquad::{
     prelude::*,
     ui::{root_ui, widgets, Id, Skin, Ui},
 };
-
-use crate::position::Position;
 
 const NO_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.0);
 
@@ -27,20 +26,9 @@ impl Panel {
     pub fn new(id: Id, size: Vec2, panel_bg: Image) -> Self {
         // Configure panel skin for relative positioning work around
         let skin = {
-            let group_style = root_ui()
-                .style_builder()
-                //.color(NO_COLOR)
-                //.color_hovered(NO_COLOR)
-                //.color_clicked(NO_COLOR)
-                //.margin(RectOffset::new(1000., 0., 0., 0.))
-                .build();
-            let button_style = root_ui()
-                .style_builder()
-                .background(panel_bg)
-                //.background_hovered(panel_bg.clone())
-                //.background_clicked(panel_bg)
-                .background_margin(RectOffset::new(30., 30., 10., 10.))
-                .build();
+            // NO_COLOR gets rid of the weird 1px white border around the group
+            let group_style = root_ui().style_builder().color(NO_COLOR).build();
+            let button_style = root_ui().style_builder().background(panel_bg.clone()).build();
             Skin { group_style, button_style, ..root_ui().default_skin() }
         };
 
