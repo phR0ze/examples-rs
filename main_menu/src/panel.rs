@@ -24,7 +24,8 @@ impl Panel {
     /// Create a new panel instance.
     /// WARNING: Call this outside the main ui loop to avoid odd ui behavior
     pub fn new(id: Id, size: Vec2, panel_bg: Image) -> Self {
-        // Configure panel skin for relative positioning work around
+        // Configure panel skin for relative positioning work around.
+        // Keeping this as an internal implementation detail
         let skin = {
             // NO_COLOR gets rid of the weird 1px white border around the group
             let group_style = root_ui().style_builder().color(NO_COLOR).build();

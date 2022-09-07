@@ -34,9 +34,8 @@ impl Resources {
             btn_hov_bg: image_btn_hov_bg.clone(),
             btn_font: font_htowert,
             btn_font_size: 40,
-            btn_bg_margin: RectOffset::new(0.0, 0.0, 0.0, 0.0),
-            btn_margin: RectOffset::new(10.0, 10.0, 90.0, 90.0),
             btn_font_color: Color::from_rgba(180, 180, 100, 255),
+            btn_margin: RectOffset::new(-100.0, -100.0, -90.0, -90.0),
         };
         Resources { menu_style }
     }

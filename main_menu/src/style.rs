@@ -17,8 +17,7 @@ pub struct MenuStyle {
     pub btn_font: &'static [u8], // font to use for button text
     pub btn_font_color: Color,   // font color to use for button text
     pub btn_font_size: u16,      // font size to use for button text
-    pub btn_bg_margin: RectOffset,
-    pub btn_margin: RectOffset,
+    pub btn_margin: RectOffset,  // button content is indented this much from edges
 }
 
 impl MenuStyle {
@@ -26,7 +25,6 @@ impl MenuStyle {
         root_ui()
             .style_builder()
             .background(self.btn_bg.clone())
-            .background_margin(self.btn_bg_margin.clone())
             .margin(self.btn_margin.clone())
             .background_hovered(self.btn_hov_bg.clone())
             .background_clicked(self.btn_clk_bg.clone())
@@ -35,11 +33,6 @@ impl MenuStyle {
             .text_color(self.btn_font_color)
             .font_size(self.btn_font_size)
             .build()
-    }
-
-    /// Return button height based on button font size plus
-    pub fn button_height(&self) -> f32 {
-        self.btn_font_size as f32
     }
 
     /// Return button size based on given content size and button font size

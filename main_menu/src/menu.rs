@@ -23,9 +23,12 @@ pub struct Menu {
 impl Menu {
     /// Create a new instance
     pub fn new(id: Id, size: Vec2, entries: &[MenuEntry], style: MenuStyle) -> Self {
+        // Panel handles making the menu relative to the app window during resizes
         let panel_bg = style.background.clone();
-        let skin = Skin { button_style: style.button(), ..root_ui().default_skin() };
         let panel = Panel::new(id, size, panel_bg).margin(style.margin);
+
+        // Configure menu and button styles
+        let skin = Skin { button_style: style.button(), ..root_ui().default_skin() };
         Menu { id, skin, style, panel, entries: entries.to_vec() }
     }
 
