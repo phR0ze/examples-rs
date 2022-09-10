@@ -3,12 +3,12 @@ use macroquad::{
     ui::{hash, root_ui, widgets, Skin, Ui},
 };
 
+mod group;
 mod menu;
-mod panel;
 mod position;
 mod style;
+use group::Group;
 use menu::{Menu, MenuEntry};
-use panel::Panel;
 use style::MenuStyle;
 
 pub struct Resources {
@@ -26,22 +26,22 @@ impl Resources {
         // Menu style configuration
         let menu_style = MenuStyle {
             background: image_win_bg.clone(),
-            margin: RectOffset::new(20., 20., 20., 20.),
+            padding: RectOffset::new(20., 20., 40., 20.),
             spacing: 10.,
 
-            btn_bg: image_btn_bg.clone(),
-            btn_clk_bg: image_btn_clk_bg.clone(),
-            btn_hov_bg: image_btn_hov_bg.clone(),
-            btn_font: font_htowert,
-            btn_font_size: 40,
-            btn_font_color: Color::from_rgba(180, 180, 100, 255),
-            btn_margin: RectOffset::new(-100.0, -100.0, -90.0, -90.0),
+            entry_bg: image_btn_bg.clone(),
+            entry_clk_bg: image_btn_clk_bg.clone(),
+            entry_hov_bg: image_btn_hov_bg.clone(),
+            entry_font: font_htowert,
+            entry_font_size: 40,
+            entry_font_color: Color::from_rgba(180, 180, 100, 255),
+            entry_padding: RectOffset::new(0.0, 0.0, 10.0, 10.0),
         };
         Resources { menu_style }
     }
 }
 
-#[macroquad::main("main menu")]
+#[macroquad::main("mqui_menu")]
 async fn main() {
     // Note: it is critical that resources and skins are loaded and configured
     // outside the main loop, else you'll get flickering and odd ui behavior.
