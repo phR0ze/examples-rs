@@ -23,11 +23,9 @@ pub struct Menu {
 impl Menu {
     /// Create a new instance
     pub fn new(id: Id, size: Vec2, entries: &[MenuEntry], style: MenuStyle) -> Self {
-        // Group handles making the menu relative to the app window during resizes
-        let group_bg = style.background.clone();
-        let group = Group::new(id, size, group_bg).padding(style.padding);
+        let group = Group::new(id, size, style.background.clone()).padding(style.padding);
 
-        // Configure menu and button styles
+        // Configure menu and entry styles
         let skin = Skin { button_style: style.entry(), ..root_ui().default_skin() };
         Menu { id, skin, style, group, entries: entries.to_vec() }
     }

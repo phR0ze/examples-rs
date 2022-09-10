@@ -67,10 +67,6 @@ impl Group {
             Position::Absolute(position) => position,
         };
 
-        // Draw solid blue rectangle the same size as the group as first layer.
-        // This is useful for understanding padding and sizing while designing
-        //draw_rectangle(bg_position.x, bg_position.y, self.size.x, self.size.y, BLUE);
-
         // Draw button as workaround for background image
         widgets::Button::new("").size(self.size).position(bg_position).ui(ui);
 
@@ -81,7 +77,6 @@ impl Group {
             self.size.y - self.padding.top - self.padding.bottom,
         );
         let group_position = vec2(bg_position.x + self.padding.left, bg_position.y + self.padding.top);
-        //draw_rectangle(group_position.x, group_position.y, group_size.x, group_size.y, GREEN);
 
         // Group provides a box to layout out any widgets inside that overlays
         // the non-interactive button.
