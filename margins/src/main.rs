@@ -133,9 +133,10 @@ async fn main() {
         draw_text("the additional space the margin added.", x, y, font_size, BLACK);
 
         // Group
-        widgets::Group::new(hash!(), group_size).position(vec2(x, y)).ui(&mut *root_ui(), |ui| {
-            //ui.pop_skin();
-        });
+        y += 20.;
+        widgets::Group::new(hash!(), vec2(200., 100.))
+            .position(vec2(x, y))
+            .ui(&mut *root_ui(), |ui| ui.label(vec2(0., 0.), "foo"));
 
         next_frame().await;
     }
