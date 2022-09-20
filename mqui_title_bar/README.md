@@ -7,6 +7,8 @@ Experimenting with writing a titlebar widget
   * https://github.com/google/material-design-icons/
 
 ## Backlog
-* Activate menu with options button icon
+* Draw settings button icon on the right
+* Activate settings button icon
 
 ## Completed
+* Center title in title bar

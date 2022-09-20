@@ -64,7 +64,7 @@ impl Resources {
 fn main_conf() -> Conf {
     Conf {
         window_title: "mqui_menu".to_string(),
-        window_width: 400,
+        window_width: 450,
         window_height: 800,
         high_dpi: true,
         ..Default::default()
