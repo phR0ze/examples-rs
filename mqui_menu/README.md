@@ -1,4 +1,4 @@
-# main menu
+# menu
 Experimenting with writing a flexible menu widget
 
 ## Mobile notes
@@ -9,7 +9,8 @@ Experimenting with writing a flexible menu widget
   * https://github.com/google/material-design-icons/
 
 ## Backlog
-* Activate menu with options button icon
+* settings mode: 1/2 screen top right
+* menu mode: 3/4 screen on left
 
 ## Completed
 * Run menu on Android

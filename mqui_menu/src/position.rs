@@ -2,24 +2,20 @@
 use macroquad::prelude::*;
 
 #[derive(Debug, Copy, Clone)]
-pub enum Position
-{
+pub enum Position {
     Center,
+    CenterTop,
     Absolute(Vec2),
 }
 
-impl Default for Position
-{
-    fn default() -> Self
-    {
+impl Default for Position {
+    fn default() -> Self {
         Position::Center
     }
 }
 
-impl From<Vec2> for Position
-{
-    fn from(position: Vec2) -> Self
-    {
+impl From<Vec2> for Position {
+    fn from(position: Vec2) -> Self {
         Self::Absolute(position)
     }
 }
