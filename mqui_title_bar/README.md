@@ -7,8 +7,10 @@ Experimenting with writing a titlebar widget
   * https://github.com/google/material-design-icons/
 
 ## Backlog
-* Draw options menu when options button activated
 
 ## Completed
+* Draw menu button icon on the left
+* Draw menu when menu button activated
+* Draw options menu when options button activated
 * Draw options button icon on the right
 * Center title in title bar

@@ -40,8 +40,10 @@ impl Resources {
         // Load assets from app data
         let font_htowert = include_bytes!("../assets/HTOWERT.TTF");
         let menu_bg = Image::from_file_with_format(include_bytes!("../assets/menu_bg.png"), None);
-        let options_btn_bg = Image::from_file_with_format(include_bytes!("../assets/options.png"), None);
-        let options_btn_clk_bg = Image::from_file_with_format(include_bytes!("../assets/options_clk.png"), None);
+        let menu_btn = Image::from_file_with_format(include_bytes!("../assets/menu_btn.png"), None);
+        let menu_btn_clk = Image::from_file_with_format(include_bytes!("../assets/menu_btn_clk.png"), None);
+        let options_btn = Image::from_file_with_format(include_bytes!("../assets/options_btn.png"), None);
+        let options_btn_clk = Image::from_file_with_format(include_bytes!("../assets/options_btn_clk.png"), None);
         let entry_bg = Image::from_file_with_format(include_bytes!("../assets/entry_bg.png"), None);
         let entry_hov_bg = Image::from_file_with_format(include_bytes!("../assets/entry_hov_bg.png"), None);
         let entry_clk_bg = Image::from_file_with_format(include_bytes!("../assets/entry_clk_bg.png"), None);
@@ -60,12 +62,14 @@ impl Resources {
                 entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
             },
             title_bar_style: TitleBarStyle {
-                padding: scale_rect(5., 5., 5., 5.),
+                padding: scale_rect(15., 15., 5., 5.),
                 title_font: font_htowert,
                 title_font_size: scale(30.) as u16,
                 title_font_color: Color::from_rgba(250, 250, 250, 250),
-                options_btn_bg,
-                options_btn_clk_bg,
+                menu_btn,
+                menu_btn_clk,
+                options_btn,
+                options_btn_clk,
             },
         }
     }
@@ -87,10 +91,16 @@ async fn main() {
     // outside the main loop, else you'll get flickering and odd ui behavior.
     let resources = Resources::load();
     let mut titlebar = TitleBar::new(hash!("titlebar"), "Title Bar", resources.title_bar_style);
+    let menu = Menu::new(
+        hash!("menu"),
+        scale_vec2(250., 250.),
+        &[MenuEntry::new("Play1"), MenuEntry::new("Settings1"), MenuEntry::new("Quit1")],
+        resources.menu_style.clone(),
+    );
     let options = Menu::new(
         hash!("options"),
         scale_vec2(250., 250.),
-        &[MenuEntry::new("Play"), MenuEntry::new("Options"), MenuEntry::new("Quit")],
+        &[MenuEntry::new("Play2"), MenuEntry::new("Settings2"), MenuEntry::new("Quit2")],
         resources.menu_style,
     );
 
@@ -98,6 +108,9 @@ async fn main() {
         clear_background(BLACK);
 
         titlebar.ui(&mut *root_ui());
+        if titlebar.menu() {
+            menu.ui(&mut *root_ui());
+        }
         if titlebar.options() {
             options.ui(&mut *root_ui());
         }
