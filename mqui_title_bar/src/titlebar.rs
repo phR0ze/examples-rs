@@ -78,8 +78,10 @@ pub struct TitleBar {
     title_skin: Skin,         // title skin
     menu: bool,               // true if the menu button was pressed
     menu_skin: Skin,          // menu button skin
+    menu_enabled: bool,       // enable support for menu when true
     options: bool,            // true if the options button was pressed
     options_skin: Skin,       // options button skin
+    options_enabled: bool,    // enable support for options when true
 }
 
 impl TitleBar {
@@ -99,8 +101,10 @@ impl TitleBar {
             title_position: Position::default(),
             menu: false,
             menu_skin,
+            menu_enabled: true,
             options: false,
             options_skin,
+            options_enabled: true,
         }
     }
 
@@ -112,6 +116,16 @@ impl TitleBar {
     /// Returns true if the options should be displayed
     pub fn options(&self) -> bool {
         return self.options;
+    }
+
+    /// Disable menu. This means it won't be displayed or taken into account
+    pub fn disable_menu(self) -> Self {
+        TitleBar { menu_enabled: false, ..self }
+    }
+
+    /// Disable options. This means it won't be displayed or taken into account
+    pub fn disable_options(self) -> Self {
+        TitleBar { options_enabled: false, ..self }
     }
 
     /// Position the title on the title bar
@@ -135,23 +149,27 @@ impl TitleBar {
             ui.pop_skin();
 
             // Draw menu button and save state
-            ui.push_skin(&self.menu_skin);
-            let menu_size = vec2(title_size.y, title_size.y);
-            let menu_pos = vec2(self.style.padding.left, (size.y - menu_size.y) / 2.0);
-            if widgets::Button::new("").size(menu_size).position(menu_pos).ui(ui) {
-                self.menu = !self.menu
+            if self.menu_enabled {
+                ui.push_skin(&self.menu_skin);
+                let menu_size = vec2(title_size.y, title_size.y);
+                let menu_pos = vec2(self.style.padding.left, (size.y - menu_size.y) / 2.0);
+                if widgets::Button::new("").size(menu_size).position(menu_pos).ui(ui) {
+                    self.menu = !self.menu
+                }
+                ui.pop_skin();
             }
-            ui.pop_skin();
 
             // Draw options button and save state
-            ui.push_skin(&self.options_skin);
-            let options_size = vec2(title_size.y, title_size.y);
-            let options_pos =
-                vec2(size.x - options_size.x - self.style.padding.right, (size.y - options_size.y) / 2.0);
-            if widgets::Button::new("").size(options_size).position(options_pos).ui(ui) {
-                self.options = !self.options
+            if self.options_enabled {
+                ui.push_skin(&self.options_skin);
+                let options_size = vec2(title_size.y, title_size.y);
+                let options_pos =
+                    vec2(size.x - options_size.x - self.style.padding.right, (size.y - options_size.y) / 2.0);
+                if widgets::Button::new("").size(options_size).position(options_pos).ui(ui) {
+                    self.options = !self.options
+                }
+                ui.pop_skin();
             }
-            ui.pop_skin();
         });
     }
 }

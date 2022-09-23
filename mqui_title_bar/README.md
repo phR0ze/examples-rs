@@ -9,6 +9,7 @@ Experimenting with writing a titlebar widget
 ## Backlog
 
 ## Completed
+* Make menu and options optional
 * Draw menu button icon on the left
 * Draw menu when menu button activated
 * Draw options menu when options button activated
