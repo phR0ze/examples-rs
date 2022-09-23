@@ -53,8 +53,11 @@ impl GroupStyle {
         let border_color = self.border_color.unwrap_or(NO_COLOR);
         let group_style =
             root_ui().style_builder().color(border_color).color_hovered(NO_COLOR).color_clicked(NO_COLOR).build();
-        let button_style =
-            root_ui().style_builder().color(NO_COLOR).color_hovered(NO_COLOR).color_clicked(NO_COLOR).build();
+        let button_style = if let Some(bkg) = &self.background {
+            root_ui().style_builder().background(bkg.clone()).build()
+        } else {
+            root_ui().style_builder().color(NO_COLOR).color_hovered(NO_COLOR).color_clicked(NO_COLOR).build()
+        };
         Skin { group_style, button_style, ..root_ui().default_skin() }
     }
 }
