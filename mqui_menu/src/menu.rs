@@ -12,8 +12,10 @@ use macroquad::{
 
 #[derive(Debug, Clone)]
 pub struct MenuStyle {
-    pub background: Option<Image>, // optional image to use as the background for the menu
-    pub padding: RectOffset,       // pad inside menu this much from edges before content is allowed
+    pub position: Position,              // position of menu on the screen
+    pub padding: RectOffset,             // pad inside group pushing content in from edges
+    pub background: Option<Image>,       // optional image to use as the background for the menu
+    pub background_color: Option<Color>, // optional background color to use
 
     // Entry style
     pub entry_bg: Option<Image>,     // optional background image to use for menu buttons
@@ -28,9 +30,16 @@ pub struct MenuStyle {
 
 impl MenuStyle {
     pub fn new() -> MenuStyle {
+        MenuStyle::settings()
+    }
+
+    /// Instantiate a new menu to be used for settings
+    pub fn settings() -> MenuStyle {
         MenuStyle {
-            background: None,
+            position: Position::Center,
             padding: scale_rect(20., 20., 20., 20.),
+            background: None,
+            background_color: Some(Color::from_rgba(120, 120, 120, 255)),
             entry_bg: None,
             entry_clk_bg: None,
             entry_hov_bg: None,
@@ -40,6 +49,11 @@ impl MenuStyle {
             entry_spacing: scale(10.),
             entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
         }
+    }
+
+    /// Position the menu on the screen
+    pub fn position<T: Into<Position>>(self, pos: T) -> Self {
+        MenuStyle { position: pos.into(), ..self }
     }
 
     /// Set the background image used for the menu
@@ -93,36 +107,40 @@ impl MenuStyle {
     }
 
     /// Returns the MQ Style for entries
-    pub fn entry(&self) -> Style {
-        let mut style = root_ui().style_builder();
-        if let Some(background) = &self.background {
-            style = style.background(background.clone())
+    pub fn style(&self) -> Style {
+        let mut style = root_ui()
+            .style_builder()
+            .text_color(self.entry_font_color)
+            .text_color_hovered(self.entry_font_color)
+            .text_color_clicked(self.entry_font_color)
+            .font_size(self.entry_font_size);
+        if let Some(background) = &self.entry_bg {
+            style = style.background(background.clone());
         }
-        // if self.background.is_some()
-        //     .background(self.entry_bg.clone())
-        //     .background_hovered(self.entry_hov_bg.clone())
-        //     .background_clicked(self.entry_clk_bg.clone())
-        //     .font(self.entry_font)
-        //     .unwrap()
-        //     .text_color(self.entry_font_color)
-        //     .text_color_hovered(self.entry_font_color)
-        //     .font_size(self.entry_font_size)
-        //     .build()
+        if let Some(background) = &self.entry_hov_bg {
+            style = style.background_hovered(background.clone());
+        }
+        if let Some(background) = &self.entry_clk_bg {
+            style = style.background_clicked(background.clone());
+        }
+        if let Some(font) = self.entry_font {
+            style = style.font(font).unwrap();
+        }
         style.build()
     }
 
     // Return entry height based on font size and padding
-    pub fn entry_height(&self) -> f32 {
+    fn entry_height(&self) -> f32 {
         self.entry_font_size as f32 + self.entry_padding.top + self.entry_padding.bottom
     }
 
     /// Return entry size based on given content size and entry font size
-    pub fn entry_size(&self, content_size: Vec2) -> Vec2 {
+    fn entry_size(&self, content_size: Vec2) -> Vec2 {
         vec2(content_size.x, self.entry_height())
     }
 
     /// Return entry position based on the given index location and spacing
-    pub fn entry_pos(&self, index: usize) -> Vec2 {
+    fn entry_pos(&self, index: usize) -> Vec2 {
         let spacing = if index != 0 && self.entry_spacing > 0. { index as f32 * self.entry_spacing } else { 0. };
         vec2(0.0, index as f32 * self.entry_height() + spacing)
     }
@@ -154,11 +172,13 @@ impl Menu {
         let mut group_style = GroupStyle::new().padding(style.padding);
         if let Some(background) = &style.background {
             group_style = group_style.background(background.clone());
+        } else {
+            //group_style = group_style.color(self.color);
         }
-        let group = Group::new(id, size, group_style).position(Position::Center);
+        let group = Group::new(id, size, group_style).position(style.position);
 
         // Configure menu and entry styles
-        let skin = Skin { button_style: style.entry(), ..root_ui().default_skin() };
+        let skin = Skin { button_style: style.style(), ..root_ui().default_skin() };
         Menu { id, skin, style, group, entries: entries.to_vec() }
     }
 

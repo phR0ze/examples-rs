@@ -14,27 +14,38 @@ const NO_COLOR: Color = Color::new(0.0, 0.0, 0.0, 0.0);
 
 #[derive(Debug, Clone)]
 pub struct GroupStyle {
-    pub padding: RectOffset,         // padding to apply around title
-    pub background: Option<Image>,   // optional background image to use
-    pub border_color: Option<Color>, // optional border color to use
+    pub padding: RectOffset,             // pad inside group pushing content in from edges
+    pub background: Option<Image>,       // optional background image to use, takes priority over background color
+    pub background_color: Option<Color>, // optional background color to use
+    pub border_color: Option<Color>,     // optional border color to use
 }
 
 impl GroupStyle {
     pub fn new() -> Self {
-        GroupStyle { padding: RectOffset::new(0., 0., 0., 0.), background: None, border_color: None }
+        GroupStyle {
+            padding: RectOffset::new(0., 0., 0., 0.),
+            background: None,
+            background_color: None,
+            border_color: None,
+        }
     }
 
-    /// Inset the content by the given rectangle from the edges.
-    /// This works even when size() is used unlike stock MQ styles.
+    /// Pad inside group pushing content in from edges
     #[allow(dead_code)]
     pub fn padding(self, padding: RectOffset) -> Self {
         GroupStyle { padding, ..self }
     }
 
-    /// Set the background image to use
+    /// Set the background image to use. Takes priority over background color
     #[allow(dead_code)]
     pub fn background(self, background: Image) -> Self {
         GroupStyle { background: Some(background), ..self }
+    }
+
+    /// Set the background color to use. Over ruled by background image
+    #[allow(dead_code)]
+    pub fn background_color(self, color: Color) -> Self {
+        GroupStyle { background_color: Some(color), ..self }
     }
 
     /// Set the border color to use
