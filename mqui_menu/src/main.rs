@@ -1,17 +1,14 @@
-use macroquad::{
-    prelude::*,
-    ui::{hash, root_ui},
-};
+use macroquad::{prelude::*, ui::root_ui};
 
 mod group;
 mod menu;
 mod position;
+mod size;
 mod utils;
-use menu::{Menu, MenuEntry, MenuStyle};
-use utils::*;
+use menu::{Menu, MenuEntry};
 
 pub struct Resources {
-    menu_style: MenuStyle,
+    font: &'static [u8], // font to use for button text
 }
 impl Resources {
     pub fn load() -> Self {
@@ -22,7 +19,7 @@ impl Resources {
         //let entry_hov_bg = Image::from_file_with_format(include_bytes!("../assets/entry_hov_bg.png"), None);
         //let entry_clk_bg = Image::from_file_with_format(include_bytes!("../assets/entry_clk_bg.png"), None);
 
-        Resources { menu_style: MenuStyle::new().entry_font(font_htowert) }
+        Resources { font: font_htowert }
     }
 }
 
@@ -38,20 +35,19 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    // Note: it is critical that resources and skins are loaded and configured
-    // outside the main loop, else you'll get flickering and odd ui behavior.
     let resources = Resources::load();
-    let menu = Menu::new(
-        hash!("menu"),
-        scale_vec2(250., 250.),
-        &[MenuEntry::new("Play1"), MenuEntry::new("Settings1"), MenuEntry::new("Quit1")],
-        resources.menu_style.clone(),
-    );
+    let menu =
+        Menu::menu().add(MenuEntry::new("Play1")).add(MenuEntry::new("Settings1")).add(MenuEntry::new("Quit1"));
+    let settings = Menu::settings()
+        .add(MenuEntry::new("Play1"))
+        .add(MenuEntry::new("Settings1"))
+        .add(MenuEntry::new("Quit1"));
 
     loop {
         clear_background(BLACK);
 
-        menu.ui(&mut *root_ui());
+        //menu.ui(&mut *root_ui());
+        settings.ui(&mut *root_ui());
 
         next_frame().await
     }

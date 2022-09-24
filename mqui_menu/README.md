@@ -9,10 +9,14 @@ Experimenting with writing a flexible menu widget
   * https://github.com/google/material-design-icons/
 
 ## Backlog
-* settings mode: 1/2 screen top right
-* menu mode: 3/4 screen on left
+* Menu entry background color is settable
+* Menu background color is settable
 
 ## Completed
+* Menu: size is ThreeQuarter screen and full height
+* Menu: position top left without margin
+* Settings: size is half screen minus margin by static height
+* Settings: position top right with optional margin
 * Run menu on Android
 * Padding inside entry
 * Padding inside group
