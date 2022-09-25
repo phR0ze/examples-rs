@@ -41,53 +41,33 @@ pub struct Menu {
 impl Menu {
     // Create a new instance
     pub fn new() -> Menu {
-        Menu::settings()
+        let group = Group::new();
+        Menu {
+            id: hash!(),
+            skin: root_ui().default_skin(),
+            group,
+            entry_bg: None,
+            entry_clk_bg: None,
+            entry_hov_bg: None,
+            entry_font: None,
+            entry_font_size: scale(40.) as u16,
+            entry_font_color: colors::BLACK,
+            entry_spacing: scale(10.),
+            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
+            entries: vec![],
+        }
     }
 
     /// Instantiate a new menu to be used for settings
     pub fn menu() -> Menu {
-        let group = Group::new()
-            .size(Size::ThreeQuarter(0.0, -1.0))
-            .padding(20., 20., 20., 20.)
-            .position(Position::TopLeft(None));
-
-        Menu {
-            id: hash!(),
-            skin: root_ui().default_skin(),
-            group,
-            entry_bg: None,
-            entry_clk_bg: None,
-            entry_hov_bg: None,
-            entry_font: None,
-            entry_font_size: scale(40.) as u16,
-            entry_font_color: colors::BLACK,
-            entry_spacing: scale(10.),
-            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
-            entries: vec![],
-        }
+        Menu::new().size(Size::ThreeQuarter(0.0, -1.0)).position(Position::TopLeft(None))
     }
 
     /// Instantiate a new menu to be used for settings
     pub fn settings() -> Menu {
-        let group = Group::new()
+        Menu::new()
             .size(Size::HalfWidth(5., 250.))
-            .padding(20., 20., 20., 20.)
-            .position(Position::TopRight(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))));
-
-        Menu {
-            id: hash!(),
-            skin: root_ui().default_skin(),
-            group,
-            entry_bg: None,
-            entry_clk_bg: None,
-            entry_hov_bg: None,
-            entry_font: None,
-            entry_font_size: scale(40.) as u16,
-            entry_font_color: colors::BLACK,
-            entry_spacing: scale(10.),
-            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
-            entries: vec![],
-        }
+            .position(Position::TopRight(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
     }
 
     /// Set the menu id
