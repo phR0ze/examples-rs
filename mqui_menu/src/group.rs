@@ -30,6 +30,8 @@ pub struct Group {
 impl Group {
     /// Create a new group instance
     pub fn new() -> Self {
+        let skin = root_ui().default_skin();
+
         Group {
             size: Size::default(),
             position: Position::default(),
@@ -37,7 +39,7 @@ impl Group {
             background: None,
             background_color: colors::GRAY,
             border_color: None,
-            skin: root_ui().default_skin(),
+            skin,
         }
         .update_cached_skin()
     }
@@ -45,18 +47,18 @@ impl Group {
     /// Set size of the group
     /// * handles scaling for mobile
     pub fn size(self, size: Size) -> Self {
-        Group { size, ..self }.update_cached_skin()
+        Group { size, ..self }
     }
 
     /// Set position on the screen
     pub fn position<T: Into<Position>>(self, pos: T) -> Self {
-        Group { position: pos.into(), ..self }.update_cached_skin()
+        Group { position: pos.into(), ..self }
     }
 
     /// Pad inside group pushing content in from edges
     /// * handles scaling for mobile
     pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Group { padding: scale_rect(left, right, top, bottom), ..self }.update_cached_skin()
+        Group { padding: scale_rect(left, right, top, bottom), ..self }
     }
 
     /// Set the background image to use. Takes priority over background color
@@ -76,22 +78,26 @@ impl Group {
 
     /// Update the cached macroquad skin based on the group's current properties
     fn update_cached_skin(self) -> Self {
-        // let ui = root_ui();
+        let ui = root_ui();
 
-        // // This is a work-around for Macroquad's lack of relative positioning for windows.
-        // // By using a button with a background image and a group for layout we can mimic
-        // // the base window functionality while providing relative positioning.
-        // // NO_COLOR gets rid of the default group 1px white border for group
-        // // and solid white fill for the button
-        // let border_color = self.border_color.unwrap_or(BLANK);
-        // let group_style = ui.style_builder().color(border_color).color_hovered(BLANK).color_clicked(BLANK).build();
-        // let button_style = if let Some(bkg) = &self.background {
-        //     ui.style_builder().background(bkg.clone()).build()
-        // } else {
-        //     ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build()
-        // };
-        // Group { skin: Skin { group_style, button_style, ..ui.default_skin() }, ..self }
-        self
+        // This is a work-around for Macroquad's lack of relative positioning for windows.
+        // By using a button with a background image and a group for layout we can mimic
+        // the base window functionality while providing relative positioning.
+        // BLANK color gets rid of the default group 1px white border for group
+        // and solid white fill for the button
+        let border_color = self.border_color.unwrap_or(BLANK);
+        let group_style = ui.style_builder().color(border_color).color_hovered(BLANK).color_clicked(BLANK).build();
+
+        let button_style = if let Some(bkg) = &self.background {
+            ui.style_builder().background(bkg.clone()).build()
+        } else {
+            ui.style_builder()
+                .color(self.background_color)
+                .color_hovered(self.background_color)
+                .color_clicked(self.background_color)
+                .build()
+        };
+        Group { skin: Skin { group_style, button_style, ..ui.default_skin() }, ..self }
     }
 
     /// Draw the group. The callback `f` will be called with the current `Ui` instance and

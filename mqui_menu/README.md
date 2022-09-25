@@ -15,8 +15,8 @@ Experimenting with writing a flexible menu widget
 ## Completed
 * Menu: size is ThreeQuarter screen and full height
 * Menu: position top left without margin
-* Settings: size is half screen minus margin by static height
-* Settings: position top right with optional margin
+* Options: size is half screen minus margin by static height
+* Options: position top right with optional margin
 * Run menu on Android
 * Padding inside entry
 * Padding inside group

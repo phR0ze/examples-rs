@@ -1,14 +1,6 @@
 //! TitleBar encapsulates and automates the manipulation of a set of widgets to provide
 //! typical title bar type functionality.
-use crate::{
-    group::{Group, GroupStyle},
-    menu::{Menu, MenuStyle},
-    position::Position,
-};
-use macroquad::{
-    prelude::*,
-    ui::{root_ui, widgets, Id, Skin, Style, Ui},
-};
+use mqui_menu::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct TitleBarStyle {
@@ -87,8 +79,7 @@ pub struct TitleBar {
 impl TitleBar {
     /// Create a new instance
     pub fn new<T: AsRef<str>>(id: Id, title: T, style: TitleBarStyle) -> Self {
-        let group_style = GroupStyle::new().border_color(BLUE);
-        let group = Group::new(id, style.size(), group_style).position(Position::CenterTop);
+        let group = Group::new().size(Size::Absolute(style.size())).position(Position::TopCenter);
         let title_skin = Skin { label_style: style.title(), ..root_ui().default_skin() };
         let menu_skin = Skin { button_style: style.menu_btn(), ..root_ui().default_skin() };
         let options_skin = Skin { button_style: style.options_btn(), ..root_ui().default_skin() };
@@ -140,11 +131,7 @@ impl TitleBar {
             // Draw title
             ui.push_skin(&self.title_skin);
             let title_size = ui.calc_size(&self.title);
-            let title_position = match self.title_position {
-                Position::Center => vec2(size.x - title_size.x, size.y - title_size.y) / 2.0,
-                Position::CenterTop => vec2(size.x - title_size.x, 0.0) / 2.0,
-                Position::Absolute(position) => position,
-            };
+            let title_position = self.title_position.vec2(size);
             ui.label(title_position, &self.title);
             ui.pop_skin();
 

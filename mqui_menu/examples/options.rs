@@ -28,15 +28,13 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let resources = Resources::load();
-    let settings = Menu::settings()
-        .add(MenuEntry::new("Play1"))
-        .add(MenuEntry::new("Settings1"))
-        .add(MenuEntry::new("Quit1"));
+    let options =
+        Menu::options().add(MenuEntry::new("Play1")).add(MenuEntry::new("Settings1")).add(MenuEntry::new("Quit1"));
 
     loop {
         clear_background(BLACK);
 
-        settings.ui(&mut *root_ui());
+        options.ui(&mut *root_ui());
 
         next_frame().await
     }

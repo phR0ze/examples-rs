@@ -7,6 +7,7 @@ edition = "2021"
 rivia = "0.2"
 witcher = "0.1"
 macroquad = "0.3.24"
+mqui_menu = { path = "../mqui_menu" }
 
 [package.metadata.android]
 label = "mqui_title_bar"

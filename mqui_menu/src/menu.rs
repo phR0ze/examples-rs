@@ -27,24 +27,29 @@ pub struct Menu {
     group: Group, // underly group for positioning, size and layout
 
     // Entries
-    pub entry_bg: Option<Image>,     // optional background image to use for menu buttons
-    pub entry_clk_bg: Option<Image>, // background image to use for clicked menu buttons
-    pub entry_hov_bg: Option<Image>, // background image to use for hovered menu buttons
-    pub entry_font: Option<&'static [u8]>, // font to use for button text
-    pub entry_font_color: Color,     // font color to use for button text
-    pub entry_font_size: u16,        // font size to use for button text
-    pub entry_padding: RectOffset,   // button inside is padded before allowing content
-    pub entry_spacing: f32,          // space to leave between menu entries
-    entries: Vec<MenuEntry>,         // Entries for menu
+    entry_bg: Option<Image>,           // optional background image to use for menu buttons
+    entry_clk_bg: Option<Image>,       // background image to use for clicked menu buttons
+    entry_hov_bg: Option<Image>,       // background image to use for hovered menu buttons
+    entry_font: Option<&'static [u8]>, // font to use for button text
+    entry_font_color: Color,           // font color to use for button text
+    entry_font_size: u16,              // font size to use for button text
+    entry_padding: RectOffset,         // button inside is padded before allowing content
+    entry_spacing: f32,                // space to leave between menu entries
+    entries: Vec<MenuEntry>,           // Entries for menu
 }
 
 impl Menu {
     // Create a new instance
     pub fn new() -> Menu {
+        // Separating out root_ui uses as a runtime borrow issue will occur if
+        // we don't allow each usage to complete out before trying to do another
+        // operation that depends on root_ui
+        let skin = root_ui().default_skin();
         let group = Group::new();
+
         Menu {
             id: hash!(),
-            skin: root_ui().default_skin(),
+            skin,
             group,
             entry_bg: None,
             entry_clk_bg: None,
@@ -56,15 +61,16 @@ impl Menu {
             entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
             entries: vec![],
         }
+        .update_cached_skin()
     }
 
-    /// Instantiate a new menu to be used for settings
+    /// Instantiate a new menu to be used for options
     pub fn menu() -> Menu {
         Menu::new().size(Size::ThreeQuarter(0.0, -1.0)).position(Position::TopLeft(None))
     }
 
-    /// Instantiate a new menu to be used for settings
-    pub fn settings() -> Menu {
+    /// Instantiate a new menu to be used for options
+    pub fn options() -> Menu {
         Menu::new()
             .size(Size::HalfWidth(5., 250.))
             .position(Position::TopRight(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
@@ -95,7 +101,7 @@ impl Menu {
 
     /// Set the background image used for the menu
     pub fn background(self, image: Image) -> Self {
-        Menu { group: self.group.background(image), ..self }
+        Menu { group: self.group.background(image), ..self }.update_cached_skin()
     }
 
     /// Pad inside group pushing content in from edges
@@ -106,32 +112,32 @@ impl Menu {
 
     /// Set background to use for entries
     pub fn entry_bg(self, image: Image) -> Self {
-        Menu { entry_bg: Some(image), ..self }
+        Menu { entry_bg: Some(image), ..self }.update_cached_skin()
     }
 
     /// Set background to use for entries when clicked
     pub fn entry_clk_bg(self, image: Image) -> Self {
-        Menu { entry_clk_bg: Some(image), ..self }
+        Menu { entry_clk_bg: Some(image), ..self }.update_cached_skin()
     }
 
     /// Set background to use for entries when hovering
     pub fn entry_hov_bg(self, image: Image) -> Self {
-        Menu { entry_hov_bg: Some(image), ..self }
+        Menu { entry_hov_bg: Some(image), ..self }.update_cached_skin()
     }
 
     /// Set font to use for the entries
     pub fn entry_font(self, font: &'static [u8]) -> Self {
-        Menu { entry_font: Some(font), ..self }
+        Menu { entry_font: Some(font), ..self }.update_cached_skin()
     }
 
     /// Set font size to use for the entries
-    pub fn entry_font_size<T: Into<u16>>(self, size: T) -> Self {
-        Menu { entry_font_size: size.into(), ..self }
+    pub fn entry_font_size(self, size: u16) -> Self {
+        Menu { entry_font_size: size as u16, ..self }.update_cached_skin()
     }
 
     /// Set font color to use for the entries
     pub fn entry_font_color(self, color: Color) -> Self {
-        Menu { entry_font_color: color, ..self }
+        Menu { entry_font_color: color, ..self }.update_cached_skin()
     }
 
     /// Set padding inside entry around content

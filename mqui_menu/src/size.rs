@@ -7,7 +7,7 @@ use macroquad::prelude::*;
 pub enum Size {
     HalfWidth(f32, f32), // calculates half of the screen width taking into account (margin, height)
     ThreeQuarter(f32, f32), // calculates three quarter of the screen width taking into account (margin, height)
-    Absolute(Vec2),
+    Absolute(f32, f32),  // absolute width and height of the widget
 }
 
 impl Size {
@@ -18,7 +18,7 @@ impl Size {
             Size::ThreeQuarter(margin, height) => {
                 vec2(screen_width() * 2.0 / 3.0 - margin, if *height == -1.0 { screen_height() } else { *height })
             },
-            Size::Absolute(size) => *size,
+            Size::Absolute(width, height) => vec2(*width, *height),
         }
     }
 }
@@ -31,6 +31,6 @@ impl Default for Size {
 
 impl From<Vec2> for Size {
     fn from(size: Vec2) -> Self {
-        Self::Absolute(size)
+        Self::Absolute(size.x, size.y)
     }
 }
