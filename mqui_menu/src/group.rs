@@ -61,6 +61,12 @@ impl Group {
         Group { padding: scale_rect(left, right, top, bottom), ..self }
     }
 
+    /// Pad inside group pushing content in from edges
+    /// * handles scaling for mobile
+    pub fn padding_p(self, padding: RectOffset) -> Self {
+        Group { padding: scale_rect(padding.left, padding.right, padding.top, padding.bottom), ..self }
+    }
+
     /// Set the background image to use. Takes priority over background color
     pub fn background(self, background: Image) -> Self {
         Group { background: Some(background), ..self }.update_cached_skin()

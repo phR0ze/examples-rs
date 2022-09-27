@@ -6,68 +6,78 @@ pub struct TitleBar {
     id: Id,       // title bar identifier
     group: Group, // provides layout for all titlebar widgets
 
-    title: String,             // title for the title bar
-    title_font_size: u16,      // font size for the title
-    title_font_color: Color,   // font color for the title
-    title_position: Position,  // position for the title
-    title_skin: Skin,          // title skin
-    title_font: &'static [u8], // font to use for the title
+    title: String,                     // title for the title bar
+    title_font_size: u16,              // font size for the title
+    title_font_color: Color,           // font color for the title
+    title_position: Position,          // position for the title
+    title_skin: Option<Skin>,          // title skin
+    title_font: Option<&'static [u8]>, // font to use for the title
 
-    menu: bool,          // true if the menu button was pressed
-    menu_enabled: bool,  // enable support for menu when true
-    menu_skin: Skin,     // menu button skin
-    menu_btn: Image,     // button image to use
-    menu_btn_clk: Image, // button image to use when clicked
+    menu: bool,                  // true if the menu button was pressed
+    menu_enabled: bool,          // enable support for menu when true
+    menu_skin: Option<Skin>,     // menu button skin
+    menu_btn: Option<Image>,     // button image to use
+    menu_btn_clk: Option<Image>, // button image to use when clicked
 
-    options: bool,          // true if the options button was pressed
-    options_enabled: bool,  // enable support for options when true
-    options_skin: Skin,     // options button skin
-    options_btn: Image,     // button image to use
-    options_btn_clk: Image, // button image to use when clicked
+    options: bool,                  // true if the options button was pressed
+    options_enabled: bool,          // enable support for options when true
+    options_skin: Option<Skin>,     // options button skin
+    options_btn: Option<Image>,     // button image to use
+    options_btn_clk: Option<Image>, // button image to use when clicked
+}
+
+impl Default for TitleBar {
+    fn default() -> Self {
+        TitleBar {
+            id: hash!(),
+            group: Group::new(),
+            title: String::default(),
+            title_font: None,
+            title_font_size: scale(30.0) as u16,
+            title_font_color: Color::from_rgba(250, 250, 250, 250),
+            title_position: Position::Center,
+            title_skin: None,
+            menu: false,
+            menu_enabled: true,
+            menu_skin: None,
+            menu_btn: None,
+            menu_btn_clk: None,
+            options: false,
+            options_enabled: true,
+            options_skin: None,
+            options_btn: None,
+            options_btn_clk: None,
+        }
+    }
 }
 
 impl TitleBar {
     /// Create a new instance
     pub fn new<T: AsRef<str>>(title: T) -> Self {
+        let title_bar = TitleBar::default();
+
         let title_font = include_bytes!("../assets/HTOWERT.TTF");
         let menu_btn = Image::from_file_with_format(include_bytes!("../assets/menu_btn.png"), None);
         let menu_btn_clk = Image::from_file_with_format(include_bytes!("../assets/menu_btn_clk.png"), None);
         let options_btn = Image::from_file_with_format(include_bytes!("../assets/options_btn.png"), None);
         let options_btn_clk = Image::from_file_with_format(include_bytes!("../assets/options_btn_clk.png"), None);
 
-        // Calculate title height
+        // Calculate height of title bar
+        let title_str = title.as_ref().to_string();
         let title_font_size = scale(30.0);
-        let title_height = title_font_size + scale(10.0);
+        let padding = RectOffset::new(15., 15., 5., 5.);
+        root_ui().push_skin(&title_skin);
+        let title_size = root_ui().calc_size(&title_str);
+        let height = title_size.y + padding.top + padding.bottom;
+        root_ui().pop_skin();
 
         let group = Group::new()
-            .size(Size::FullWidth(title_height))
+            .size(Size::FullWidth(height))
             .position(Position::TopCenter)
-            .padding(15., 15., 5., 5.);
-        let title_skin = root_ui().default_skin();
-        let menu_skin = root_ui().default_skin();
-        let options_skin = root_ui().default_skin();
+            .padding_p(padding)
+            .border_color(BLUE);
 
-        TitleBar {
-            id: hash!(),
-            group,
-            title: title.as_ref().to_string(),
-            title_font,
-            title_font_size: title_font_size as u16,
-            title_font_color: Color::from_rgba(250, 250, 250, 250),
-            title_position: Position::Center,
-            title_skin,
-            menu: false,
-            menu_enabled: true,
-            menu_skin,
-            menu_btn,
-            menu_btn_clk,
-            options: false,
-            options_enabled: true,
-            options_skin,
-            options_btn,
-            options_btn_clk,
-        }
-        .update_cached_skins()
+        title_bar
     }
 
     /// Set the titlebar id
@@ -116,6 +126,17 @@ impl TitleBar {
     pub fn title_position<T: Into<Position>>(self, pos: T) -> Self {
         TitleBar { title_position: pos.into(), ..self }
     }
+
+    //  menu: false,
+    //         menu_enabled: true,
+    //         menu_skin: None,
+    //         menu_btn: None,
+    //         menu_btn_clk: None,
+    //         options: false,
+    //         options_enabled: true,
+    //         options_skin: None,
+    //         options_btn: None,
+    //         options_btn_clk: None,
 
     /// Update the cached macroquad skin
     fn update_cached_skins(self) -> Self {
