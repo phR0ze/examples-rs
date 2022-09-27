@@ -2,19 +2,34 @@
 use macroquad::prelude::*;
 
 /// Size provides dynamic screen calculations for sizing of widgets
-/// * -1 for height or width value indicates full height
 #[derive(Debug, Copy, Clone)]
 pub enum Size {
-    HalfWidth(f32, f32), // calculates half of the screen width taking into account (margin, height)
-    ThreeQuarter(f32, f32), // calculates three quarter of the screen width taking into account (margin, height)
-    Absolute(f32, f32),  // absolute width and height of the widget
+    /// Full width of screen with the given height
+    /// * -1.0 for height value indicates full height
+    FullWidth(f32),
+
+    /// Half width of screen taking into account (margin, height)
+    /// * -1.0 for height value indicates full height
+    HalfWidth(f32, f32),
+
+    /// Three quarter width of screen taking into account (margin, height)
+    /// * -1.0 for height value indicates full height
+    ThreeQuarter(f32, f32),
+
+    /// Absolute width and height of the widget    
+    Absolute(f32, f32),
 }
 
 impl Size {
     /// Calculate the size vector based on the given component size
     pub fn vec2(&self) -> Vec2 {
         match self {
-            Size::HalfWidth(margin, height) => vec2(screen_width() / 2.0 - margin, *height),
+            Size::FullWidth(height) => {
+                vec2(screen_width(), if *height == -1.0 { screen_height() } else { *height })
+            },
+            Size::HalfWidth(margin, height) => {
+                vec2(screen_width() / 2.0 - margin, if *height == -1.0 { screen_height() } else { *height })
+            },
             Size::ThreeQuarter(margin, height) => {
                 vec2(screen_width() * 2.0 / 3.0 - margin, if *height == -1.0 { screen_height() } else { *height })
             },

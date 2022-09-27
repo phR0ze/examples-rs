@@ -55,7 +55,7 @@ impl Menu {
             entry_clk_bg: None,
             entry_hov_bg: None,
             entry_font: None,
-            entry_font_size: scale(40.) as u16,
+            entry_font_size: scale(30.) as u16,
             entry_font_color: colors::BLACK,
             entry_spacing: scale(10.),
             entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
@@ -192,7 +192,7 @@ impl Menu {
 
     /// Draw the menu on the screen
     pub fn ui(&self, ui: &mut Ui) {
-        self.group.ui(ui, |ui, size| {
+        self.group.ui(ui, |ui, size, pos| {
             ui.push_skin(&self.skin);
 
             // Draw the regular menu entries

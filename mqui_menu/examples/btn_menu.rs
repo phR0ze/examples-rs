@@ -26,11 +26,10 @@ async fn main() {
         .position(Position::Center)
         .entry_font(font_htowert)
         .entry_font_color(Color::from_rgba(180, 180, 100, 255))
-        .entry_font_size(40)
         .padding(20.0, 20.0, 20.0, 20.0)
-        .add(MenuEntry::new("Play1"))
-        .add(MenuEntry::new("Settings1"))
-        .add(MenuEntry::new("Quit1"));
+        .add(MenuEntry::new("Play"))
+        .add(MenuEntry::new("Settings"))
+        .add(MenuEntry::new("Quit"));
 
     loop {
         clear_background(BLACK);

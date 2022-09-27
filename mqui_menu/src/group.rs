@@ -100,9 +100,9 @@ impl Group {
         Group { skin: Skin { group_style, button_style, ..ui.default_skin() }, ..self }
     }
 
-    /// Draw the group. The callback `f` will be called with the current `Ui` instance and
-    /// the available content size of the group as arguments
-    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&self, ui: &mut Ui, f: F) {
+    /// Draw the group and call the callback with group's size and position.
+    /// * `f` is a callback with params (Ui, group size, group position)
+    pub fn ui<F: FnOnce(&mut Ui, Vec2, Vec2)>(&self, ui: &mut Ui, f: F) {
         ui.push_skin(&self.skin);
 
         // Draw button as workaround for background image
@@ -120,7 +120,7 @@ impl Group {
         // the non-interactive button.
         widgets::Group::new(hash!(), group_size).position(group_position).ui(ui, |ui| {
             ui.pop_skin();
-            f(ui, group_size)
+            f(ui, group_size, group_position)
         });
 
         // Together they form window like functionality that can resize dynamnically
