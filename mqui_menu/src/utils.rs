@@ -33,15 +33,11 @@ pub fn scale_rect(left: f32, right: f32, top: f32, bottom: f32) -> RectOffset {
     )
 }
 
-/// Calculate text height base on exact rendered text size, falling back on default size
-pub fn text_height(skin: Option<&Skin>) -> f32 {
-    match &skin {
-        Some(x) => {
-            root_ui().push_skin(x);
-            let entry_height = root_ui().calc_size("test").y;
-            root_ui().pop_skin();
-            entry_height
-        },
-        None => scale(DEFAULT_FONT_SIZE),
-    }
+/// Calculate text height base on exact rendered text size
+/// * `skin` requires the `label_style` be overridden to get accurate values
+pub fn text_height(skin: &Skin) -> f32 {
+    root_ui().push_skin(skin);
+    let entry_height = root_ui().calc_size("test").y;
+    root_ui().pop_skin();
+    entry_height
 }

@@ -1,6 +1,33 @@
 //! Size provides additional functionality around sizing widgets
 use macroquad::prelude::*;
 
+/// Width provides dynamic screen calculations for width of widgets
+#[derive(Debug, Copy, Clone)]
+pub enum Width {
+    /// Full width of screen with optional margin
+    Full(Option<RectOffset>),
+
+    /// Half width of screen with optional margin
+    Half(Option<RectOffset>),
+
+    /// Three quarter width of screen with optional margin
+    ThreeQuarter(Option<RectOffset>),
+}
+
+impl Width {
+    /// Calculate the width
+    pub fn f32(&self) -> f32 {
+        match self {
+            Width::Full(None) => screen_width(),
+            Width::Full(Some(margin)) => screen_width() - margin.left - margin.right,
+            Width::Half(None) => screen_width() / 2.0,
+            Width::Half(Some(margin)) => (screen_width() - margin.left - margin.right) / 2.0,
+            Width::ThreeQuarter(None) => screen_width() * 2.0 / 3.0,
+            Width::ThreeQuarter(Some(margin)) => (screen_width() - margin.left - margin.right) * 2.0 / 3.0,
+        }
+    }
+}
+
 /// Size provides dynamic screen calculations for sizing of widgets
 #[derive(Debug, Copy, Clone)]
 pub enum Size {

@@ -4,6 +4,7 @@
 //! ```
 //! use mq_menu::prelude::*;
 //! ```
+mod button;
 mod group;
 mod menu;
 mod position;

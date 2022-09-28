@@ -1,5 +1,5 @@
-//! Menu encapsulates and automates the manipulation of a set of widgets to provide
-//! typical menu type functionality.
+//! Button encapsulates and automates the manipulation of a set of widgets to provide
+//! typical button type functionality.
 use crate::{
     group::Group,
     position::Position,
@@ -13,44 +13,28 @@ use macroquad::{
     ui::{root_ui, widgets, Id, Skin, Ui},
 };
 
-#[derive(Debug, Default, Clone)]
-pub struct MenuEntry {
-    pub title: String,
-}
-
-impl MenuEntry {
-    /// Create a new instance
-    pub fn new<T: AsRef<str>>(title: T) -> Self {
-        MenuEntry { title: title.as_ref().to_string() }
-    }
-}
-
 #[derive(Debug, Clone)]
-pub struct Menu {
-    id: Id,       // menu identifier
-    group: Group, // underly group for positioning, size and layout
-
-    // Entries
-    entry_bg: Option<Image>,           // optional background image to use for menu buttons
-    entry_clk_bg: Option<Image>,       // background image to use for clicked menu buttons
-    entry_bg_color: Option<Color>,     // background color to use for entries when background image is not set
-    entry_font: Option<&'static [u8]>, // font to use for button text
-    entry_font_color: Color,           // font color to use for button text
-    entry_font_size: u16,              // font size to use for button text
-    entry_padding: RectOffset,         // button inside is padded before allowing content
-    entry_spacing: f32,                // space to leave between menu entries
-    entry_position: Position,          // position of entries relative to menu
-    entry_width: Option<Width>,        // width of the entry
-    entries: Vec<MenuEntry>,           // entries for menu
-    entry_clicked: Option<MenuEntry>,  // track if an entry has been clicked
-    entry_title_skin: Option<Skin>,    // skin to use for the entry titles
-    entry_button_skin: Option<Skin>,   // cached MQ skin for drawing
-    entry_title_height: f32,           // height of entry text to account for in sizing
+pub struct Button {
+    entry_bg: Option<Image>,            // optional background image to use for button buttons
+    entry_clk_bg: Option<Image>,        // background image to use for clicked button buttons
+    entry_bg_color: Option<Color>,      // background color to use for entries when background image is not set
+    entry_font: Option<&'static [u8]>,  // font to use for button text
+    entry_font_color: Color,            // font color to use for button text
+    entry_font_size: u16,               // font size to use for button text
+    entry_padding: RectOffset,          // button inside is padded before allowing content
+    entry_spacing: f32,                 // space to leave between button entries
+    entry_position: Position,           // position of entries relative to button
+    entry_width: Option<Width>,         // width of the entry
+    entries: Vec<ButtonEntry>,          // entries for button
+    entry_clicked: Option<ButtonEntry>, // track if an entry has been clicked
+    entry_title_skin: Option<Skin>,     // skin to use for the entry titles
+    entry_button_skin: Option<Skin>,    // cached MQ skin for drawing
+    entry_title_height: f32,            // height of entry text to account for in sizing
 }
 
-impl Default for Menu {
+impl Default for Button {
     fn default() -> Self {
-        Menu {
+        Button {
             id: hash!(),
             group: Group::new(),
             entry_bg: None,
@@ -72,116 +56,116 @@ impl Default for Menu {
     }
 }
 
-impl Menu {
+impl Button {
     // Create a new instance
-    pub fn new() -> Menu {
-        Menu::default().entry_font(include_bytes!("../assets/HTOWERT.TTF")).update_entry_button_skin()
+    pub fn new() -> Button {
+        Button::default().entry_font(include_bytes!("../assets/HTOWERT.TTF")).update_entry_button_skin()
     }
 
-    /// Instantiate a new menu to be used for options
-    pub fn menu() -> Menu {
-        Menu::new()
+    /// Instantiate a new button to be used for options
+    pub fn button() -> Button {
+        Button::new()
             .size(Size::ThreeQuarter(0.0, -1.0))
             .position(Position::Left(None))
             .entry_width(Width::ThreeQuarter(None))
     }
 
-    /// Instantiate a new menu to be used for options
-    pub fn options() -> Menu {
-        Menu::new()
+    /// Instantiate a new button to be used for options
+    pub fn options() -> Button {
+        Button::new()
             .size(Size::HalfWidth(5., 250.))
             .position(Position::Right(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
     }
 
-    /// Set the menu id
+    /// Set the button id
     pub fn id<T: Into<u64>>(self, id: T) -> Self {
-        Menu { id: id.into(), ..self }
+        Button { id: id.into(), ..self }
     }
 
-    /// Add a new entry to the menu
-    pub fn add(self, entry: MenuEntry) -> Self {
+    /// Add a new entry to the button
+    pub fn add(self, entry: ButtonEntry) -> Self {
         let mut entries = self.entries.to_vec();
         entries.push(entry);
-        Menu { entries, ..self }
+        Button { entries, ..self }
     }
 
-    /// Set the menu's size
+    /// Set the button's size
     /// * handles scaling for mobile
     pub fn size(self, size: Size) -> Self {
-        Menu { group: self.group.size(size), ..self }
+        Button { group: self.group.size(size), ..self }
     }
 
-    /// Position the menu on the screen
+    /// Position the button on the screen
     pub fn position<T: Into<Position>>(self, pos: T) -> Self {
-        Menu { group: self.group.position(pos), ..self }
+        Button { group: self.group.position(pos), ..self }
     }
 
-    /// Set the background image used for the menu
+    /// Set the background image used for the button
     pub fn background(self, image: Image) -> Self {
-        Menu { group: self.group.background(image), ..self }.update_entry_button_skin()
+        Button { group: self.group.background(image), ..self }.update_entry_button_skin()
     }
 
-    /// Set the background color used for the menu
+    /// Set the background color used for the button
     pub fn background_color(self, color: Color) -> Self {
-        Menu { group: self.group.background_color(color), ..self }.update_entry_button_skin()
+        Button { group: self.group.background_color(color), ..self }.update_entry_button_skin()
     }
 
     /// Pad inside group pushing content in from edges
     /// * handles scaling for mobile
     pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Menu { group: self.group.padding(left, right, top, bottom), ..self }
+        Button { group: self.group.padding(left, right, top, bottom), ..self }
     }
 
     /// Set entry background images to use for entries
     pub fn entry_images(self, regular: Image, clicked: Image) -> Self {
-        Menu { entry_bg: Some(regular), entry_clk_bg: Some(clicked), ..self }.update_entry_button_skin()
+        Button { entry_bg: Some(regular), entry_clk_bg: Some(clicked), ..self }.update_entry_button_skin()
     }
 
     /// Set entry background color to use for the entries
     pub fn entry_bg_color(self, color: Color) -> Self {
-        Menu { entry_bg_color: Some(color), ..self }.update_entry_button_skin()
+        Button { entry_bg_color: Some(color), ..self }.update_entry_button_skin()
     }
 
     /// Set font to use for the entries
     pub fn entry_font(self, font: &'static [u8]) -> Self {
-        Menu { entry_font: Some(font), ..self }.update_entry_title_skin()
+        Button { entry_font: Some(font), ..self }.update_entry_title_skin()
     }
 
     /// Set font size to use for the entries
     /// * handles scaling for mobile
     pub fn entry_font_size(self, size: u16) -> Self {
-        Menu { entry_font_size: scale(size as f32) as u16, ..self }.update_entry_button_skin()
+        Button { entry_font_size: scale(size as f32) as u16, ..self }.update_entry_button_skin()
     }
 
     /// Set font color to use for the entries
     pub fn entry_font_color(self, color: Color) -> Self {
-        Menu { entry_font_color: color, ..self }.update_entry_button_skin()
+        Button { entry_font_color: color, ..self }.update_entry_button_skin()
     }
 
     /// Set padding inside entry around content
     pub fn entry_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Menu { entry_padding: scale_rect(left, right, top, bottom), ..self }
+        Button { entry_padding: scale_rect(left, right, top, bottom), ..self }
     }
 
     /// Set the entry width
     pub fn entry_width(self, width: Width) -> Self {
-        Menu { entry_width: Some(width), ..self }
+        Button { entry_width: Some(width), ..self }
     }
 
-    /// Set space between menu entries
+    /// Set space between button entries
     pub fn entry_spacing(self, spacing: f32) -> Self {
-        Menu { entry_spacing: scale(spacing), ..self }
+        Button { entry_spacing: scale(spacing), ..self }
     }
 
     /// Returns the entry that was clicked
-    pub fn entry_clicked(&self) -> Option<MenuEntry> {
+    pub fn entry_clicked(&self) -> Option<ButtonEntry> {
         match &self.entry_clicked {
             Some(x) => Some(x.clone()),
             None => None,
         }
     }
 
-    /// Update the entry title skin based on the persisted menu properties
+    /// Update the entry title skin based on the persisted button properties
     fn update_entry_title_skin(self) -> Self {
         let mut style = root_ui()
             .style_builder()
@@ -195,10 +179,10 @@ impl Menu {
         let label_style = style.build();
         let skin = Skin { label_style, ..root_ui().default_skin() };
         let entry_title_height = text_height(&skin);
-        Menu { entry_title_height, entry_title_skin: Some(skin), ..self }
+        Button { entry_title_height, entry_title_skin: Some(skin), ..self }
     }
 
-    /// Update the entry button skin based on the persisted menu properties
+    /// Update the entry button skin based on the persisted button properties
     fn update_entry_button_skin(self) -> Self {
         let mut style = root_ui()
             .style_builder()
@@ -219,13 +203,13 @@ impl Menu {
             style = style.font(font).unwrap();
         }
         let button_style = style.build();
-        Menu { entry_button_skin: Some(Skin { button_style, ..root_ui().default_skin() }), ..self }
+        Button { entry_button_skin: Some(Skin { button_style, ..root_ui().default_skin() }), ..self }
     }
 
-    /// Draw the menu on the screen
+    /// Draw the button on the screen
     pub fn ui(&mut self, ui: &mut Ui) {
         self.group.ui(ui, |ui, size| {
-            // Draw the regular menu entries
+            // Draw the regular button entries
             for (i, entry) in self.entries.iter().enumerate() {
                 let entry_size = match self.entry_width {
                     Some(x) => {
