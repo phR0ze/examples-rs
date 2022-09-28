@@ -5,7 +5,7 @@ use macroquad::{
     color::colors,
     hash,
     prelude::*,
-    ui::{root_ui, widgets, Id, Skin, Style, Ui},
+    ui::{root_ui, widgets, Id, Skin, Ui},
 };
 
 #[derive(Debug, Default, Clone)]
@@ -22,58 +22,65 @@ impl MenuEntry {
 
 #[derive(Debug, Clone)]
 pub struct Menu {
-    id: Id,       // menu identifier
-    skin: Skin,   // cached MQ skin for drawing
-    group: Group, // underly group for positioning, size and layout
+    id: Id,             // menu identifier
+    group: Group,       // underly group for positioning, size and layout
+    skin: Option<Skin>, // cached MQ skin for drawing
 
     // Entries
     entry_bg: Option<Image>,           // optional background image to use for menu buttons
     entry_clk_bg: Option<Image>,       // background image to use for clicked menu buttons
-    entry_hov_bg: Option<Image>,       // background image to use for hovered menu buttons
+    entry_bg_color: Option<Color>,     // background color to use for entries when background image is not set
     entry_font: Option<&'static [u8]>, // font to use for button text
     entry_font_color: Color,           // font color to use for button text
     entry_font_size: u16,              // font size to use for button text
     entry_padding: RectOffset,         // button inside is padded before allowing content
     entry_spacing: f32,                // space to leave between menu entries
-    entries: Vec<MenuEntry>,           // Entries for menu
+    entry_position: Position,          // position of entries relative to menu
+    entry_size: Option<Size>,          // size of the entry
+    entries: Vec<MenuEntry>,           // entries for menu
+    entry_clicked: Option<MenuEntry>,  // track if an entry has been clicked
+}
+
+impl Default for Menu {
+    fn default() -> Self {
+        Menu {
+            id: hash!(),
+            skin: None,
+            group: Group::new(),
+            entry_bg: None,
+            entry_clk_bg: None,
+            entry_bg_color: None,
+            entry_font: None,
+            entry_font_size: scale(DEFAULT_FONT_SIZE) as u16,
+            entry_font_color: colors::BLACK,
+            entry_spacing: scale(10.),
+            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
+            entry_position: Position::Left(None),
+            entry_size: None,
+            entries: vec![],
+            entry_clicked: None,
+        }
+    }
 }
 
 impl Menu {
     // Create a new instance
     pub fn new() -> Menu {
-        // Separating out root_ui uses as a runtime borrow issue will occur if
-        // we don't allow each usage to complete out before trying to do another
-        // operation that depends on root_ui
-        let skin = root_ui().default_skin();
-        let group = Group::new();
-
-        Menu {
-            id: hash!(),
-            skin,
-            group,
-            entry_bg: None,
-            entry_clk_bg: None,
-            entry_hov_bg: None,
-            entry_font: None,
-            entry_font_size: scale(30.) as u16,
-            entry_font_color: colors::BLACK,
-            entry_spacing: scale(10.),
-            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
-            entries: vec![],
-        }
-        .update_cached_skin()
+        Menu::default().entry_font(include_bytes!("../assets/HTOWERT.TTF"))
     }
 
     /// Instantiate a new menu to be used for options
     pub fn menu() -> Menu {
-        Menu::new().size(Size::ThreeQuarter(0.0, -1.0)).position(Position::TopLeft(None))
+        let menu = Menu::new().size(Size::ThreeQuarter(0.0, -1.0)).position(Position::Left(None));
+        let entry_height = text_height(menu.skin.as_ref()) + menu.entry_padding.top + menu.entry_padding.bottom;
+        menu.entry_size(Size::ThreeQuarter(0.0, entry_height))
     }
 
     /// Instantiate a new menu to be used for options
     pub fn options() -> Menu {
         Menu::new()
             .size(Size::HalfWidth(5., 250.))
-            .position(Position::TopRight(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
+            .position(Position::Right(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
     }
 
     /// Set the menu id
@@ -104,25 +111,25 @@ impl Menu {
         Menu { group: self.group.background(image), ..self }.update_cached_skin()
     }
 
+    /// Set the background color used for the menu
+    pub fn background_color(self, color: Color) -> Self {
+        Menu { group: self.group.background_color(color), ..self }.update_cached_skin()
+    }
+
     /// Pad inside group pushing content in from edges
     /// * handles scaling for mobile
     pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Menu { group: self.group.padding(left, right, top, bottom), ..self }
     }
 
-    /// Set background to use for entries
-    pub fn entry_bg(self, image: Image) -> Self {
-        Menu { entry_bg: Some(image), ..self }.update_cached_skin()
+    /// Set entry background images to use for entries
+    pub fn entry_images(self, regular: Image, clicked: Image) -> Self {
+        Menu { entry_bg: Some(regular), entry_clk_bg: Some(clicked), ..self }.update_cached_skin()
     }
 
-    /// Set background to use for entries when clicked
-    pub fn entry_clk_bg(self, image: Image) -> Self {
-        Menu { entry_clk_bg: Some(image), ..self }.update_cached_skin()
-    }
-
-    /// Set background to use for entries when hovering
-    pub fn entry_hov_bg(self, image: Image) -> Self {
-        Menu { entry_hov_bg: Some(image), ..self }.update_cached_skin()
+    /// Set entry background color to use for the entries
+    pub fn entry_bg_color(self, color: Color) -> Self {
+        Menu { entry_bg_color: Some(color), ..self }.update_cached_skin()
     }
 
     /// Set font to use for the entries
@@ -131,8 +138,9 @@ impl Menu {
     }
 
     /// Set font size to use for the entries
+    /// * handles scaling for mobile
     pub fn entry_font_size(self, size: u16) -> Self {
-        Menu { entry_font_size: size as u16, ..self }.update_cached_skin()
+        Menu { entry_font_size: scale(size as f32) as u16, ..self }.update_cached_skin()
     }
 
     /// Set font color to use for the entries
@@ -145,9 +153,23 @@ impl Menu {
         Menu { entry_padding: scale_rect(left, right, top, bottom), ..self }
     }
 
+    /// Set the entry size. The desired font must be set at this point to get an accurate
+    /// * handles scaling for mobile
+    pub fn entry_size(self, size: Size) -> Self {
+        Menu { entry_size: Some(size), ..self }
+    }
+
     /// Set space between menu entries
     pub fn entry_spacing(self, spacing: f32) -> Self {
         Menu { entry_spacing: scale(spacing), ..self }
+    }
+
+    /// Returns the entry that was clicked
+    pub fn entry_clicked(&self) -> Option<MenuEntry> {
+        match &self.entry_clicked {
+            Some(x) => Some(x.clone()),
+            None => None,
+        }
     }
 
     /// Update the cached macroquad skin based on the group's current properties
@@ -161,45 +183,39 @@ impl Menu {
         if let Some(background) = &self.entry_bg {
             style = style.background(background.clone());
         }
-        if let Some(background) = &self.entry_hov_bg {
-            style = style.background_hovered(background.clone());
-        }
         if let Some(background) = &self.entry_clk_bg {
             style = style.background_clicked(background.clone());
+        }
+        if let Some(color) = &self.entry_bg_color {
+            style = style.color(*color).color_clicked(*color).color_hovered(*color);
         }
         if let Some(font) = self.entry_font {
             style = style.font(font).unwrap();
         }
         let button_style = style.build();
-        Menu { skin: Skin { button_style, ..root_ui().default_skin() }, ..self }
-    }
-
-    // Return entry height based on font size and padding
-    fn entry_height(&self) -> f32 {
-        self.entry_font_size as f32 + self.entry_padding.top + self.entry_padding.bottom
-    }
-
-    /// Return entry size based on given content size and entry font size
-    fn entry_size(&self, content_size: Vec2) -> Vec2 {
-        vec2(content_size.x, self.entry_height())
-    }
-
-    /// Return entry position based on the given index location and spacing
-    fn entry_pos(&self, index: usize) -> Vec2 {
-        let spacing = if index != 0 && self.entry_spacing > 0. { index as f32 * self.entry_spacing } else { 0. };
-        vec2(0.0, index as f32 * self.entry_height() + spacing)
+        Menu { skin: Some(Skin { button_style, ..root_ui().default_skin() }), ..self }
     }
 
     /// Draw the menu on the screen
-    pub fn ui(&self, ui: &mut Ui) {
+    pub fn ui(&mut self, ui: &mut Ui) {
         self.group.ui(ui, |ui, size| {
-            ui.push_skin(&self.skin);
+            ui.push_skin(self.skin.as_ref().unwrap());
 
             // Draw the regular menu entries
             for (i, entry) in self.entries.iter().enumerate() {
-                let size = self.entry_size(size);
-                let pos = self.entry_pos(i);
-                widgets::Button::new(entry.title.as_str()).size(size).position(pos).ui(ui);
+                let entry_size = match self.entry_size {
+                    Some(x) => x.vec2(),
+                    None => vec2(100., 100.),
+                };
+
+                // Calculate entry position
+                let spacing = if i != 0 && self.entry_spacing > 0. { i as f32 * self.entry_spacing } else { 0. };
+                let mut entry_pos = self.entry_position.relative(entry_size, size);
+                entry_pos.y += entry_size.y * i as f32 + spacing;
+                // if widgets::Button::new("").size(entry_size).position(entry_pos).ui(ui) {
+                //     self.entry_clicked = Some(entry.clone());
+                // }
+                widgets::Label::new(entry.title.as_str()).position(entry_pos);
             }
 
             ui.pop_skin();

@@ -15,14 +15,11 @@ async fn main() {
     let font_htowert = include_bytes!("../assets/HTOWERT.TTF");
     let menu_bg = Image::from_file_with_format(include_bytes!("../assets/menu_bg.png"), None);
     let entry_bg = Image::from_file_with_format(include_bytes!("../assets/entry_bg.png"), None);
-    let entry_hov_bg = Image::from_file_with_format(include_bytes!("../assets/entry_hov_bg.png"), None);
     let entry_clk_bg = Image::from_file_with_format(include_bytes!("../assets/entry_clk_bg.png"), None);
-    let menu = Menu::new()
+    let mut menu = Menu::new()
         .size(Size::Absolute(250.0, 250.0))
         .background(menu_bg)
-        .entry_bg(entry_bg)
-        .entry_clk_bg(entry_clk_bg)
-        .entry_hov_bg(entry_hov_bg)
+        .entry_images(entry_bg, entry_clk_bg)
         .position(Position::Center)
         .entry_font(font_htowert)
         .entry_font_color(Color::from_rgba(180, 180, 100, 255))

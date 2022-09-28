@@ -4,15 +4,16 @@ use macroquad::prelude::*;
 #[derive(Debug, Copy, Clone)]
 pub enum Position {
     Center,
+
     TopCenter,
 
     /// Position in the top right of the containing group
     /// * Optional margin to allow around the position
-    TopRight(Option<RectOffset>),
+    Right(Option<RectOffset>),
 
-    /// Position in the top left of the containing group
+    /// Position on the top left of the containing group
     /// * Optional margin to allow around the position
-    TopLeft(Option<RectOffset>),
+    Left(Option<RectOffset>),
 
     Custom(Vec2),
 }
@@ -30,10 +31,10 @@ impl Position {
         match self {
             Position::Center => vec2(group_size.x - size.x, group_size.y - size.y) / 2.0,
             Position::TopCenter => vec2((group_size.x - size.x) / 2.0, 0.0),
-            Position::TopRight(Some(margin)) => vec2(0.0, 0.0),
-            Position::TopRight(None) => vec2(0.0, 0.0),
-            Position::TopLeft(Some(margin)) => vec2(0.0, 0.0),
-            Position::TopLeft(None) => vec2(0.0, 0.0),
+            Position::Right(Some(margin)) => vec2(0.0, 0.0),
+            Position::Right(None) => vec2(0.0, 0.0),
+            Position::Left(Some(margin)) => vec2(0.0, 0.0),
+            Position::Left(None) => vec2(0.0, 0.0),
             Position::Custom(position) => *position,
         }
     }
@@ -44,10 +45,10 @@ impl Position {
         match self {
             Position::Center => vec2(screen_width() - size.x, screen_height() - size.y) / 2.0,
             Position::TopCenter => vec2(screen_width() - size.x, 0.0) / 2.0,
-            Position::TopRight(Some(margin)) => vec2(screen_width() - size.x - margin.right, margin.top),
-            Position::TopRight(None) => vec2(screen_width() - size.x, 0.0),
-            Position::TopLeft(Some(margin)) => vec2(margin.left, margin.top),
-            Position::TopLeft(None) => vec2(0.0, 0.0),
+            Position::Right(Some(margin)) => vec2(screen_width() - size.x - margin.right, margin.top),
+            Position::Right(None) => vec2(screen_width() - size.x, 0.0),
+            Position::Left(Some(margin)) => vec2(margin.left, margin.top),
+            Position::Left(None) => vec2(0.0, 0.0),
             Position::Custom(position) => *position,
         }
     }

@@ -70,16 +70,14 @@ impl TitleBar {
         let title_font = include_bytes!("../assets/HTOWERT.TTF");
         title_bar = title_bar.title_skin(Color::from_rgba(250, 250, 250, 250), 30, title_font);
 
-        // Calculate title font height
-        root_ui().push_skin(title_bar.title_skin.as_ref().unwrap());
-        let title_height = root_ui().calc_size(&title_bar.title).y;
-        root_ui().pop_skin();
+        // Calculate group height based on title font height
+        let padding = RectOffset::new(15., 15., 5., 5.);
+        let group_height = text_height(title_bar.title_skin.as_ref()) + padding.top + padding.bottom;
 
         // Create underlying group
-        let padding = RectOffset::new(15., 15., 5., 5.);
         title_bar = TitleBar {
             group: Group::new()
-                .size(Size::FullWidth(title_height + padding.top + padding.bottom))
+                .size(Size::FullWidth(group_height))
                 .position(Position::TopCenter)
                 .padding_p(padding),
             ..title_bar
@@ -135,7 +133,7 @@ impl TitleBar {
         TitleBar { menu_enabled: enabled, ..self }
     }
 
-    /// Set the menu skin to use
+    /// Set the menu skin configuration to use
     pub fn menu_skin(self, regular: Image, clicked: Image) -> Self {
         let ui = root_ui();
         let style = ui
@@ -158,7 +156,7 @@ impl TitleBar {
         TitleBar { options_enabled: enabled, ..self }
     }
 
-    /// Set the options skin to use
+    /// Set the options skin configuration to use
     pub fn options_skin(self, regular: Image, clicked: Image) -> Self {
         let ui = root_ui();
         let style = ui
@@ -189,9 +187,9 @@ impl TitleBar {
             .unwrap()
             .build();
         TitleBar {
+            title_font: Some(font),
             title_font_color: color,
             title_font_size: size,
-            title_font: Some(font),
             title_skin: Some(Skin { label_style: style, ..ui.default_skin() }),
             ..self
         }
