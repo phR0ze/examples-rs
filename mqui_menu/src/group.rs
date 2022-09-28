@@ -103,12 +103,31 @@ impl Group {
                 .color_clicked(self.background_color)
                 .build()
         };
-        Group { skin: Skin { group_style, button_style, ..ui.default_skin() }, ..self }
+
+        // Hide the group scrollbar when content expands beyond the group size
+        let scroll_width = 0.0;
+        let scroll_multiplier = 0.0;
+        let scrollbar_style = ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
+        let scrollbar_handle_style =
+            ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
+
+        Group {
+            skin: Skin {
+                group_style,
+                button_style,
+                scrollbar_style,
+                scrollbar_handle_style,
+                scroll_width,
+                scroll_multiplier,
+                ..ui.default_skin()
+            },
+            ..self
+        }
     }
 
     /// Draw the group and call the callback with group's size and position.
-    /// * `f` is a callback with params (Ui, group size, group position)
-    pub fn ui<F: FnOnce(&mut Ui, Vec2, Vec2)>(&self, ui: &mut Ui, f: F) {
+    /// * `f` is a callback with params (Ui, size)
+    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&self, ui: &mut Ui, f: F) {
         ui.push_skin(&self.skin);
 
         // Draw button as workaround for background image
@@ -126,7 +145,7 @@ impl Group {
         // the non-interactive button.
         widgets::Group::new(hash!(), group_size).position(group_position).ui(ui, |ui| {
             ui.pop_skin();
-            f(ui, group_size, group_position)
+            f(ui, group_size)
         });
 
         // Together they form window like functionality that can resize dynamnically

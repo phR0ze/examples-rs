@@ -192,7 +192,7 @@ impl Menu {
 
     /// Draw the menu on the screen
     pub fn ui(&self, ui: &mut Ui) {
-        self.group.ui(ui, |ui, size, pos| {
+        self.group.ui(ui, |ui, size| {
             ui.push_skin(&self.skin);
 
             // Draw the regular menu entries

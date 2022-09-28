@@ -26,13 +26,10 @@ impl Position {
     /// Calculate the position vector based on the given containing group
     /// * `size` is the size of the target component to position
     /// * `group_size` is the containing group's size
-    /// * `group_pos` is the containing group's position
-    pub fn relative(&self, size: Vec2, group_size: Vec2, group_pos: Vec2) -> Vec2 {
+    pub fn relative(&self, size: Vec2, group_size: Vec2) -> Vec2 {
         match self {
-            Position::Center => {
-                vec2(group_pos.x + group_size.x - size.x, group_pos.y + group_size.y - size.y) / 2.0
-            },
-            Position::TopCenter => vec2(0.0, 0.0),
+            Position::Center => vec2(group_size.x - size.x, group_size.y - size.y) / 2.0,
+            Position::TopCenter => vec2((group_size.x - size.x) / 2.0, 0.0),
             Position::TopRight(Some(margin)) => vec2(0.0, 0.0),
             Position::TopRight(None) => vec2(0.0, 0.0),
             Position::TopLeft(Some(margin)) => vec2(0.0, 0.0),
