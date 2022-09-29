@@ -14,11 +14,12 @@ fn main_conf() -> Conf {
 async fn main() {
     let icon = Image::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut button = Button::new("Settings")
-        .position(Position::LeftCenter(0.))
+        .background_color(GRAY)
+        .position(Position::LeftCenter(None))
         .width(Width::ThreeQuarter(0., 0.))
-        .padding(0.0, 0.0, 10.0, 10.0)
         .icon_image(icon)
-        .label_position(Position::LeftCenter(40.0));
+        .icon_position(Position::LeftCenter(rect(20., 0., 0., 0.)))
+        .label_position(Position::LeftCenter(rect(80., 0., 3., 0.)));
 
     loop {
         clear_background(BLACK);

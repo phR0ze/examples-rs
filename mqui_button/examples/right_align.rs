@@ -15,7 +15,7 @@ async fn main() {
     let mut button = Button::new("Settings")
         .background_color(GRAY)
         .padding(50.0, 50.0, 10.0, 10.0)
-        .label_position(Position::RightCenter(10.0));
+        .label_position(Position::RightCenter(None));
 
     loop {
         clear_background(BLACK);

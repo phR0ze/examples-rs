@@ -24,7 +24,7 @@ pub struct Button {
     label: String,                     // button label text value
     label_size: Vec2,                  // calculated size of the label
     label_position: Position,          // position of the label within the button
-    icon: Option<Image>,               // optional icon to display
+    icon: Option<Texture2D>,           // optional icon to display
     icon_position: Position,           // positionf of the icon within the button
 }
 
@@ -36,7 +36,7 @@ impl Default for Button {
             toggle: false,
             clicked: false,
             padding: scale_rect(20., 20., 10., 10.),
-            position: Position::Center,
+            position: Position::default(),
             background: None,
             background_clicked: None,
             background_color: None,
@@ -45,9 +45,9 @@ impl Default for Button {
             font_color: colors::BLACK,
             label: String::default(),
             label_size: vec2(0., 0.),
-            label_position: Position::Center,
+            label_position: Position::Center(Some(scale_rect(0., 0., 0., 0.))),
             icon: None,
-            icon_position: Position::LeftCenter(10.),
+            icon_position: Position::LeftCenter(Some(scale_rect(0., 0., 0., 0.))),
         }
     }
 }
@@ -116,7 +116,7 @@ impl Button {
 
     /// Set icon image to use
     pub fn icon_image(self, icon: Image) -> Self {
-        Button { icon: Some(icon), ..self }
+        Button { icon: Some(Texture2D::from_image(&icon)), ..self }
     }
 
     /// Position the icon inside the button
@@ -165,7 +165,7 @@ impl Button {
         // Create the skin based on the two override styles
         let skin = Skin { button_style, label_style, ..root_ui().default_skin() };
 
-        // Calculate text size
+        // Calculate text size and include margin
         let label_size = text_size(&skin, Some(&self.label));
 
         Button { label_size, skin: Some(skin), ..self }
@@ -192,10 +192,15 @@ impl Button {
             self.clicked = true;
         }
 
+        // Draw the button icon if set
+        if let Some(icon) = &self.icon {
+            let icon_size = vec2(self.label_size.y, self.label_size.y);
+            let icon_pos = self.icon_position.relative(icon_size, btn_size, Some(btn_pos));
+            widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
+        }
+
         // Draw our own label over the top of the button for positioning
-        let mut label_pos = self.label_position.relative(self.label_size, btn_size);
-        label_pos.x += btn_pos.x;
-        label_pos.y += btn_pos.y;
+        let label_pos = self.label_position.relative(self.label_size, btn_size, Some(btn_pos));
         widgets::Label::new(self.label.as_str()).size(self.label_size).position(label_pos).ui(ui);
 
         ui.pop_skin();
