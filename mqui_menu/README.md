@@ -2,6 +2,7 @@
 Experimenting with writing a flexible menu widget
 
 ## Mobile notes
+* Macroquad buttons don't allow for label positioning. they are always centered
 * Separating out root_ui uses as a runtime borrow issue will occur if we don't
   allow each usage to complete out before trying to do another operation that
   depends on root_ui
@@ -12,6 +13,7 @@ Experimenting with writing a flexible menu widget
   * https://github.com/google/material-design-icons/
 
 ## Backlog
+* Create new Button to allow for label positioning inside button
 * Align menu entries on left
 
 ## Completed

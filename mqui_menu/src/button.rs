@@ -35,8 +35,6 @@ pub struct Button {
 impl Default for Button {
     fn default() -> Self {
         Button {
-            id: hash!(),
-            group: Group::new(),
             entry_bg: None,
             entry_clk_bg: None,
             entry_bg_color: None,
@@ -75,11 +73,6 @@ impl Button {
         Button::new()
             .size(Size::HalfWidth(5., 250.))
             .position(Position::Right(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
-    }
-
-    /// Set the button id
-    pub fn id<T: Into<u64>>(self, id: T) -> Self {
-        Button { id: id.into(), ..self }
     }
 
     /// Add a new entry to the button

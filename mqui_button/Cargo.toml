@@ -1,0 +1,16 @@
+[package]
+name = "mqui_button"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.3.24"
+
+[package.metadata.android]
+label = "mqui_menu"
+package_name = "rust.mqui_button"
+version_code = 1
+android_version = 29 
+target_sdk_version = 24
+min_sdk_version = 24
+build_targets = [ "i686-linux-android" ]
