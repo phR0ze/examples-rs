@@ -94,75 +94,75 @@ impl Menu {
 
     /// Set the menu's size
     /// * handles scaling for mobile
-    pub fn size(self, size: Size) -> Self {
+    pub fn with_size(self, size: Size) -> Self {
         Menu { group: self.group.size(size), ..self }
     }
 
     /// Position the menu on the screen
-    pub fn position<T: Into<Position>>(self, pos: T) -> Self {
+    pub fn with_position<T: Into<Position>>(self, pos: T) -> Self {
         Menu { group: self.group.position(pos), ..self }
     }
 
     /// Set the background image used for the menu
-    pub fn background(self, image: Image) -> Self {
+    pub fn with_background(self, image: Image) -> Self {
         Menu { group: self.group.background(image), ..self }
     }
 
     /// Set the background color used for the menu
-    pub fn background_color(self, color: Color) -> Self {
+    pub fn with_background_color(self, color: Color) -> Self {
         Menu { group: self.group.background_color(color), ..self }
     }
 
     /// Pad inside group pushing content in from edges
     /// * handles scaling for mobile
-    pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Menu { group: self.group.padding(left, right, top, bottom), ..self }
     }
 
     /// Set entry background images to use for entries
-    pub fn entry_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
+    pub fn with_entry_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
         Menu { skin_update: true, entry_bg: regular.into(), entry_bg_clk: clicked.into(), ..self }
     }
 
     /// Set entry background color to use for the entries
-    pub fn entry_bg_color<T: Into<Option<Color>>>(self, color: T) -> Self {
+    pub fn with_entry_bg_color<T: Into<Option<Color>>>(self, color: T) -> Self {
         Menu { skin_update: true, entry_bg_color: color.into(), ..self }
     }
 
     /// Set font to use for the entries
-    pub fn entry_font(self, font: &'static [u8]) -> Self {
+    pub fn with_entry_font(self, font: &'static [u8]) -> Self {
         Menu { skin_update: true, entry_font: Some(font), ..self }
     }
 
     /// Set font size to use for the entries
     /// * handles scaling for mobile
-    pub fn entry_font_size(self, size: u16) -> Self {
+    pub fn with_entry_font_size(self, size: u16) -> Self {
         Menu { skin_update: true, entry_font_size: scale(size as f32) as u16, ..self }
     }
 
     /// Set font color to use for the entries
-    pub fn entry_font_color(self, color: Color) -> Self {
+    pub fn with_entry_font_color(self, color: Color) -> Self {
         Menu { skin_update: true, entry_font_color: color, ..self }
     }
 
     /// Set position directive for entries
     /// * handles scaling for mobile
-    pub fn entry_position(self, pos: Position) -> Self {
+    pub fn with_entry_position(self, pos: Position) -> Self {
         Menu { entry_position: pos.scale(), ..self }
     }
 
     /// Set padding inside entry around content
-    pub fn entry_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    pub fn with_entry_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Menu { entry_padding: scale_rect(left, right, top, bottom), ..self }
     }
 
     /// Set the entry width
-    pub fn entry_width<T: Into<Option<Width>>>(self, width: T) -> Self {
+    pub fn with_entry_width<T: Into<Option<Width>>>(self, width: T) -> Self {
         Menu { entry_width: width.into(), ..self }
     }
 
     /// Set space between menu entries
-    pub fn entry_spacing(self, spacing: f32) -> Self {
+    pub fn with_entry_spacing(self, spacing: f32) -> Self {
         Menu { entry_spacing: scale(spacing), ..self }
     }
 
@@ -175,35 +175,34 @@ impl Menu {
     }
 
     /// Update all entries with the latest shared properties
-    fn update_skin(&mut self) {
-        // if !self.skin_update {
-        //     return;
-        // }
-        // for entry in self.entries.iter_mut() {
-        //     entry.width = self.entry_width;
-        //     entry.padding = self.entry_padding;
-        //     entry.position = self.entry_position;
-        //     entry.background = self.entry_bg.as_ref().map(|x| x.clone());
-        //     entry.background_clicked = self.entry_bg_clk.as_ref().map(|x| x.clone());
-        //     entry.background_color = self.entry_bg_color;
-        //     entry.font = self.entry_font;
-        //     entry.font_color = self.entry_font_color;
-        //     entry.font_size = self.entry_font_size;
-        //     entry.label_position = self.entry_label_position;
-        //     entry.icon = self.entry_icon.as_ref().map(|x| x.clone());
-        //     entry.icon_position = self.entry_icon_position;
-        //     entry.update_skin();
-        // }
-        // self.skin_update = true;
+    fn update_skin(&mut self, ui: &mut Ui) {
+        if !self.skin_update {
+            return;
+        }
+        for entry in self.entries.iter_mut() {
+            entry.width = self.entry_width;
+            entry.padding = self.entry_padding;
+            entry.position = self.entry_position;
+            entry.background = self.entry_bg.as_ref().map(|x| x.clone());
+            entry.background_clicked = self.entry_bg_clk.as_ref().map(|x| x.clone());
+            entry.background_color = self.entry_bg_color;
+            entry.font = self.entry_font;
+            entry.font_color = self.entry_font_color;
+            entry.font_size = self.entry_font_size;
+            entry.label_position = self.entry_label_position;
+            entry.icon = self.entry_icon.as_ref().map(|x| x.clone());
+            entry.icon_position = self.entry_icon_position;
+        }
+        self.skin_update = true;
     }
 
     /// Draw the menu on the screen
     pub fn ui(&mut self, ui: &mut Ui) {
-        self.update_skin();
+        self.update_skin(ui);
         self.group.ui(ui, |ui, size| {
             // Draw the regular menu entries
             for (i, entry) in self.entries.iter_mut().enumerate() {
-                // let spacing = if i != 0 && self.entry_spacing > 0. { i as f32 * self.entry_spacing } else { 0. };
+                let spacing = if i != 0 { i as f32 * self.entry_spacing } else { 0. };
                 //let mut entry_pos = self.entry_position.relative(entry_size, size, None);
                 // entry_pos.y += entry_size.y * i as f32 + spacing;
                 // if widgets::Button::new("").size(entry_size).position(entry_pos).ui(ui) {

@@ -17,18 +17,17 @@ async fn main() {
     let entry_bg = Image::from_file_with_format(include_bytes!("../assets/entry_bg.png"), None);
     let entry_clk_bg = Image::from_file_with_format(include_bytes!("../assets/entry_clk_bg.png"), None);
     let mut menu = Menu::new()
-        .size(Size::Absolute(250.0, 250.0))
-        .background(menu_bg)
-        .position(Position::Center(None))
-        .padding(20.0, 20.0, 20.0, 20.0)
-        .entry_font(font_htowert)
-        .entry_font_color(Color::from_rgba(180, 180, 100, 255))
-        .entry_images(entry_bg, entry_clk_bg)
-        .entry_padding(50., 50., 10., 10.)
-        .entry_position(Position::Center(None))
-        //.entry_position(Position::Center(None))
-        //.add_entry("Play")
-        //.add_entry("Settings")
+        .with_size(Size::Absolute(250.0, 250.0))
+        .with_background(menu_bg)
+        .with_position(Position::Center(None))
+        .with_padding(20.0, 20.0, 20.0, 20.0)
+        .with_entry_font(font_htowert)
+        .with_entry_font_color(Color::from_rgba(180, 180, 100, 255))
+        .with_entry_images(entry_bg, entry_clk_bg)
+        .with_entry_padding(50., 50., 10., 10.)
+        .with_entry_position(Position::Center(None))
+        .add_entry("Play")
+        .add_entry("Settings")
         .add_entry("Quit");
 
     loop {
