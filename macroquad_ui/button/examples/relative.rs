@@ -31,7 +31,7 @@ async fn main() {
         let pos = vec2((screen_width() - size.x) / 2.0, (screen_height() - size.y) / 2.0);
         widgets::Group::new(hash!(), size).position(pos).ui(&mut *root_ui(), |ui| {
             button.ui(ui, size);
-            if button.toggle() {
+            if button.activated() {
                 draw_rectangle(100., 100., 50., 50., RED);
             }
         });

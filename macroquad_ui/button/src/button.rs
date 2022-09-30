@@ -1,43 +1,45 @@
 //! Button encapsulates and automates the manipulation of a set of widgets to provide
 //! typical button type functionality. Macroquad's button implementation doesn't allow
 //! for positioning the label. This implementation does.
-use core::prelude::*;
+use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Button {
-    skin: Option<Skin>,                           // skin to use for the entry titles
-    toggle: bool,                                 // toggle the button's activation
-    clicked: bool,                                // track if the button has been clicked
-    label_size: Vec2,                             // calculated size of the label
-    skin_update: bool,                            // track if a skin update is needed
-    pub(crate) width: Option<Width>,              // width of the entry
-    pub(crate) padding: RectOffset,               // button inside is padded before allowing content
-    pub(crate) position: Position,                // position of entries relative to button
-    pub(crate) background: Option<Image>,         // optional background image to use for button buttons
-    pub(crate) background_clicked: Option<Image>, // background image to use for clicked button buttons
-    pub(crate) background_color: Option<Color>, // background color to use for entries when background image is not set
-    pub(crate) font: Option<&'static [u8]>,     // font to use for button text
-    pub(crate) font_color: Color,               // font color to use for button text
-    pub(crate) font_size: u16,                  // font size to use for button text
-    pub(crate) label: String,                   // button label text value
-    pub(crate) label_position: Position,        // position of the label within the button
-    pub(crate) icon: Option<Texture2D>,         // optional icon to display
-    pub(crate) icon_position: Position,         // positionf of the icon within the button
+    skin: Option<Skin>,              // skin to use for the entry titles
+    clicked: bool,                   // track button clicked state
+    activated: bool,                 // track button activation i.e. odd clicks
+    label_size: Vec2,                // calculated size of the label
+    update: bool,                    // track if a skin update is needed
+    width: Option<Width>,            // width of the entry
+    offset: Option<RectOffset>,      // offset from the calculated position
+    padding: RectOffset,             // button inside is padded before allowing content
+    position: Position,              // position of entries relative to button
+    background: Option<Image>,       // optional background image to use for button buttons
+    background_clk: Option<Image>,   // background image to use for clicked button buttons
+    background_color: Option<Color>, // background color to use for entries when background image is not set
+    font: Option<&'static [u8]>,     // font to use for button text
+    font_color: Color,               // font color to use for button text
+    font_size: u16,                  // font size to use for button text
+    label: String,                   // button label text value
+    label_position: Position,        // position of the label within the button
+    icon: Option<Texture2D>,         // optional icon to display
+    icon_position: Position,         // positionf of the icon within the button
 }
 
 impl Default for Button {
     fn default() -> Self {
         Button {
             skin: None,
-            toggle: false,
+            activated: false,
             clicked: false,
-            skin_update: false,
+            update: false,
             label_size: vec2(0., 0.),
             width: None,
+            offset: None,
             padding: scale_rect(20., 20., 10., 10.),
             position: Position::default(),
             background: None,
-            background_clicked: None,
+            background_clk: None,
             background_color: None,
             font: None,
             font_size: scale(DEFAULT_FONT_SIZE) as u16,
@@ -53,7 +55,7 @@ impl Default for Button {
 impl Button {
     /// Create a new standard button instance
     pub fn new<T: AsRef<str>>(label: T) -> Button {
-        Button { skin_update: true, label: label.as_ref().to_string(), ..Button::default() }
+        Button { update: true, label: label.as_ref().to_string(), ..Button::default() }
             .with_font(include_bytes!("../assets/HTOWERT.TTF"))
     }
 
@@ -86,28 +88,28 @@ impl Button {
 
     /// Set background images to use
     pub fn with_background_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
-        Button { skin_update: true, background: regular.into(), background_clicked: clicked.into(), ..self }
+        Button { update: true, background: regular.into(), background_clk: clicked.into(), ..self }
     }
 
     /// Set the background color used for the button
     pub fn with_background_color<T: Into<Option<Color>>>(self, color: T) -> Self {
-        Button { skin_update: true, background_color: color.into(), ..self }
+        Button { update: true, background_color: color.into(), ..self }
     }
 
     /// Set font to use
     pub fn with_font(self, font: &'static [u8]) -> Self {
-        Button { skin_update: true, font: Some(font), ..self }
+        Button { update: true, font: Some(font), ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn with_font_size(self, size: f32) -> Self {
-        Button { skin_update: true, font_size: scale(size) as u16, ..self }
+        Button { update: true, font_size: scale(size) as u16, ..self }
     }
 
     /// Set font color to use
     pub fn with_font_color(self, color: Color) -> Self {
-        Button { skin_update: true, font_color: color, ..self }
+        Button { update: true, font_color: color, ..self }
     }
 
     /// Position the label inside the button
@@ -128,15 +130,36 @@ impl Button {
         Button { icon_position: pos.scale(), ..self }
     }
 
-    /// Position the button on the screen
+    /// Offset the calculated position by this amount
     /// * handles scaling for mobile
-    pub fn position(&mut self, pos: Position) {
-        self.position = pos.scale();
+    pub fn offset<T: Into<Option<RectOffset>>>(&mut self, offset: T) {
+        self.offset = offset.into().map(|x| scale_rect_p(x));
     }
 
-    /// Returns true if toggle is on the on mode
-    pub fn toggle(&self) -> bool {
-        self.toggle
+    /// Calculate the size based on the width directive inside the given container
+    /// * `container` is the containing widget's size to relatively position against
+    pub fn size(&self, container: Vec2) -> Vec2 {
+        match self.width {
+            Some(width) => {
+                vec2(width.relative(container), self.label_size.y + self.padding.top + self.padding.bottom)
+            },
+            None => vec2(
+                self.label_size.x + self.padding.left + self.padding.right,
+                self.label_size.y + self.padding.top + self.padding.bottom,
+            ),
+        }
+    }
+
+    /// Returns the position of the button
+    /// * `container` is the containing widget's size to relatively position against
+    pub fn position(&self, container: Vec2) -> Vec2 {
+        self.position.relative(self.size(container), container, None)
+    }
+
+    /// Returns true if button was clicked an odd number of times. 1st click will activate the
+    /// button and the 2nd click will deactivate the button and so on.
+    pub fn activated(&self) -> bool {
+        self.activated
     }
 
     /// Returns true if the button was clicked
@@ -145,8 +168,8 @@ impl Button {
     }
 
     /// Update the skin based on the persisted button properties
-    fn update_skin(&mut self, ui: &mut Ui) {
-        if !self.skin_update {
+    fn update(&mut self, ui: &mut Ui) {
+        if !self.update {
             return;
         }
         // Create the label style
@@ -166,7 +189,7 @@ impl Button {
         if let Some(background) = &self.background {
             style = style.background(background.clone());
         }
-        if let Some(background) = &self.background_clicked {
+        if let Some(background) = &self.background_clk {
             style = style.background_clicked(background.clone());
         }
         if let Some(color) = &self.background_color {
@@ -180,39 +203,35 @@ impl Button {
         // Calculate text size and include margin
         self.label_size = text_size(ui, &skin, Some(&self.label));
         self.skin = Some(skin);
-        self.skin_update = false;
+        self.update = false;
     }
 
-    /// Draw the widget on the screen relative to the containing widget
+    /// Draw the widget on the screen
     /// * `container` is the containing widget's size to relatively position against
     pub fn ui(&mut self, ui: &mut Ui, container: Vec2) {
-        self.update_skin(ui);
+        self.update(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
         // Draw button
-        let btn_size = match self.width {
-            Some(width) => {
-                vec2(width.relative(container), self.label_size.y + self.padding.top + self.padding.bottom)
-            },
-            None => vec2(
-                self.label_size.x + self.padding.left + self.padding.right,
-                self.label_size.y + self.padding.top + self.padding.bottom,
-            ),
-        };
-        let btn_pos = self.position.relative(btn_size, container, None);
+        let btn_size = self.size(container);
+        let mut btn_pos = self.position(container);
+        if let Some(offset) = self.offset {
+            btn_pos.x += offset.left - offset.right;
+            btn_pos.y += offset.top - offset.bottom;
+        }
         if widgets::Button::new("").size(btn_size).position(btn_pos).ui(ui) {
-            self.toggle = !self.toggle;
+            self.activated = !self.activated;
             self.clicked = true;
         }
 
-        // Draw the button icon if set
+        // Draw icon
         if let Some(icon) = &self.icon {
             let icon_size = vec2(self.label_size.y, self.label_size.y);
             let icon_pos = self.icon_position.relative(icon_size, btn_size, Some(btn_pos));
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
         }
 
-        // Draw our own label over the top of the button for positioning
+        // Draw label
         let label_pos = self.label_position.relative(self.label_size, btn_size, Some(btn_pos));
         widgets::Label::new(self.label.as_str()).size(self.label_size).position(label_pos).ui(ui);
 

@@ -21,7 +21,7 @@ async fn main() {
         clear_background(BLACK);
 
         button.ui(&mut *root_ui(), Size::screen());
-        if button.toggle() {
+        if button.activated() {
             draw_rectangle(100., 100., 50., 50., RED);
         }
 
