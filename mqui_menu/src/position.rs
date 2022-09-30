@@ -1,21 +1,34 @@
 //! Position provides additional functionality around positioning widgets
 use macroquad::prelude::*;
 
+use crate::utils::*;
+
+/// Position is a directive used to calculate the actual position. The enum values are
+/// named in a WidthHeight camel case describing the width and height positioning directive.
 #[derive(Debug, Copy, Clone)]
 pub enum Position {
-    Center,
+    /// Position center horizontally and center vertically
+    /// * accepts and optional offset value
+    Center(Option<RectOffset>),
 
-    TopCenter,
+    /// Position center horizontally and top vertically
+    /// * accepts and optional offset value
+    CenterTop(Option<RectOffset>),
 
-    /// Position in the top right of the containing group
-    /// * Optional margin to allow around the position
-    Right(Option<RectOffset>),
+    /// Position on the right horizontally and center vertically
+    /// * accepts and optional offset value
+    RightCenter(Option<RectOffset>),
 
-    /// Position on the top left of the containing group
-    /// * Optional margin to allow around the position
-    Left(Option<RectOffset>),
+    /// Position on the left horizontally and center vertically
+    /// * accepts and optional offset value
+    LeftCenter(Option<RectOffset>),
 
-    Custom(Vec2),
+    /// Position on the left horizontally and top vertically
+    /// * accepts and optional offset value
+    LeftTop(Option<RectOffset>),
+
+    /// Custom position relative to the containing widget
+    Custom(f32, f32),
 }
 
 impl Position {
@@ -24,44 +37,76 @@ impl Position {
         vec2(0.0, 0.0)
     }
 
-    /// Calculate the position vector based on the given containing group
-    /// * `size` is the size of the target component to position
-    /// * `group_size` is the containing group's size
-    pub fn relative(&self, size: Vec2, group_size: Vec2) -> Vec2 {
+    /// Scale the positional margins
+    pub fn scale(&self) -> Position {
         match self {
-            Position::Center => vec2(group_size.x - size.x, group_size.y - size.y) / 2.0,
-            Position::TopCenter => vec2((group_size.x - size.x) / 2.0, 0.0),
-            Position::Right(Some(margin)) => vec2(0.0, 0.0),
-            Position::Right(None) => vec2(0.0, 0.0),
-            Position::Left(Some(margin)) => vec2(0.0, 0.0),
-            Position::Left(None) => vec2(0.0, 0.0),
-            Position::Custom(position) => *position,
+            Position::Center(None) => Position::Center(None),
+            Position::Center(Some(offset)) => Position::Center(Some(scale_rectp(*offset))),
+            Position::CenterTop(None) => Position::CenterTop(None),
+            Position::CenterTop(Some(offset)) => Position::CenterTop(Some(scale_rectp(*offset))),
+            Position::RightCenter(None) => Position::RightCenter(None),
+            Position::RightCenter(Some(offset)) => Position::RightCenter(Some(scale_rectp(*offset))),
+            Position::LeftCenter(None) => Position::LeftCenter(None),
+            Position::LeftCenter(Some(offset)) => Position::LeftCenter(Some(scale_rectp(*offset))),
+            Position::LeftTop(None) => Position::LeftTop(None),
+            Position::LeftTop(Some(offset)) => Position::LeftTop(Some(scale_rectp(*offset))),
+            Position::Custom(x, y) => Position::Custom(*x, *y),
         }
     }
 
+    /// Calculate the position vector based on the given widget size and the
+    /// containing widget size and the positioning directive.
+    /// * `target` is the size of the target component to position
+    /// * `container` is the containing widget's size
+    /// * `start` when given is an optional offset to account for containers that don't reset position to (0,0)
+    pub fn relative(&self, target: Vec2, container: Vec2, start: Option<Vec2>) -> Vec2 {
+        let mut pos = match self {
+            Position::Center(None) => vec2(container.x - target.x, container.y - target.y) / 2.0,
+            Position::Center(Some(offset)) => vec2(
+                (container.x - target.x) / 2.0 + offset.left - offset.right,
+                (container.y - target.y) / 2.0 + offset.top - offset.bottom,
+            ),
+            Position::CenterTop(None) => vec2((container.x - target.x) / 2.0, 0.0),
+            Position::CenterTop(Some(offset)) => {
+                vec2((container.x - target.x) / 2.0 + offset.left - offset.right, offset.top - offset.bottom)
+            },
+            Position::RightCenter(None) => vec2(container.x - target.x, (container.y - target.y) / 2.0),
+            Position::RightCenter(Some(offset)) => vec2(
+                container.x - target.x + offset.left - offset.right,
+                (container.y - target.y) / 2.0 + offset.top - offset.bottom,
+            ),
+            Position::LeftCenter(None) => vec2(0.0, (container.y - target.y) / 2.0),
+            Position::LeftCenter(Some(offset)) => {
+                vec2(offset.left - offset.right, (container.y - target.y) / 2.0 + offset.top - offset.bottom)
+            },
+            Position::LeftTop(None) => vec2(0.0, 0.0),
+            Position::LeftTop(Some(offset)) => vec2(offset.left - offset.right, offset.top - offset.bottom),
+            Position::Custom(x, y) => vec2(*x, *y),
+        };
+        if let Some(start) = start {
+            pos.x += start.x;
+            pos.y += start.y;
+        }
+        pos
+    }
+
     /// Calculate the position vector based on the given component size
-    /// * `size` is the component's size to be taken into account
-    pub fn vec2(&self, size: Vec2) -> Vec2 {
+    /// * `target` is the component's size to be taken into account
+    pub fn vec2(&self, target: Vec2) -> Vec2 {
+        let container = vec2(screen_width(), screen_height());
         match self {
-            Position::Center => vec2(screen_width() - size.x, screen_height() - size.y) / 2.0,
-            Position::TopCenter => vec2(screen_width() - size.x, 0.0) / 2.0,
-            Position::Right(Some(margin)) => vec2(screen_width() - size.x - margin.right, margin.top),
-            Position::Right(None) => vec2(screen_width() - size.x, 0.0),
-            Position::Left(Some(margin)) => vec2(margin.left, margin.top),
-            Position::Left(None) => vec2(0.0, 0.0),
-            Position::Custom(position) => *position,
+            Position::Center(x) => Position::Center(*x).relative(target, container, None),
+            Position::CenterTop(x) => Position::CenterTop(*x).relative(target, container, None),
+            Position::RightCenter(x) => Position::RightCenter(*x).relative(target, container, None),
+            Position::LeftCenter(x) => Position::LeftCenter(*x).relative(target, container, None),
+            Position::LeftTop(x) => Position::LeftTop(*x).relative(target, container, None),
+            Position::Custom(x, y) => vec2(*x, *y),
         }
     }
 }
 
 impl Default for Position {
     fn default() -> Self {
-        Position::Center
-    }
-}
-
-impl From<Vec2> for Position {
-    fn from(position: Vec2) -> Self {
-        Self::Custom(position)
+        Position::Center(None)
     }
 }

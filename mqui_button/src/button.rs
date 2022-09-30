@@ -18,7 +18,7 @@ pub struct Button {
     background: Option<Image>,         // optional background image to use for button buttons
     background_clicked: Option<Image>, // background image to use for clicked button buttons
     background_color: Option<Color>,   // background color to use for entries when background image is not set
-    font: Option<&'static [u8]>,       // font to use for button text
+    font: Option<Vec<u8>>,             // font to use for button text
     font_color: Color,                 // font color to use for button text
     font_size: u16,                    // font size to use for button text
     label: String,                     // button label text value
@@ -61,8 +61,13 @@ impl Button {
     }
 
     /// Create a new button instance with an icon
-    pub fn icon<T: AsRef<str>>(label: T) -> Button {
+    pub fn icon<T: AsRef<str>>(label: T, icon: Image) -> Button {
         Button::new(label)
+            .position(Position::LeftCenter(None))
+            .width(Width::ThreeQuarter(0., 0.))
+            .icon_image(icon)
+            .icon_position(Position::LeftCenter(rect(20., 0., 0., 0.)))
+            .label_position(Position::LeftCenter(rect(80., 0., 3., 0.)))
     }
 
     /// Set the button's width directive
@@ -93,8 +98,8 @@ impl Button {
     }
 
     /// Set font to use
-    pub fn font(self, font: &'static [u8]) -> Self {
-        Button { font: Some(font), ..self }.update_skin()
+    pub fn font(self, font: &[u8]) -> Self {
+        Button { font: Some(font.to_vec()), ..self }.update_skin()
     }
 
     /// Set font size to use for the button label
@@ -144,7 +149,7 @@ impl Button {
             .text_color_hovered(self.font_color)
             .text_color_clicked(self.font_color)
             .font_size(self.font_size);
-        if let Some(font) = self.font {
+        if let Some(font) = &self.font {
             style = style.font(font).unwrap();
         }
         let label_style = style.build();

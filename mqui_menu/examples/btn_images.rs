@@ -19,14 +19,17 @@ async fn main() {
     let mut menu = Menu::new()
         .size(Size::Absolute(250.0, 250.0))
         .background(menu_bg)
-        .entry_images(entry_bg, entry_clk_bg)
-        .position(Position::Center)
+        .position(Position::Center(None))
+        .padding(20.0, 20.0, 20.0, 20.0)
         .entry_font(font_htowert)
         .entry_font_color(Color::from_rgba(180, 180, 100, 255))
-        .padding(20.0, 20.0, 20.0, 20.0)
-        .add(MenuEntry::new("Play"))
-        .add(MenuEntry::new("Settings"))
-        .add(MenuEntry::new("Quit"));
+        .entry_images(entry_bg, entry_clk_bg)
+        .entry_padding(50., 50., 10., 10.)
+        .entry_position(Position::Center(None))
+        //.entry_position(Position::Center(None))
+        //.add_entry("Play")
+        //.add_entry("Settings")
+        .add_entry("Quit");
 
     loop {
         clear_background(BLACK);

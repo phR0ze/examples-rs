@@ -33,11 +33,27 @@ pub fn scale_rect(left: f32, right: f32, top: f32, bottom: f32) -> RectOffset {
     )
 }
 
-/// Calculate text height base on exact rendered text size
+/// Instantiate a RectOffset
+pub fn rect(left: f32, right: f32, top: f32, bottom: f32) -> Option<RectOffset> {
+    Some(RectOffset::new(left, right, top, bottom))
+}
+
+/// Returns a MQ RectOffset that will scale up for mobile devices
+pub fn scale_rectp(rect: RectOffset) -> RectOffset {
+    RectOffset::new(
+        rect.left * SCALE_MULTIPLIER,
+        rect.right * SCALE_MULTIPLIER,
+        rect.top * SCALE_MULTIPLIER,
+        rect.bottom * SCALE_MULTIPLIER,
+    )
+}
+
+/// Calculate text size based on exact rendered text size
 /// * `skin` requires the `label_style` be overridden to get accurate values
-pub fn text_height(skin: &Skin) -> f32 {
+pub fn text_size(skin: &Skin, text: Option<&str>) -> Vec2 {
+    let str = text.unwrap_or("default");
     root_ui().push_skin(skin);
-    let entry_height = root_ui().calc_size("test").y;
+    let size = root_ui().calc_size(str);
     root_ui().pop_skin();
-    entry_height
+    size
 }

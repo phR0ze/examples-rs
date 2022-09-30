@@ -13,10 +13,10 @@ Experimenting with writing a flexible menu widget
   * https://github.com/google/material-design-icons/
 
 ## Backlog
-* Create new Button to allow for label positioning inside button
 * Align menu entries on left
 
 ## Completed
+* Create new Button to allow for label positioning inside button
 * Menu entry fills width
 * Menu entry background color is settable
 * Menu background color is settable

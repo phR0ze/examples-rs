@@ -13,13 +13,7 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let icon = Image::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut button = Button::new("Settings")
-        .background_color(GRAY)
-        .position(Position::LeftCenter(None))
-        .width(Width::ThreeQuarter(0., 0.))
-        .icon_image(icon)
-        .icon_position(Position::LeftCenter(rect(20., 0., 0., 0.)))
-        .label_position(Position::LeftCenter(rect(80., 0., 3., 0.)));
+    let mut button = Button::icon("Settings", icon).position(Position::LeftTop(None)).background_color(GRAY);
 
     loop {
         clear_background(BLACK);

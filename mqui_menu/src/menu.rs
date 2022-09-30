@@ -1,6 +1,7 @@
 //! Menu encapsulates and automates the manipulation of a set of widgets to provide
 //! typical menu type functionality.
 use crate::{
+    button::Button,
     group::Group,
     position::Position,
     size::{Size, Width},
@@ -13,61 +14,51 @@ use macroquad::{
     ui::{root_ui, widgets, Id, Skin, Ui},
 };
 
-#[derive(Debug, Default, Clone)]
-pub struct MenuEntry {
-    pub title: String,
-}
-
-impl MenuEntry {
-    /// Create a new instance
-    pub fn new<T: AsRef<str>>(title: T) -> Self {
-        MenuEntry { title: title.as_ref().to_string() }
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Menu {
-    id: Id,       // menu identifier
-    group: Group, // underly group for positioning, size and layout
+    group: Group,      // underly group for positioning, size and layout
+    skin_update: bool, // track if a skin update is needed
 
     // Entries
-    entry_bg: Option<Image>,           // optional background image to use for menu buttons
-    entry_clk_bg: Option<Image>,       // background image to use for clicked menu buttons
+    entries: Vec<Button>,          // entries for menu
+    entry_spacing: f32,            // spacing between menu entries
+    entry_clicked: Option<String>, // track if the button has been clicked
+
+    // Shared button property overrides
+    entry_width: Option<Width>,        // width of the entry
+    entry_padding: RectOffset,         // button inside is padded before allowing content
+    entry_position: Position,          // position of entries relative to button
+    entry_bg: Option<Image>,           // optional background image to use for button buttons
+    entry_bg_clk: Option<Image>,       // background image to use for clicked button buttons
     entry_bg_color: Option<Color>,     // background color to use for entries when background image is not set
     entry_font: Option<&'static [u8]>, // font to use for button text
     entry_font_color: Color,           // font color to use for button text
     entry_font_size: u16,              // font size to use for button text
-    entry_padding: RectOffset,         // button inside is padded before allowing content
-    entry_spacing: f32,                // space to leave between menu entries
-    entry_position: Position,          // position of entries relative to menu
-    entry_width: Option<Width>,        // width of the entry
-    entries: Vec<MenuEntry>,           // entries for menu
-    entry_clicked: Option<MenuEntry>,  // track if an entry has been clicked
-    entry_title_skin: Option<Skin>,    // skin to use for the entry titles
-    entry_button_skin: Option<Skin>,   // cached MQ skin for drawing
-    entry_title_height: f32,           // height of entry text to account for in sizing
+    entry_label_position: Position,    // position of the label within the button
+    entry_icon: Option<Texture2D>,     // optional icon to display
+    entry_icon_position: Position,     // positionf of the icon within the button
 }
 
 impl Default for Menu {
     fn default() -> Self {
         Menu {
-            id: hash!(),
             group: Group::new(),
+            skin_update: false,
+            entries: vec![],
+            entry_spacing: scale(10.),
+            entry_clicked: None,
+            entry_width: None,
+            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
+            entry_position: Position::LeftTop(None),
             entry_bg: None,
-            entry_clk_bg: None,
+            entry_bg_clk: None,
             entry_bg_color: None,
             entry_font: None,
             entry_font_size: scale(DEFAULT_FONT_SIZE) as u16,
             entry_font_color: colors::BLACK,
-            entry_spacing: scale(10.),
-            entry_padding: scale_rect(0.0, 0.0, 10.0, 10.0),
-            entry_position: Position::Left(None),
-            entry_width: None,
-            entries: vec![],
-            entry_clicked: None,
-            entry_title_skin: None,
-            entry_button_skin: None,
-            entry_title_height: scale(DEFAULT_FONT_SIZE),
+            entry_label_position: Position::Center(Some(scale_rect(0., 0., 0., 0.))),
+            entry_icon: None,
+            entry_icon_position: Position::LeftCenter(Some(scale_rect(0., 0., 0., 0.))),
         }
     }
 }
@@ -75,34 +66,30 @@ impl Default for Menu {
 impl Menu {
     // Create a new instance
     pub fn new() -> Menu {
-        Menu::default().entry_font(include_bytes!("../assets/HTOWERT.TTF")).update_entry_button_skin()
+        Menu { skin_update: true, entry_font: Some(include_bytes!("../assets/HTOWERT.TTF")), ..Menu::default() }
     }
 
-    /// Instantiate a new menu to be used for options
-    pub fn menu() -> Menu {
-        Menu::new()
-            .size(Size::ThreeQuarter(0.0, -1.0))
-            .position(Position::Left(None))
-            .entry_width(Width::ThreeQuarter(None))
-    }
+    // /// Instantiate a new menu to be used for options
+    // pub fn menu() -> Menu {
+    //     Menu::new()
+    //         .size(Size::ThreeQuarter(0.0, -1.0))
+    //         .position(Position::Left(None))
+    //         .entry_width(Width::ThreeQuarter(None))
+    // }
 
-    /// Instantiate a new menu to be used for options
-    pub fn options() -> Menu {
-        Menu::new()
-            .size(Size::HalfWidth(5., 250.))
-            .position(Position::Right(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
-    }
-
-    /// Set the menu id
-    pub fn id<T: Into<u64>>(self, id: T) -> Self {
-        Menu { id: id.into(), ..self }
-    }
+    // /// Instantiate a new menu to be used for options
+    // pub fn options() -> Menu {
+    //     Menu::new()
+    //         .size(Size::HalfWidth(5., 250.))
+    //         .position(Position::Right(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
+    // }
 
     /// Add a new entry to the menu
-    pub fn add(self, entry: MenuEntry) -> Self {
+    pub fn add_entry<T: AsRef<str>>(self, title: T) -> Self {
         let mut entries = self.entries.to_vec();
+        let entry = Button::new(title);
         entries.push(entry);
-        Menu { entries, ..self }
+        Menu { skin_update: true, entries, ..self }
     }
 
     /// Set the menu's size
@@ -118,12 +105,12 @@ impl Menu {
 
     /// Set the background image used for the menu
     pub fn background(self, image: Image) -> Self {
-        Menu { group: self.group.background(image), ..self }.update_entry_button_skin()
+        Menu { group: self.group.background(image), ..self }
     }
 
     /// Set the background color used for the menu
     pub fn background_color(self, color: Color) -> Self {
-        Menu { group: self.group.background_color(color), ..self }.update_entry_button_skin()
+        Menu { group: self.group.background_color(color), ..self }
     }
 
     /// Pad inside group pushing content in from edges
@@ -133,29 +120,35 @@ impl Menu {
     }
 
     /// Set entry background images to use for entries
-    pub fn entry_images(self, regular: Image, clicked: Image) -> Self {
-        Menu { entry_bg: Some(regular), entry_clk_bg: Some(clicked), ..self }.update_entry_button_skin()
+    pub fn entry_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
+        Menu { skin_update: true, entry_bg: regular.into(), entry_bg_clk: clicked.into(), ..self }
     }
 
     /// Set entry background color to use for the entries
-    pub fn entry_bg_color(self, color: Color) -> Self {
-        Menu { entry_bg_color: Some(color), ..self }.update_entry_button_skin()
+    pub fn entry_bg_color<T: Into<Option<Color>>>(self, color: T) -> Self {
+        Menu { skin_update: true, entry_bg_color: color.into(), ..self }
     }
 
     /// Set font to use for the entries
     pub fn entry_font(self, font: &'static [u8]) -> Self {
-        Menu { entry_font: Some(font), ..self }.update_entry_title_skin()
+        Menu { skin_update: true, entry_font: Some(font), ..self }
     }
 
     /// Set font size to use for the entries
     /// * handles scaling for mobile
     pub fn entry_font_size(self, size: u16) -> Self {
-        Menu { entry_font_size: scale(size as f32) as u16, ..self }.update_entry_button_skin()
+        Menu { skin_update: true, entry_font_size: scale(size as f32) as u16, ..self }
     }
 
     /// Set font color to use for the entries
     pub fn entry_font_color(self, color: Color) -> Self {
-        Menu { entry_font_color: color, ..self }.update_entry_button_skin()
+        Menu { skin_update: true, entry_font_color: color, ..self }
+    }
+
+    /// Set position directive for entries
+    /// * handles scaling for mobile
+    pub fn entry_position(self, pos: Position) -> Self {
+        Menu { entry_position: pos.scale(), ..self }
     }
 
     /// Set padding inside entry around content
@@ -164,8 +157,8 @@ impl Menu {
     }
 
     /// Set the entry width
-    pub fn entry_width(self, width: Width) -> Self {
-        Menu { entry_width: Some(width), ..self }
+    pub fn entry_width<T: Into<Option<Width>>>(self, width: T) -> Self {
+        Menu { entry_width: width.into(), ..self }
     }
 
     /// Set space between menu entries
@@ -174,78 +167,54 @@ impl Menu {
     }
 
     /// Returns the entry that was clicked
-    pub fn entry_clicked(&self) -> Option<MenuEntry> {
+    pub fn entry_clicked(&self) -> Option<String> {
         match &self.entry_clicked {
             Some(x) => Some(x.clone()),
             None => None,
         }
     }
 
-    /// Update the entry title skin based on the persisted menu properties
-    fn update_entry_title_skin(self) -> Self {
-        let mut style = root_ui()
-            .style_builder()
-            .text_color(self.entry_font_color)
-            .text_color_hovered(self.entry_font_color)
-            .text_color_clicked(self.entry_font_color)
-            .font_size(self.entry_font_size);
-        if let Some(font) = self.entry_font {
-            style = style.font(font).unwrap();
-        }
-        let label_style = style.build();
-        let skin = Skin { label_style, ..root_ui().default_skin() };
-        let entry_title_height = text_height(&skin);
-        Menu { entry_title_height, entry_title_skin: Some(skin), ..self }
-    }
-
-    /// Update the entry button skin based on the persisted menu properties
-    fn update_entry_button_skin(self) -> Self {
-        let mut style = root_ui()
-            .style_builder()
-            .text_color(self.entry_font_color)
-            .text_color_hovered(self.entry_font_color)
-            .text_color_clicked(self.entry_font_color)
-            .font_size(self.entry_font_size);
-        if let Some(background) = &self.entry_bg {
-            style = style.background(background.clone());
-        }
-        if let Some(background) = &self.entry_clk_bg {
-            style = style.background_clicked(background.clone());
-        }
-        if let Some(color) = &self.entry_bg_color {
-            style = style.color(*color).color_clicked(*color).color_hovered(*color);
-        }
-        if let Some(font) = self.entry_font {
-            style = style.font(font).unwrap();
-        }
-        let button_style = style.build();
-        Menu { entry_button_skin: Some(Skin { button_style, ..root_ui().default_skin() }), ..self }
+    /// Update all entries with the latest shared properties
+    fn update_skin(&mut self) {
+        // if !self.skin_update {
+        //     return;
+        // }
+        // for entry in self.entries.iter_mut() {
+        //     entry.width = self.entry_width;
+        //     entry.padding = self.entry_padding;
+        //     entry.position = self.entry_position;
+        //     entry.background = self.entry_bg.as_ref().map(|x| x.clone());
+        //     entry.background_clicked = self.entry_bg_clk.as_ref().map(|x| x.clone());
+        //     entry.background_color = self.entry_bg_color;
+        //     entry.font = self.entry_font;
+        //     entry.font_color = self.entry_font_color;
+        //     entry.font_size = self.entry_font_size;
+        //     entry.label_position = self.entry_label_position;
+        //     entry.icon = self.entry_icon.as_ref().map(|x| x.clone());
+        //     entry.icon_position = self.entry_icon_position;
+        //     entry.update_skin();
+        // }
+        // self.skin_update = true;
     }
 
     /// Draw the menu on the screen
     pub fn ui(&mut self, ui: &mut Ui) {
+        self.update_skin();
         self.group.ui(ui, |ui, size| {
             // Draw the regular menu entries
-            for (i, entry) in self.entries.iter().enumerate() {
-                let entry_size = match self.entry_width {
-                    Some(x) => {
-                        vec2(x.f32(), self.entry_title_height + self.entry_padding.top + self.entry_padding.bottom)
-                    },
-                    None => vec2(100., 100.),
-                };
+            for (i, entry) in self.entries.iter_mut().enumerate() {
+                // let spacing = if i != 0 && self.entry_spacing > 0. { i as f32 * self.entry_spacing } else { 0. };
+                //let mut entry_pos = self.entry_position.relative(entry_size, size, None);
+                // entry_pos.y += entry_size.y * i as f32 + spacing;
+                // if widgets::Button::new("").size(entry_size).position(entry_pos).ui(ui) {
+                //     self.entry_clicked = Some(entry.clone());
+                // }
+                entry.ui(ui, size);
 
-                // Calculate entry position
-                let spacing = if i != 0 && self.entry_spacing > 0. { i as f32 * self.entry_spacing } else { 0. };
-                let mut entry_pos = self.entry_position.relative(entry_size, size);
-                entry_pos.y += entry_size.y * i as f32 + spacing;
-                ui.push_skin(self.entry_button_skin.as_ref().unwrap());
-                if widgets::Button::new("").size(entry_size).position(entry_pos).ui(ui) {
-                    self.entry_clicked = Some(entry.clone());
+                // Record the button that was clicked
+                if entry.clicked() {
+                    self.entry_clicked = Some(entry.label.clone());
                 }
-                ui.pop_skin();
-                ui.push_skin(self.entry_title_skin.as_ref().unwrap());
-                widgets::Label::new(entry.title.as_str()).position(entry_pos).ui(ui);
-                ui.pop_skin();
             }
         });
     }
