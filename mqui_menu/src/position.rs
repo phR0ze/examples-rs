@@ -19,6 +19,10 @@ pub enum Position {
     /// * accepts and optional offset value
     RightCenter(Option<RectOffset>),
 
+    /// Position on the right horizontally and top vertically
+    /// * accepts and optional offset value
+    RightTop(Option<RectOffset>),
+
     /// Position on the left horizontally and center vertically
     /// * accepts and optional offset value
     LeftCenter(Option<RectOffset>),
@@ -46,6 +50,8 @@ impl Position {
             Position::CenterTop(Some(offset)) => Position::CenterTop(Some(scale_rectp(*offset))),
             Position::RightCenter(None) => Position::RightCenter(None),
             Position::RightCenter(Some(offset)) => Position::RightCenter(Some(scale_rectp(*offset))),
+            Position::RightTop(None) => Position::RightTop(None),
+            Position::RightTop(Some(offset)) => Position::RightTop(Some(scale_rectp(*offset))),
             Position::LeftCenter(None) => Position::LeftCenter(None),
             Position::LeftCenter(Some(offset)) => Position::LeftCenter(Some(scale_rectp(*offset))),
             Position::LeftTop(None) => Position::LeftTop(None),
@@ -75,6 +81,10 @@ impl Position {
                 container.x - target.x + offset.left - offset.right,
                 (container.y - target.y) / 2.0 + offset.top - offset.bottom,
             ),
+            Position::RightTop(None) => vec2(container.x - target.x, 0.0),
+            Position::RightTop(Some(offset)) => {
+                vec2(container.x - target.x + offset.left - offset.right, offset.top - offset.bottom)
+            },
             Position::LeftCenter(None) => vec2(0.0, (container.y - target.y) / 2.0),
             Position::LeftCenter(Some(offset)) => {
                 vec2(offset.left - offset.right, (container.y - target.y) / 2.0 + offset.top - offset.bottom)
@@ -98,6 +108,7 @@ impl Position {
             Position::Center(x) => Position::Center(*x).relative(target, container, None),
             Position::CenterTop(x) => Position::CenterTop(*x).relative(target, container, None),
             Position::RightCenter(x) => Position::RightCenter(*x).relative(target, container, None),
+            Position::RightTop(x) => Position::RightTop(*x).relative(target, container, None),
             Position::LeftCenter(x) => Position::LeftCenter(*x).relative(target, container, None),
             Position::LeftTop(x) => Position::LeftTop(*x).relative(target, container, None),
             Position::Custom(x, y) => vec2(*x, *y),

@@ -142,9 +142,10 @@ impl Button {
     }
 
     /// Returns the size of the button
-    pub fn size(&self) -> Vec2 {
+    /// * `size` is the size of the containing widget
+    pub fn size(&self, size: Vec2) -> Vec2 {
         match self.width {
-            Some(width) => vec2(width.f32(), self.label_size.y + self.padding.top + self.padding.bottom),
+            Some(width) => vec2(width.f32(size), self.label_size.y + self.padding.top + self.padding.bottom),
             None => vec2(
                 self.label_size.x + self.padding.left + self.padding.right,
                 self.label_size.y + self.padding.top + self.padding.bottom,
@@ -155,7 +156,7 @@ impl Button {
     /// Returns the position of the button
     /// * `size` is the size of the containing widget
     pub fn position(&self, size: Vec2) -> Vec2 {
-        self.position.relative(self.size(), size, None)
+        self.position.relative(self.size(size), size, None)
     }
 
     /// Returns true if toggle is on the on mode
@@ -214,7 +215,7 @@ impl Button {
         ui.push_skin(self.skin.as_ref().unwrap());
 
         // Draw button
-        let btn_size = self.size();
+        let btn_size = self.size(size);
         let mut btn_pos = self.position(size);
         if let Some(offset) = self.offset {
             btn_pos.x += offset.left - offset.right;

@@ -12,15 +12,14 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut menu =
-        Menu::menu().add(MenuEntry::new("Play")).add(MenuEntry::new("Settings")).add(MenuEntry::new("Quit"));
+    let mut menu = Menu::menu().add_entry("Play").add_entry("Settings").add_entry("Quit");
 
     loop {
         clear_background(BLACK);
 
         menu.ui(&mut *root_ui());
-        if let Some(entry) = menu.entry_clicked() {
-            println!("Entry: {}", entry.title);
+        if let Some(label) = menu.entry_clicked() {
+            println!("Entry: {}", label);
         }
 
         next_frame().await

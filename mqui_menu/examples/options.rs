@@ -12,8 +12,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut options =
-        Menu::options().add(MenuEntry::new("Play1")).add(MenuEntry::new("Settings1")).add(MenuEntry::new("Quit1"));
+    let mut options = Menu::options().add_entry("Play").add_entry("Settings").add_entry("Quit");
 
     loop {
         clear_background(BLACK);

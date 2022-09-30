@@ -69,20 +69,20 @@ impl Menu {
         Menu { update: true, entry_font: Some(include_bytes!("../assets/HTOWERT.TTF")), ..Menu::default() }
     }
 
-    // /// Instantiate a new menu to be used for options
-    // pub fn menu() -> Menu {
-    //     Menu::new()
-    //         .size(Size::ThreeQuarter(0.0, -1.0))
-    //         .position(Position::Left(None))
-    //         .entry_width(Width::ThreeQuarter(None))
-    // }
+    /// Instantiate a new menu to be used for options
+    pub fn menu() -> Menu {
+        Menu::new()
+            .with_size(Size::ThreeQuarter(0.0, -1.0))
+            .with_position(Position::LeftTop(None))
+            .with_entry_width(Width::Full(0., 0.))
+    }
 
-    // /// Instantiate a new menu to be used for options
-    // pub fn options() -> Menu {
-    //     Menu::new()
-    //         .size(Size::HalfWidth(5., 250.))
-    //         .position(Position::Right(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
-    // }
+    /// Instantiate a new menu to be used for options
+    pub fn options() -> Menu {
+        Menu::new()
+            .with_size(Size::HalfWidth(5., 250.))
+            .with_position(Position::RightTop(Some(RectOffset::new(0.0, 5.0, 5.0, 0.0))))
+    }
 
     /// Add a new entry to the menu
     pub fn add_entry<T: AsRef<str>>(self, title: T) -> Self {
@@ -202,7 +202,8 @@ impl Menu {
         self.group.ui(ui, |ui, size| {
             // Draw the regular menu entries
             for (i, entry) in self.entries.iter_mut().enumerate() {
-                let offset = if i != 0 { i as f32 * self.entry_spacing + i as f32 * entry.size().y } else { 0. };
+                let offset =
+                    if i != 0 { i as f32 * self.entry_spacing + i as f32 * entry.size(size).y } else { 0. };
                 entry.offset(RectOffset::new(0., 0., offset, 0.));
                 entry.ui(ui, size);
 
