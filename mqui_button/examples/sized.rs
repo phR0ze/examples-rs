@@ -13,15 +13,15 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let mut button = Button::new("Settings")
-        .position(Position::LeftCenter(None))
-        .width(Width::ThreeQuarter(0., 0.))
-        .padding(0.0, 0.0, 10.0, 10.0)
-        .label_position(Position::LeftCenter(rect(40.0, 0., 0., 0.)));
+        .with_position(Position::LeftCenter(None))
+        .with_width(Width::ThreeQuarter(0., 0.))
+        .with_padding(0.0, 0.0, 10.0, 10.0)
+        .with_label_position(Position::LeftCenter(rect(40.0, 0., 0., 0.)));
 
     loop {
         clear_background(BLACK);
 
-        button.ui(&mut *root_ui());
+        button.ui(&mut *root_ui(), Size::screen());
         if button.toggle() {
             draw_rectangle(100., 100., 50., 50., RED);
         }

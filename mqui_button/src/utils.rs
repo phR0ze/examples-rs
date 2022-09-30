@@ -1,6 +1,6 @@
 use macroquad::{
     prelude::*,
-    ui::{root_ui, Skin},
+    ui::{root_ui, Skin, Ui},
 };
 
 // Mobile device screens have the same or better pixel density as full monitors
@@ -50,10 +50,10 @@ pub fn scale_rectp(rect: RectOffset) -> RectOffset {
 
 /// Calculate text size based on exact rendered text size
 /// * `skin` requires the `label_style` be overridden to get accurate values
-pub fn text_size(skin: &Skin, text: Option<&str>) -> Vec2 {
+pub fn text_size(ui: &mut Ui, skin: &Skin, text: Option<&str>) -> Vec2 {
     let str = text.unwrap_or("default");
-    root_ui().push_skin(skin);
-    let size = root_ui().calc_size(str);
-    root_ui().pop_skin();
+    ui.push_skin(skin);
+    let size = ui.calc_size(str);
+    ui.pop_skin();
     size
 }

@@ -150,12 +150,12 @@ impl Button {
     }
 
     /// Update the skin based on the persisted button properties
-    pub(crate) fn update_skin(&mut self) {
+    fn update_skin(&mut self, ui: &mut Ui) {
         if !self.skin_update {
             return;
         }
         // Create the label style
-        let mut style = root_ui()
+        let mut style = ui
             .style_builder()
             .text_color(self.font_color)
             .text_color_hovered(self.font_color)
@@ -167,7 +167,7 @@ impl Button {
         let label_style = style.build();
 
         // Create the button style
-        style = root_ui().style_builder();
+        style = ui.style_builder();
         if let Some(background) = &self.background {
             style = style.background(background.clone());
         }
@@ -180,10 +180,10 @@ impl Button {
         let button_style = style.build();
 
         // Create the skin based on the two override styles
-        let skin = Skin { button_style, label_style, ..root_ui().default_skin() };
+        let skin = Skin { button_style, label_style, ..ui.default_skin() };
 
         // Calculate text size and include margin
-        self.label_size = text_size(&skin, Some(&self.label));
+        self.label_size = text_size(ui, &skin, Some(&self.label));
         self.skin = Some(skin);
         self.skin_update = false;
     }
@@ -191,7 +191,7 @@ impl Button {
     /// Draw the widget on the screen
     /// * `size` is the containing widget's size to relatively position against
     pub fn ui(&mut self, ui: &mut Ui, size: Vec2) {
-        self.update_skin();
+        self.update_skin(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
         // Draw button

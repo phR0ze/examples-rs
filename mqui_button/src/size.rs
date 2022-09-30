@@ -45,6 +45,11 @@ pub enum Size {
 }
 
 impl Size {
+    /// Return the current screen size
+    pub fn screen() -> Vec2 {
+        vec2(screen_width(), screen_height())
+    }
+
     /// Calculate the size vector based on the given component size
     pub fn vec2(&self) -> Vec2 {
         match self {
