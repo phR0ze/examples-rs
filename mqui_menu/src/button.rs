@@ -10,16 +10,17 @@ use macroquad::{
 
 #[derive(Debug, Clone)]
 pub struct Button {
-    skin: Option<Skin>,                           // skin to use for the entry titles
-    toggle: bool,                                 // toggle the button's activation
-    clicked: bool,                                // track if the button has been clicked
-    label_size: Vec2,                             // calculated size of the label
-    update: bool,                                 // track if a skin update is needed
-    pub(crate) width: Option<Width>,              // width of the entry
-    pub(crate) padding: RectOffset,               // button inside is padded before allowing content
-    pub(crate) position: Position,                // position of entries relative to button
-    pub(crate) background: Option<Image>,         // optional background image to use for button buttons
-    pub(crate) background_clicked: Option<Image>, // background image to use for clicked button buttons
+    skin: Option<Skin>,                         // skin to use for the entry titles
+    toggle: bool,                               // track button clicked state
+    clicked: bool,                              // track button clicked state
+    label_size: Vec2,                           // calculated size of the label
+    update: bool,                               // track if a skin update is needed
+    pub(crate) width: Option<Width>,            // width of the entry
+    pub(crate) offset: Option<RectOffset>,      // offset from the calculated position
+    pub(crate) padding: RectOffset,             // button inside is padded before allowing content
+    pub(crate) position: Position,              // position of entries relative to button
+    pub(crate) background: Option<Image>,       // optional background image to use for button buttons
+    pub(crate) background_clk: Option<Image>,   // background image to use for clicked button buttons
     pub(crate) background_color: Option<Color>, // background color to use for entries when background image is not set
     pub(crate) font: Option<&'static [u8]>,     // font to use for button text
     pub(crate) font_color: Color,               // font color to use for button text
@@ -39,10 +40,11 @@ impl Default for Button {
             update: false,
             label_size: vec2(0., 0.),
             width: None,
+            offset: None,
             padding: scale_rect(20., 20., 10., 10.),
             position: Position::default(),
             background: None,
-            background_clicked: None,
+            background_clk: None,
             background_color: None,
             font: None,
             font_size: scale(DEFAULT_FONT_SIZE) as u16,
@@ -91,7 +93,7 @@ impl Button {
 
     /// Set background images to use
     pub fn with_background_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
-        Button { update: true, background: regular.into(), background_clicked: clicked.into(), ..self }
+        Button { update: true, background: regular.into(), background_clk: clicked.into(), ..self }
     }
 
     /// Set the background color used for the button
@@ -133,10 +135,27 @@ impl Button {
         Button { icon_position: pos.scale(), ..self }
     }
 
-    /// Position the button on the screen
+    /// Offset the calculated position by this amount
     /// * handles scaling for mobile
-    pub fn position(&mut self, pos: Position) {
-        self.position = pos.scale();
+    pub fn offset<T: Into<Option<RectOffset>>>(&mut self, offset: T) {
+        self.offset = offset.into();
+    }
+
+    /// Returns the size of the button
+    pub fn size(&self) -> Vec2 {
+        match self.width {
+            Some(width) => vec2(width.f32(), self.label_size.y + self.padding.top + self.padding.bottom),
+            None => vec2(
+                self.label_size.x + self.padding.left + self.padding.right,
+                self.label_size.y + self.padding.top + self.padding.bottom,
+            ),
+        }
+    }
+
+    /// Returns the position of the button
+    /// * `size` is the size of the containing widget
+    pub fn position(&self, size: Vec2) -> Vec2 {
+        self.position.relative(self.size(), size, None)
     }
 
     /// Returns true if toggle is on the on mode
@@ -171,7 +190,7 @@ impl Button {
         if let Some(background) = &self.background {
             style = style.background(background.clone());
         }
-        if let Some(background) = &self.background_clicked {
+        if let Some(background) = &self.background_clk {
             style = style.background_clicked(background.clone());
         }
         if let Some(color) = &self.background_color {
@@ -195,14 +214,12 @@ impl Button {
         ui.push_skin(self.skin.as_ref().unwrap());
 
         // Draw button
-        let btn_size = match self.width {
-            Some(width) => vec2(width.f32(), self.label_size.y + self.padding.top + self.padding.bottom),
-            None => vec2(
-                self.label_size.x + self.padding.left + self.padding.right,
-                self.label_size.y + self.padding.top + self.padding.bottom,
-            ),
-        };
-        let btn_pos = self.position.relative(btn_size, size, None);
+        let btn_size = self.size();
+        let mut btn_pos = self.position(size);
+        if let Some(offset) = self.offset {
+            btn_pos.x += offset.left - offset.right;
+            btn_pos.y += offset.top - offset.bottom;
+        }
         if widgets::Button::new("").size(btn_size).position(btn_pos).ui(ui) {
             self.toggle = !self.toggle;
             self.clicked = true;

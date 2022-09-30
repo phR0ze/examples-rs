@@ -184,7 +184,7 @@ impl Menu {
             entry.padding = self.entry_padding;
             entry.position = self.entry_position;
             entry.background = self.entry_bg.as_ref().map(|x| x.clone());
-            entry.background_clicked = self.entry_bg_clk.as_ref().map(|x| x.clone());
+            entry.background_clk = self.entry_bg_clk.as_ref().map(|x| x.clone());
             entry.background_color = self.entry_bg_color;
             entry.font = self.entry_font;
             entry.font_color = self.entry_font_color;
@@ -202,12 +202,8 @@ impl Menu {
         self.group.ui(ui, |ui, size| {
             // Draw the regular menu entries
             for (i, entry) in self.entries.iter_mut().enumerate() {
-                let spacing = if i != 0 { i as f32 * self.entry_spacing } else { 0. };
-                //let mut entry_pos = self.entry_position.relative(entry_size, size, None);
-                // entry_pos.y += entry_size.y * i as f32 + spacing;
-                // if widgets::Button::new("").size(entry_size).position(entry_pos).ui(ui) {
-                //     self.entry_clicked = Some(entry.clone());
-                // }
+                let offset = if i != 0 { i as f32 * self.entry_spacing + i as f32 * entry.size().y } else { 0. };
+                entry.offset(RectOffset::new(0., 0., offset, 0.));
                 entry.ui(ui, size);
 
                 // Record the button that was clicked

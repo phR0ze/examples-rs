@@ -25,7 +25,7 @@ async fn main() {
         .with_entry_font_color(Color::from_rgba(180, 180, 100, 255))
         .with_entry_images(entry_bg, entry_clk_bg)
         .with_entry_padding(50., 50., 10., 10.)
-        .with_entry_position(Position::Center(None))
+        .with_entry_position(Position::CenterTop(None))
         .add_entry("Play")
         .add_entry("Settings")
         .add_entry("Quit");
