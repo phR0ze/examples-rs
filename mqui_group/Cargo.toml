@@ -1,9 +1,0 @@
-[package]
-name = "mqui_group"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-rivia = "0.2"
-witcher = "0.1"
-macroquad = "0.3.23"

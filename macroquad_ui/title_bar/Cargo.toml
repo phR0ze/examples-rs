@@ -1,0 +1,17 @@
+[package]
+name = "title_bar"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "0.3.24"
+menu = { path = "../menu" }
+
+[package.metadata.android]
+label = "title_bar"
+package_name = "rust.title_bar"
+version_code = 1
+android_version = 29 
+target_sdk_version = 24
+min_sdk_version = 24
+build_targets = [ "i686-linux-android" ]
