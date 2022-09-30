@@ -42,7 +42,7 @@ pub enum Size {
     ThreeQuarter(f32, f32),
 
     /// Absolute width and height of the widget    
-    Absolute(f32, f32),
+    Custom(f32, f32),
 }
 
 impl Size {
@@ -63,7 +63,7 @@ impl Size {
             Size::ThreeQuarter(margin, height) => {
                 vec2(screen_width() * 2.0 / 3.0 - margin, if *height == -1.0 { screen_height() } else { *height })
             },
-            Size::Absolute(width, height) => vec2(*width, *height),
+            Size::Custom(width, height) => vec2(*width, *height),
         }
     }
 }
@@ -76,6 +76,6 @@ impl Default for Size {
 
 impl From<Vec2> for Size {
     fn from(size: Vec2) -> Self {
-        Self::Absolute(size.x, size.y)
+        Self::Custom(size.x, size.y)
     }
 }

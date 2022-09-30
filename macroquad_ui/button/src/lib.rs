@@ -13,9 +13,5 @@ mod button;
 /// use button::prelude::*;
 /// ```
 pub mod prelude {
-    // Re-exports
-    pub use core::prelude::*;
-
-    // Export internal types
     pub use crate::button::*;
 }

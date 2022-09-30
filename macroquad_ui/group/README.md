@@ -6,6 +6,8 @@ widgets like Window. Simply povides relative positioning inside a box.
 * [Scrolling](#scrolling)
   * [Disable auto scrolling](#disable-auto-scrolling)
 * [Margins](#margins)
+* [Backlog](#backlog)
+* [Completed](#completed)
 
 ## Supported
 * automatically scrolls if content is too large for stated size
@@ -54,3 +56,11 @@ let skin = Skin {
     ..ui.default_skin()
 };
 ```
+
+## Backlog
+* Auto sized based on width and height directives
+
+## Completed
+* Support padding inside group space [examples/margins.rs](examples/margins.rs)
+* Support disabling scrolling [examples/scrolling.rs](examples/scrolling.rs)
+* Support backgrounds [examples/background.rs](examples/background.rs)

@@ -1,4 +1,5 @@
-use test::prelude::*;
+use core::prelude::*;
+use group::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
@@ -16,28 +17,6 @@ async fn main() {
         let ui = root_ui();
         let group_style = ui.style_builder().color(WHITE).build();
         Skin { group_style, ..ui.default_skin() }
-    };
-
-    let disabled_scrollbar = {
-        let ui = root_ui();
-
-        // disable group scrolling feature
-        let scroll_width = 0.0;
-        let scroll_multiplier = 0.0;
-        let scrollbar_style = ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
-        let scrollbar_handle_style =
-            ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
-
-        // add group border color to make is easier to see the edges
-        let group_style = ui.style_builder().color(WHITE).build();
-        Skin {
-            group_style,
-            scrollbar_style,
-            scrollbar_handle_style,
-            scroll_width,
-            scroll_multiplier,
-            ..ui.default_skin()
-        }
     };
 
     loop {
@@ -61,16 +40,17 @@ async fn main() {
         // change the group's sizing at all
         draw_rectangle(199., 99., 82., 82., RED);
 
-        // disabling scrolling is possible with some style changes
-        root_ui().push_skin(&disabled_scrollbar);
-        widgets::Group::new(hash!(), vec2(80., 80.)).position(vec2(200., 100.)).ui(&mut *root_ui(), |ui| {
-            widgets::Button::new("button 1").ui(ui);
-            widgets::Button::new("button 2").ui(ui);
-            widgets::Button::new("button 3").ui(ui);
-            widgets::Button::new("button 4").ui(ui);
-        });
-        root_ui().pop_skin();
-
+        // scrolling disabled with new Group
+        Group::new()
+            .with_border_color(WHITE)
+            .with_size(Size::Custom(80., 80.))
+            .with_position(Position::Custom(200., 100.))
+            .ui(&mut *root_ui(), |ui, _| {
+                widgets::Button::new("button 1").ui(ui);
+                widgets::Button::new("button 2").ui(ui);
+                widgets::Button::new("button 3").ui(ui);
+                widgets::Button::new("button 4").ui(ui);
+            });
         next_frame().await
     }
 }

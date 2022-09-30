@@ -1,18 +1,6 @@
 //! Menu encapsulates and automates the manipulation of a set of widgets to provide
 //! typical menu type functionality.
-use crate::{
-    button::Button,
-    group::Group,
-    position::Position,
-    size::{Size, Width},
-    utils::*,
-};
-use macroquad::{
-    color::colors,
-    hash,
-    prelude::*,
-    ui::{root_ui, widgets, Id, Skin, Ui},
-};
+use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Menu {
@@ -33,7 +21,7 @@ pub struct Menu {
     entry_bg_color: Option<Color>,     // background color to use for entries when background image is not set
     entry_font: Option<&'static [u8]>, // font to use for button text
     entry_font_color: Color,           // font color to use for button text
-    entry_font_size: u16,              // font size to use for button text
+    entry_font_size: f32,              // font size to use for button text
     entry_label_position: Position,    // position of the label within the button
     entry_icon: Option<Texture2D>,     // optional icon to display
     entry_icon_position: Position,     // positionf of the icon within the button
@@ -54,7 +42,7 @@ impl Default for Menu {
             entry_bg_clk: None,
             entry_bg_color: None,
             entry_font: None,
-            entry_font_size: scale(DEFAULT_FONT_SIZE) as u16,
+            entry_font_size: scale(DEFAULT_FONT_SIZE),
             entry_font_color: colors::BLACK,
             entry_label_position: Position::Center(Some(scale_rect(0., 0., 0., 0.))),
             entry_icon: None,
@@ -137,7 +125,7 @@ impl Menu {
     /// Set font size to use for the entries
     /// * handles scaling for mobile
     pub fn with_entry_font_size(self, size: u16) -> Self {
-        Menu { update: true, entry_font_size: scale(size as f32) as u16, ..self }
+        Menu { update: true, entry_font_size: scale(size as f32), ..self }
     }
 
     /// Set font color to use for the entries
@@ -179,20 +167,27 @@ impl Menu {
         if !self.update {
             return;
         }
-        for entry in self.entries.iter_mut() {
-            entry.width = self.entry_width;
-            entry.padding = self.entry_padding;
-            entry.position = self.entry_position;
-            entry.background = self.entry_bg.as_ref().map(|x| x.clone());
-            entry.background_clk = self.entry_bg_clk.as_ref().map(|x| x.clone());
-            entry.background_color = self.entry_bg_color;
-            entry.font = self.entry_font;
-            entry.font_color = self.entry_font_color;
-            entry.font_size = self.entry_font_size;
-            entry.label_position = self.entry_label_position;
-            entry.icon = self.entry_icon.as_ref().map(|x| x.clone());
-            entry.icon_position = self.entry_icon_position;
+        let mut updated = vec![];
+        for entry in self.entries.iter() {
+            updated.push(
+                Button::new(entry.label().to_string())
+                    .with_width(self.entry_width)
+                    .with_padding_p(self.entry_padding)
+                    .with_position(self.entry_position)
+                    .with_background_images(
+                        self.entry_bg.as_ref().map(|x| x.clone()),
+                        self.entry_bg_clk.as_ref().map(|x| x.clone()),
+                    )
+                    .with_background_color(self.entry_bg_color)
+                    .with_font(self.entry_font)
+                    .with_font_color(self.entry_font_color)
+                    .with_font_size(self.entry_font_size)
+                    .with_label_position(self.entry_label_position)
+                    .with_icon(self.entry_icon.as_ref().map(|x| x.clone()))
+                    .with_icon_position(self.entry_icon_position),
+            );
         }
+        self.entries = updated;
         self.update = true;
     }
 
@@ -209,7 +204,7 @@ impl Menu {
 
                 // Record the button that was clicked
                 if entry.clicked() {
-                    self.entry_clicked = Some(entry.label.clone());
+                    self.entry_clicked = Some(entry.label().to_string());
                 }
             }
         });

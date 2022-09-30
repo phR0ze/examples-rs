@@ -1,14 +1,15 @@
 [package]
-name = "test"
+name = "group"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 macroquad = "0.3.24"
+core = { path = "../core" }
 
 [package.metadata.android]
-label = "test"
-package_name = "rust.test"
+label = "group"
+package_name = "rust.group"
 version_code = 1
 android_version = 29 
 target_sdk_version = 24

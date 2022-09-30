@@ -1,7 +1,7 @@
 //! Button encapsulates and automates the manipulation of a set of widgets to provide
 //! typical button type functionality. Macroquad's button implementation doesn't allow
 //! for positioning the label. This implementation does.
-use crate::prelude::*;
+use core::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Button {
@@ -56,22 +56,22 @@ impl Button {
     /// Create a new standard button instance
     pub fn new<T: AsRef<str>>(label: T) -> Button {
         Button { update: true, label: label.as_ref().to_string(), ..Button::default() }
-            .with_font(include_bytes!("../assets/HTOWERT.TTF"))
+            .with_font(Some(include_bytes!("../assets/HTOWERT.TTF")))
     }
 
     /// Create a new button instance with an icon
-    pub fn icon<T: AsRef<str>>(label: T, icon: Image) -> Button {
+    pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Button {
         Button::new(label)
             .with_position(Position::LeftCenter(None))
             .with_width(Width::ThreeQuarter(0., 0.))
-            .with_icon_image(icon)
+            .with_icon(icon)
             .with_icon_position(Position::LeftCenter(rect(20., 0., 0., 0.)))
             .with_label_position(Position::LeftCenter(rect(80., 0., 3., 0.)))
     }
 
     /// Set the button's width directive
-    pub fn with_width(self, width: Width) -> Self {
-        Button { width: Some(width), ..self }
+    pub fn with_width<T: Into<Option<Width>>>(self, width: T) -> Self {
+        Button { width: width.into(), ..self }
     }
 
     /// Position the button on the screen
@@ -86,6 +86,12 @@ impl Button {
         Button { padding: scale_rect(left, right, top, bottom), ..self }
     }
 
+    /// Pad inside widget pushing content in from edges
+    /// * handles scaling for mobile
+    pub fn with_padding_p(self, padding: RectOffset) -> Self {
+        Button { padding: scale_rect_p(padding), ..self }
+    }
+
     /// Set background images to use
     pub fn with_background_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
         Button { update: true, background: regular.into(), background_clk: clicked.into(), ..self }
@@ -97,8 +103,8 @@ impl Button {
     }
 
     /// Set font to use
-    pub fn with_font(self, font: &'static [u8]) -> Self {
-        Button { update: true, font: Some(font), ..self }
+    pub fn with_font(self, font: Option<&'static [u8]>) -> Self {
+        Button { update: true, font, ..self }
     }
 
     /// Set font size to use for the button label
@@ -118,10 +124,9 @@ impl Button {
         Button { label_position: pos.scale(), ..self }
     }
 
-    /// Set icon image to use
-    pub fn with_icon_image<T: Into<Option<Image>>>(self, image: T) -> Self {
-        let icon = image.into().map(|x| Texture2D::from_image(&x));
-        Button { icon, ..self }
+    /// Set icon to use
+    pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
+        Button { icon: icon.into(), ..self }
     }
 
     /// Position the icon inside the button
@@ -134,6 +139,11 @@ impl Button {
     /// * handles scaling for mobile
     pub fn offset<T: Into<Option<RectOffset>>>(&mut self, offset: T) {
         self.offset = offset.into().map(|x| scale_rect_p(x));
+    }
+
+    /// Button label
+    pub fn label(&self) -> &str {
+        &self.label
     }
 
     /// Calculate the size based on the width directive inside the given container

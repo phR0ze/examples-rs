@@ -1,4 +1,4 @@
-use mqui_menu::prelude::*;
+use menu::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {

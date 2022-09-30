@@ -1,7 +1,17 @@
+//! Group using Macroquad mimicking Android like UI behavior
+//!
+//! ### Example
+//! ```
+//! use group::prelude::*;
+//! ```
+mod group;
+
+/// All essential symbols in a simple consumable form
+///
+/// ### Examples
+/// ```
+/// use group::prelude::*;
+/// ```
 pub mod prelude {
-    // Re-exports
-    pub use macroquad::{
-        prelude::*,
-        ui::{hash, root_ui, widgets, Id, Skin, Style, Ui},
-    };
+    pub use crate::group::*;
 }

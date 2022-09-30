@@ -1,4 +1,5 @@
-use test::prelude::*;
+use core::prelude::*;
+use group::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
@@ -54,6 +55,17 @@ async fn main() {
         });
         root_ui().pop_skin();
 
+        // margins that work
+        Group::new()
+            .with_padding(20., 20., 20., 20.)
+            .with_size(Size::Custom(150., 150.))
+            .with_position(Position::Center(None))
+            .ui(&mut *root_ui(), |ui, _| {
+                widgets::Button::new("button 1").ui(ui);
+                widgets::Button::new("button 2").ui(ui);
+                widgets::Button::new("button 3").ui(ui);
+                widgets::Button::new("button 4").ui(ui);
+            });
         next_frame().await
     }
 }

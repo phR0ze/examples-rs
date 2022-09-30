@@ -4,17 +4,7 @@
 //! changes.
 //!
 //! Inspiration for this work-around comes from https://github.com/fishfolks/jumpy
-use crate::{
-    position::Position,
-    size::Size,
-    utils::{scale_rect, scale_vec2},
-};
-use macroquad::{
-    color::colors,
-    hash,
-    prelude::*,
-    ui::{root_ui, widgets, Id, Skin, Ui},
-};
+use core::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Group {
@@ -25,6 +15,7 @@ pub struct Group {
     background: Option<Image>,   // optional background image to use, takes priority over background color
     background_color: Color,     // background color to use if background is not set
     border_color: Option<Color>, // optional border color to use
+    scrolling: bool,             // enable scrolling when true
     skin: Option<Skin>,          // cached MQ skin for drawing
 }
 
@@ -39,6 +30,7 @@ impl Group {
             background: None,
             background_color: colors::GRAY,
             border_color: None,
+            scrolling: false,
             skin: None,
         }
     }
@@ -75,6 +67,11 @@ impl Group {
         Group { update: true, border_color: Some(color), ..self }
     }
 
+    /// Set scrolling state
+    pub fn with_scrolling(self, scrolling: bool) -> Self {
+        Group { update: true, scrolling, ..self }
+    }
+
     /// Update the macroquad skin based on the group's current properties
     fn update(&mut self, ui: &mut Ui) {
         if !self.update {
@@ -99,22 +96,26 @@ impl Group {
         };
 
         // Hide the group scrollbar when content expands beyond the group size
-        let scroll_width = 0.0;
-        let scroll_multiplier = 0.0;
-        let scrollbar_style = ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
-        let scrollbar_handle_style =
-            ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
+        if !self.scrolling {
+            let scroll_width = 0.0;
+            let scroll_multiplier = 0.0;
+            let scrollbar_style =
+                ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
+            let scrollbar_handle_style =
+                ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
 
-        let skin = Skin {
-            group_style,
-            button_style,
-            scrollbar_style,
-            scrollbar_handle_style,
-            scroll_width,
-            scroll_multiplier,
-            ..ui.default_skin()
-        };
-        self.skin = Some(skin);
+            self.skin = Some(Skin {
+                group_style,
+                button_style,
+                scrollbar_style,
+                scrollbar_handle_style,
+                scroll_width,
+                scroll_multiplier,
+                ..ui.default_skin()
+            });
+        } else {
+            self.skin = Some(Skin { group_style, button_style, ..ui.default_skin() });
+        }
         self.update = false;
     }
 

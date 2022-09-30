@@ -1,4 +1,5 @@
-use test::prelude::*;
+use core::prelude::*;
+use group::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
@@ -29,11 +30,14 @@ async fn main() {
         Skin { group_style, ..ui.default_skin() }
     };
 
+    let mut bg_group = Group::new()
+        .with_size(Size::Custom(200., 200.))
+        .with_position(Position::RightCenter(None))
+        .with_background(bg.clone());
     loop {
         clear_background(WHITE);
 
-        // Using a blue rectangle behind the group to demonstrate margin effects
-        // Offset by 1px and increase size by 2x so we have a surrounding 1px color
+        // no background with MQ group
         draw_rectangle(99., 99., 102., 102., BLUE);
         root_ui().push_skin(&white_border);
         widgets::Group::new(hash!(), vec2(100., 100.)).position(vec2(100., 100.)).ui(&mut *root_ui(), |ui| {
@@ -44,7 +48,7 @@ async fn main() {
         });
         root_ui().pop_skin();
 
-        // background style has no effect
+        // background style has no effect with MQ group
         root_ui().push_skin(&background);
         widgets::Group::new(hash!(), vec2(100., 100.)).position(vec2(250., 100.)).ui(&mut *root_ui(), |ui| {
             widgets::Button::new("button 1").ui(ui);
@@ -53,6 +57,25 @@ async fn main() {
             widgets::Button::new("button 4").ui(ui);
         });
         root_ui().pop_skin();
+
+        // background solved with new Group
+        Group::new().with_size(Size::Custom(200., 200.)).with_position(Position::LeftCenter(None)).ui(
+            &mut *root_ui(),
+            |ui, _| {
+                widgets::Button::new("button 1").ui(ui);
+                widgets::Button::new("button 2").ui(ui);
+                widgets::Button::new("button 3").ui(ui);
+                widgets::Button::new("button 4").ui(ui);
+            },
+        );
+
+        // background solved with new Group
+        bg_group.ui(&mut *root_ui(), |ui, _| {
+            widgets::Button::new("button 1").ui(ui);
+            widgets::Button::new("button 2").ui(ui);
+            widgets::Button::new("button 3").ui(ui);
+            widgets::Button::new("button 4").ui(ui);
+        });
 
         next_frame().await
     }

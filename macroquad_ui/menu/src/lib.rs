@@ -1,33 +1,23 @@
-//! Implements UI widgets using Macroquad to mimic Android like UI behaviors
+//! Menu combines Macroquad components to mimic Android like UI behavior
 //!
 //! ### Example
 //! ```
-//! use mq_menu::prelude::*;
+//! use menu::prelude::*;
 //! ```
-mod button;
-mod group;
 mod menu;
-mod position;
-mod size;
-mod utils;
 
 /// All essential symbols in a simple consumable form
 ///
 /// ### Examples
 /// ```
-/// use mq_menu::prelude::*;
+/// use menu::prelude::*;
 /// ```
 pub mod prelude {
     // Re-exports
-    pub use macroquad::{
-        prelude::*,
-        ui::{hash, root_ui, widgets, Id, Skin, Style, Ui},
-    };
+    pub use button::prelude::*;
+    pub use core::prelude::*;
+    pub use group::prelude::*;
 
     // Export internal types
-    pub use crate::group::*;
     pub use crate::menu::*;
-    pub use crate::position::*;
-    pub use crate::size::*;
-    pub use crate::utils::*;
 }
