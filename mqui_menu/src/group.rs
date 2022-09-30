@@ -18,74 +18,68 @@ use macroquad::{
 
 #[derive(Debug, Clone)]
 pub struct Group {
+    update: bool,                // track if the group needs updated before drawing
     size: Size,                  // size of the group on the screen
     position: Position,          // position the group on the screen
     padding: RectOffset,         // pad inside group pushing content in from edges
     background: Option<Image>,   // optional background image to use, takes priority over background color
     background_color: Color,     // background color to use if background is not set
     border_color: Option<Color>, // optional border color to use
-    skin: Skin,                  // cached MQ skin for drawing
+    skin: Option<Skin>,          // cached MQ skin for drawing
 }
 
 impl Group {
     /// Create a new group instance
     pub fn new() -> Self {
-        let skin = root_ui().default_skin();
-
         Group {
+            update: true,
             size: Size::default(),
             position: Position::default(),
             padding: RectOffset::default(),
             background: None,
             background_color: colors::GRAY,
             border_color: None,
-            skin,
+            skin: None,
         }
-        .update_cached_skin()
     }
 
     /// Set size of the group
     /// * handles scaling for mobile
-    pub fn size(self, size: Size) -> Self {
+    pub fn with_size(self, size: Size) -> Self {
         Group { size, ..self }
     }
 
     /// Set position on the screen
-    pub fn position<T: Into<Position>>(self, pos: T) -> Self {
+    pub fn with_position<T: Into<Position>>(self, pos: T) -> Self {
         Group { position: pos.into(), ..self }
     }
 
     /// Pad inside group pushing content in from edges
     /// * handles scaling for mobile
-    pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Group { padding: scale_rect(left, right, top, bottom), ..self }
     }
 
-    /// Pad inside group pushing content in from edges
-    /// * handles scaling for mobile
-    pub fn padding_p(self, padding: RectOffset) -> Self {
-        Group { padding: scale_rect(padding.left, padding.right, padding.top, padding.bottom), ..self }
-    }
-
     /// Set the background image to use. Takes priority over background color
-    pub fn background(self, background: Image) -> Self {
-        Group { background: Some(background), ..self }.update_cached_skin()
+    pub fn with_background(self, background: Image) -> Self {
+        Group { update: true, background: Some(background), ..self }
     }
 
     /// Set the background color to use. Only has affect if background image not set
-    pub fn background_color(self, color: Color) -> Self {
-        Group { background_color: color, ..self }.update_cached_skin()
+    pub fn with_background_color(self, color: Color) -> Self {
+        Group { update: true, background_color: color, ..self }
     }
 
     /// Set the border color to use
-    pub fn border_color(self, color: Color) -> Self {
-        Group { border_color: Some(color), ..self }.update_cached_skin()
+    pub fn with_border_color(self, color: Color) -> Self {
+        Group { update: true, border_color: Some(color), ..self }
     }
 
-    /// Update the cached macroquad skin based on the group's current properties
-    fn update_cached_skin(self) -> Self {
-        let ui = root_ui();
-
+    /// Update the macroquad skin based on the group's current properties
+    fn update(&mut self, ui: &mut Ui) {
+        if !self.update {
+            return;
+        }
         // This is a work-around for Macroquad's lack of relative positioning for windows.
         // By using a button with a background image and a group for layout we can mimic
         // the base window functionality while providing relative positioning.
@@ -111,24 +105,24 @@ impl Group {
         let scrollbar_handle_style =
             ui.style_builder().color(BLANK).color_hovered(BLANK).color_clicked(BLANK).build();
 
-        Group {
-            skin: Skin {
-                group_style,
-                button_style,
-                scrollbar_style,
-                scrollbar_handle_style,
-                scroll_width,
-                scroll_multiplier,
-                ..ui.default_skin()
-            },
-            ..self
-        }
+        let skin = Skin {
+            group_style,
+            button_style,
+            scrollbar_style,
+            scrollbar_handle_style,
+            scroll_width,
+            scroll_multiplier,
+            ..ui.default_skin()
+        };
+        self.skin = Some(skin);
+        self.update = false;
     }
 
     /// Draw the group and call the callback with group's size and position.
     /// * `f` is a callback with params (Ui, size)
-    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&self, ui: &mut Ui, f: F) {
-        ui.push_skin(&self.skin);
+    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, f: F) {
+        self.update(ui);
+        ui.push_skin(self.skin.as_ref().unwrap());
 
         // Draw button as workaround for background image
         let size = self.size.vec2();

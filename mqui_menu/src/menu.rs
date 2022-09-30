@@ -16,8 +16,8 @@ use macroquad::{
 
 #[derive(Debug, Clone)]
 pub struct Menu {
-    group: Group,      // underly group for positioning, size and layout
-    skin_update: bool, // track if a skin update is needed
+    group: Group, // underly group for positioning, size and layout
+    update: bool, // track if a skin update is needed
 
     // Entries
     entries: Vec<Button>,          // entries for menu
@@ -43,7 +43,7 @@ impl Default for Menu {
     fn default() -> Self {
         Menu {
             group: Group::new(),
-            skin_update: false,
+            update: false,
             entries: vec![],
             entry_spacing: scale(10.),
             entry_clicked: None,
@@ -66,7 +66,7 @@ impl Default for Menu {
 impl Menu {
     // Create a new instance
     pub fn new() -> Menu {
-        Menu { skin_update: true, entry_font: Some(include_bytes!("../assets/HTOWERT.TTF")), ..Menu::default() }
+        Menu { update: true, entry_font: Some(include_bytes!("../assets/HTOWERT.TTF")), ..Menu::default() }
     }
 
     // /// Instantiate a new menu to be used for options
@@ -89,60 +89,60 @@ impl Menu {
         let mut entries = self.entries.to_vec();
         let entry = Button::new(title);
         entries.push(entry);
-        Menu { skin_update: true, entries, ..self }
+        Menu { update: true, entries, ..self }
     }
 
     /// Set the menu's size
     /// * handles scaling for mobile
     pub fn with_size(self, size: Size) -> Self {
-        Menu { group: self.group.size(size), ..self }
+        Menu { group: self.group.with_size(size), ..self }
     }
 
     /// Position the menu on the screen
     pub fn with_position<T: Into<Position>>(self, pos: T) -> Self {
-        Menu { group: self.group.position(pos), ..self }
+        Menu { group: self.group.with_position(pos), ..self }
     }
 
     /// Set the background image used for the menu
     pub fn with_background(self, image: Image) -> Self {
-        Menu { group: self.group.background(image), ..self }
+        Menu { group: self.group.with_background(image), ..self }
     }
 
     /// Set the background color used for the menu
     pub fn with_background_color(self, color: Color) -> Self {
-        Menu { group: self.group.background_color(color), ..self }
+        Menu { group: self.group.with_background_color(color), ..self }
     }
 
     /// Pad inside group pushing content in from edges
     /// * handles scaling for mobile
     pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Menu { group: self.group.padding(left, right, top, bottom), ..self }
+        Menu { group: self.group.with_padding(left, right, top, bottom), ..self }
     }
 
     /// Set entry background images to use for entries
     pub fn with_entry_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
-        Menu { skin_update: true, entry_bg: regular.into(), entry_bg_clk: clicked.into(), ..self }
+        Menu { update: true, entry_bg: regular.into(), entry_bg_clk: clicked.into(), ..self }
     }
 
     /// Set entry background color to use for the entries
     pub fn with_entry_bg_color<T: Into<Option<Color>>>(self, color: T) -> Self {
-        Menu { skin_update: true, entry_bg_color: color.into(), ..self }
+        Menu { update: true, entry_bg_color: color.into(), ..self }
     }
 
     /// Set font to use for the entries
     pub fn with_entry_font(self, font: &'static [u8]) -> Self {
-        Menu { skin_update: true, entry_font: Some(font), ..self }
+        Menu { update: true, entry_font: Some(font), ..self }
     }
 
     /// Set font size to use for the entries
     /// * handles scaling for mobile
     pub fn with_entry_font_size(self, size: u16) -> Self {
-        Menu { skin_update: true, entry_font_size: scale(size as f32) as u16, ..self }
+        Menu { update: true, entry_font_size: scale(size as f32) as u16, ..self }
     }
 
     /// Set font color to use for the entries
     pub fn with_entry_font_color(self, color: Color) -> Self {
-        Menu { skin_update: true, entry_font_color: color, ..self }
+        Menu { update: true, entry_font_color: color, ..self }
     }
 
     /// Set position directive for entries
@@ -175,8 +175,8 @@ impl Menu {
     }
 
     /// Update all entries with the latest shared properties
-    fn update_skin(&mut self, ui: &mut Ui) {
-        if !self.skin_update {
+    fn update(&mut self, ui: &mut Ui) {
+        if !self.update {
             return;
         }
         for entry in self.entries.iter_mut() {
@@ -193,12 +193,12 @@ impl Menu {
             entry.icon = self.entry_icon.as_ref().map(|x| x.clone());
             entry.icon_position = self.entry_icon_position;
         }
-        self.skin_update = true;
+        self.update = true;
     }
 
     /// Draw the menu on the screen
     pub fn ui(&mut self, ui: &mut Ui) {
-        self.update_skin(ui);
+        self.update(ui);
         self.group.ui(ui, |ui, size| {
             // Draw the regular menu entries
             for (i, entry) in self.entries.iter_mut().enumerate() {
