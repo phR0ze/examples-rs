@@ -24,10 +24,13 @@ async fn main() {
         let group_style = ui.style_builder().color(WHITE).build();
         Skin { group_style, ..ui.default_skin() }
     };
+
+    let mut fps = Fps::new().with_font_color(WHITE);
     loop {
         clear_background(BLACK);
-        root_ui().push_skin(&white_border);
+        fps.ui(&mut *root_ui());
 
+        root_ui().push_skin(&white_border);
         let size = vec2(300., 300.);
         let pos = vec2((screen_width() - size.x) / 2.0, (screen_height() - size.y) / 2.0);
         widgets::Group::new(hash!(), size).position(pos).ui(&mut *root_ui(), |ui| {
@@ -36,8 +39,8 @@ async fn main() {
                 draw_rectangle(100., 100., 50., 50., RED);
             }
         });
-
         root_ui().pop_skin();
+
         next_frame().await
     }
 }

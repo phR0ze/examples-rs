@@ -194,13 +194,13 @@ impl Menu {
     /// Draw the menu on the screen
     pub fn ui(&mut self, ui: &mut Ui) {
         self.update(ui);
-        self.group.ui(ui, |ui, size| {
+        self.group.ui(ui, |ui, container| {
             // Draw the regular menu entries
             for (i, entry) in self.entries.iter_mut().enumerate() {
                 let offset =
-                    if i != 0 { i as f32 * self.entry_spacing + i as f32 * entry.size(size).y } else { 0. };
+                    if i != 0 { i as f32 * self.entry_spacing + i as f32 * entry.size(container).y } else { 0. };
                 entry.offset(RectOffset::new(0., 0., offset, 0.));
-                entry.ui(ui, size);
+                entry.ui(ui, container);
 
                 // Record the button that was clicked
                 if entry.clicked() {

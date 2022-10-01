@@ -9,7 +9,7 @@ pub struct Button {
     clicked: bool,                   // track button clicked state
     activated: bool,                 // track button activation i.e. odd clicks
     label_size: Vec2,                // calculated size of the label
-    update: bool,                    // track if a skin update is needed
+    dirty: bool,                     // track if a skin update is needed
     width: Option<Width>,            // width of the entry
     offset: Option<RectOffset>,      // offset from the calculated position
     padding: RectOffset,             // button inside is padded before allowing content
@@ -32,7 +32,7 @@ impl Default for Button {
             skin: None,
             activated: false,
             clicked: false,
-            update: false,
+            dirty: false,
             label_size: vec2(0., 0.),
             width: None,
             offset: None,
@@ -55,7 +55,7 @@ impl Default for Button {
 impl Button {
     /// Create a new standard button instance
     pub fn new<T: AsRef<str>>(label: T) -> Button {
-        Button { update: true, label: label.as_ref().to_string(), ..Button::default() }
+        Button { dirty: true, label: label.as_ref().to_string(), ..Button::default() }
             .with_font(Some(include_bytes!("../assets/HTOWERT.TTF")))
     }
 
@@ -94,28 +94,28 @@ impl Button {
 
     /// Set background images to use
     pub fn with_background_images<T: Into<Option<Image>>>(self, regular: T, clicked: T) -> Self {
-        Button { update: true, background: regular.into(), background_clk: clicked.into(), ..self }
+        Button { dirty: true, background: regular.into(), background_clk: clicked.into(), ..self }
     }
 
     /// Set the background color used for the button
     pub fn with_background_color<T: Into<Option<Color>>>(self, color: T) -> Self {
-        Button { update: true, background_color: color.into(), ..self }
+        Button { dirty: true, background_color: color.into(), ..self }
     }
 
     /// Set font to use
     pub fn with_font(self, font: Option<&'static [u8]>) -> Self {
-        Button { update: true, font, ..self }
+        Button { dirty: true, font, ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn with_font_size(self, size: f32) -> Self {
-        Button { update: true, font_size: scale(size) as u16, ..self }
+        Button { dirty: true, font_size: scale(size) as u16, ..self }
     }
 
     /// Set font color to use
     pub fn with_font_color(self, color: Color) -> Self {
-        Button { update: true, font_color: color, ..self }
+        Button { dirty: true, font_color: color, ..self }
     }
 
     /// Position the label inside the button
@@ -179,7 +179,7 @@ impl Button {
 
     /// Update the skin based on the persisted button properties
     fn update(&mut self, ui: &mut Ui) {
-        if !self.update {
+        if !self.dirty {
             return;
         }
         // Create the label style
@@ -213,7 +213,7 @@ impl Button {
         // Calculate text size and include margin
         self.label_size = text_size(ui, &skin, Some(&self.label));
         self.skin = Some(skin);
-        self.update = false;
+        self.dirty = false;
     }
 
     /// Draw the widget on the screen

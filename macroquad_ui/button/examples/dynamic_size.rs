@@ -21,8 +21,10 @@ async fn main() {
         .with_font_color(Color::from_rgba(180, 180, 100, 255))
         .with_font_size(50.0);
 
+    let mut fps = Fps::new().with_font_color(WHITE);
     loop {
         clear_background(BLACK);
+        fps.ui(&mut *root_ui());
 
         button.ui(&mut *root_ui(), Size::screen());
         if button.clicked() {

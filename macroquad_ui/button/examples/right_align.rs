@@ -18,8 +18,10 @@ async fn main() {
         .with_padding(50.0, 50.0, 10.0, 10.0)
         .with_label_position(Position::RightCenter(None));
 
+    let mut fps = Fps::new().with_font_color(WHITE);
     loop {
         clear_background(BLACK);
+        fps.ui(&mut *root_ui());
 
         button.ui(&mut *root_ui(), Size::screen());
         if button.activated() {

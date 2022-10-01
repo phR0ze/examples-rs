@@ -1,6 +1,8 @@
+use std::time::Instant;
+
 use macroquad::{
     prelude::*,
-    ui::{Skin, Ui},
+    ui::{root_ui, widgets, Skin, Ui},
 };
 
 // Mobile device screens have the same or better pixel density as full monitors
@@ -56,4 +58,69 @@ pub fn scale_rect_p(rect: RectOffset) -> RectOffset {
         rect.top * SCALE_MULTIPLIER,
         rect.bottom * SCALE_MULTIPLIER,
     )
+}
+
+pub struct Fps {
+    dirty: bool,        // track if the update skin function needs run
+    skin: Option<Skin>, // skin cache for frames per second
+    frames: u64,        // count the frames until the next second
+    start: Instant,     // time to start tracking from
+    fps: u16,           // last calculated frames per second
+    font_color: Color,  // font color to use
+}
+
+impl Fps {
+    pub fn new() -> Fps {
+        Fps { dirty: true, skin: None, frames: 0, start: Instant::now(), fps: 0, font_color: BLACK }
+    }
+
+    /// Set the font color to use
+    pub fn with_font_color(self, color: Color) -> Self {
+        Fps { dirty: true, font_color: color, ..self }
+    }
+
+    /// Return the fps right now
+    pub fn now(&self) -> u16 {
+        self.fps
+    }
+
+    // Update the skin
+    fn update_skin(&mut self, ui: &mut Ui) {
+        if !self.dirty {
+            return;
+        }
+        let label_style = ui
+            .style_builder()
+            .font_size(DEFAULT_FONT_SIZE as u16)
+            .text_color(self.font_color)
+            .text_color_hovered(self.font_color)
+            .text_color_clicked(self.font_color)
+            .build();
+        self.skin = Some(Skin { label_style, ..ui.default_skin() });
+        self.dirty = false;
+    }
+
+    /// Draw the frames per second in the top left of the screen
+    pub fn ui(&mut self, ui: &mut Ui) {
+        self.update_skin(ui);
+
+        // Calculate fps
+        self.frames += 1;
+        let us = self.start.elapsed().as_micros();
+        if us == 0 {
+            // nothing to do
+            return;
+        }
+        self.fps = ((self.frames * 1000000) as u128 / us) as u16;
+
+        // Reset fps when we have 10sec worth of data
+        if self.start.elapsed().as_secs() > 10 {
+            self.frames = 0;
+            self.start = Instant::now();
+        }
+
+        ui.push_skin(self.skin.as_ref().unwrap());
+        widgets::Label::new(format!("FPS: {}", self.fps)).position(vec2(10., 10.)).ui(ui);
+        ui.pop_skin();
+    }
 }

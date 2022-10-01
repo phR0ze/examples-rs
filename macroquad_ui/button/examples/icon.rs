@@ -15,10 +15,12 @@ fn main_conf() -> Conf {
 async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut button =
-        Button::icon("Settings", icon).with_position(Position::LeftTop(None)).with_background_color(GRAY);
+        Button::icon("Settings", icon).with_position(Position::LeftCenter(None)).with_background_color(GRAY);
 
+    let mut fps = Fps::new().with_font_color(WHITE);
     loop {
         clear_background(BLACK);
+        fps.ui(&mut *root_ui());
 
         button.ui(&mut *root_ui(), Size::screen());
         if button.activated() {

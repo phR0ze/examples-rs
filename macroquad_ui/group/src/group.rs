@@ -8,7 +8,7 @@ use core::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Group {
-    update: bool,                // track if the group needs updated before drawing
+    dirty: bool,                 // track if the group needs updated before drawing
     size: Size,                  // size of the group on the screen
     position: Position,          // position the group on the screen
     padding: RectOffset,         // pad inside group pushing content in from edges
@@ -23,7 +23,7 @@ impl Group {
     /// Create a new group instance
     pub fn new() -> Self {
         Group {
-            update: true,
+            dirty: true,
             size: Size::default(),
             position: Position::default(),
             padding: RectOffset::default(),
@@ -54,27 +54,27 @@ impl Group {
 
     /// Set the background image to use. Takes priority over background color
     pub fn with_background(self, background: Image) -> Self {
-        Group { update: true, background: Some(background), ..self }
+        Group { dirty: true, background: Some(background), ..self }
     }
 
     /// Set the background color to use. Only has affect if background image not set
     pub fn with_background_color(self, color: Color) -> Self {
-        Group { update: true, background_color: color, ..self }
+        Group { dirty: true, background_color: color, ..self }
     }
 
     /// Set the border color to use
     pub fn with_border_color(self, color: Color) -> Self {
-        Group { update: true, border_color: Some(color), ..self }
+        Group { dirty: true, border_color: Some(color), ..self }
     }
 
     /// Set scrolling state
     pub fn with_scrolling(self, scrolling: bool) -> Self {
-        Group { update: true, scrolling, ..self }
+        Group { dirty: true, scrolling, ..self }
     }
 
     /// Update the macroquad skin based on the group's current properties
     fn update(&mut self, ui: &mut Ui) {
-        if !self.update {
+        if !self.dirty {
             return;
         }
         // This is a work-around for Macroquad's lack of relative positioning for windows.
@@ -116,7 +116,7 @@ impl Group {
         } else {
             self.skin = Some(Skin { group_style, button_style, ..ui.default_skin() });
         }
-        self.update = false;
+        self.dirty = false;
     }
 
     /// Draw the group and call the callback with group's size and position.
