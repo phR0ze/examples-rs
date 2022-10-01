@@ -1,3 +1,4 @@
+use crate::{position::Position, size::Size};
 use std::time::Instant;
 
 use macroquad::{
@@ -61,17 +62,31 @@ pub fn scale_rect_p(rect: RectOffset) -> RectOffset {
 }
 
 pub struct Fps {
+    fps: u16,           // last calculated frames per second
     dirty: bool,        // track if the update skin function needs run
     skin: Option<Skin>, // skin cache for frames per second
     frames: u64,        // count the frames until the next second
     start: Instant,     // time to start tracking from
-    fps: u16,           // last calculated frames per second
     font_color: Color,  // font color to use
+    position: Position, // positional directive for location
 }
 
 impl Fps {
     pub fn new() -> Fps {
-        Fps { dirty: true, skin: None, frames: 0, start: Instant::now(), fps: 0, font_color: BLACK }
+        Fps {
+            dirty: true,
+            fps: 0,
+            skin: None,
+            frames: 0,
+            start: Instant::now(),
+            font_color: BLACK,
+            position: Position::LeftTop(rect(10., 0., 10., 0.)),
+        }
+    }
+
+    /// Set the position
+    pub fn with_position(self, position: Position) -> Self {
+        Fps { position, ..self }
     }
 
     /// Set the font color to use
@@ -120,7 +135,10 @@ impl Fps {
         }
 
         ui.push_skin(self.skin.as_ref().unwrap());
-        widgets::Label::new(format!("FPS: {}", self.fps)).position(vec2(10., 10.)).ui(ui);
+        let fps = format!("FPS: {}", self.fps);
+        let size = ui.calc_size(&fps);
+        let pos = self.position.vec2(size);
+        widgets::Label::new(fps).position(pos).ui(ui);
         ui.pop_skin();
     }
 }

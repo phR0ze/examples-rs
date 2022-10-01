@@ -4,7 +4,7 @@
         {
             "label": "Run",
             "type": "shell",
-            "command": "RUST_BACKTRACE=1 cargo run --example fps"
+            "command": "RUST_BACKTRACE=1 cargo run --example dark"
         }
     ]
 }

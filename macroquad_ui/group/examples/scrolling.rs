@@ -19,8 +19,10 @@ async fn main() {
         Skin { group_style, ..ui.default_skin() }
     };
 
+    let mut fps = Fps::new();
     loop {
         clear_background(WHITE);
+        fps.ui(&mut *root_ui());
 
         // Draw a blue rectangle behind the group showing that the scrollbar does not exceed the
         // original specified group size; rather it consumes the group's size.

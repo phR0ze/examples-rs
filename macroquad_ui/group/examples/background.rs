@@ -34,8 +34,11 @@ async fn main() {
         .with_size(Size::Custom(200., 200.))
         .with_position(Position::RightCenter(None))
         .with_background(bg.clone());
+
+    let mut fps = Fps::new();
     loop {
         clear_background(WHITE);
+        fps.ui(&mut *root_ui());
 
         // no background with MQ group
         draw_rectangle(99., 99., 102., 102., BLUE);

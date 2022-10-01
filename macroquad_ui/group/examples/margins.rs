@@ -28,8 +28,10 @@ async fn main() {
         Skin { group_style, ..ui.default_skin() }
     };
 
+    let mut fps = Fps::new();
     loop {
         clear_background(WHITE);
+        fps.ui(&mut *root_ui());
 
         // Using a blue rectangle behind the group to demonstrate margin effects
         // Offset by 1px and increase size by 2x so we have a surrounding 1px color
