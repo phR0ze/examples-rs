@@ -58,11 +58,11 @@ async fn main() {
         root_ui().pop_skin();
 
         // margins that work
-        Group::new()
+        Group::new(hash!())
             .with_padding(20., 20., 20., 20.)
             .with_size(Size::Static(150., 150.))
             .with_position(Position::Center(None))
-            .ui(&mut *root_ui(), |ui, _| {
+            .ui(&mut *root_ui(), Size::screen(), |ui, _| {
                 widgets::Button::new("button 1").ui(ui);
                 widgets::Button::new("button 2").ui(ui);
                 widgets::Button::new("button 3").ui(ui);

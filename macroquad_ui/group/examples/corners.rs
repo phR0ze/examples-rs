@@ -14,15 +14,15 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let mut fps = Fps::dark();
-    let mut group1 = Group::new().with_position(Position::RightTop(None));
-    let mut group2 = Group::new().with_background_color(WHITE).with_position(Position::LeftBottom(None));
+    let mut group1 = Group::new(hash!()).with_position(Position::RightTop(None));
+    let mut group2 = Group::new(hash!()).with_background_color(WHITE).with_position(Position::LeftBottom(None));
 
     loop {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        group1.ui(&mut *root_ui(), Size::screen(), |ui, container| {});
-        group2.ui(&mut *root_ui(), Size::screen(), |ui, container| {});
+        group1.ui(&mut *root_ui(), Size::screen(), |_, _| {});
+        group2.ui(&mut *root_ui(), Size::screen(), |_, _| {});
 
         next_frame().await
     }

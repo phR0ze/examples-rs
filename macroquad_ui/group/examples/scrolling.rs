@@ -43,11 +43,11 @@ async fn main() {
         draw_rectangle(199., 99., 82., 82., RED);
 
         // scrolling disabled with new Group
-        Group::new()
+        Group::new(hash!())
             .with_border_color(WHITE)
             .with_size(Size::Static(80., 80.))
             .with_position(Position::Custom(200., 100.))
-            .ui(&mut *root_ui(), |ui, _| {
+            .ui(&mut *root_ui(), Size::screen(), |ui, _| {
                 widgets::Button::new("button 1").ui(ui);
                 widgets::Button::new("button 2").ui(ui);
                 widgets::Button::new("button 3").ui(ui);

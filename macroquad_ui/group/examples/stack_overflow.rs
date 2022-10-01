@@ -11,8 +11,8 @@ fn main_conf() -> Conf {
     }
 }
 
-pub fn test<F: FnOnce(&mut Ui)>(ui: &mut Ui, size: Vec2, f: F) -> Drag {
-    widgets::Group::new(hash!(), size).ui(ui, f)
+pub fn test<F: FnOnce(&mut Ui)>(ui: &mut Ui, size: Vec2, id: &str, f: F) -> Drag {
+    widgets::Group::new(hash!(id), size).ui(ui, f)
 }
 
 #[macroquad::main(main_conf)]
@@ -23,8 +23,8 @@ async fn main() {
         let size1 = vec2(300., 300.);
         let size2 = vec2(250., 250.);
 
-        test(&mut *root_ui(), size1, |ui| {
-            test(ui, size2, |ui2| {});
+        test(&mut *root_ui(), size1, "foo1", |ui| {
+            test(ui, size2, "foo2", |ui2| {});
         });
         // widgets::Group::new(hash!(), size1).ui(&mut *root_ui(), |ui| {
         //     widgets::Group::new(hash!(), size2).ui(ui, |ui| {});

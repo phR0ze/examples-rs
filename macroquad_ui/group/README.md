@@ -16,19 +16,20 @@ widgets like Window. Simply povides relative positioning inside a box.
 * hoverable
 * highlight
 
-## Unsupported
-* Layout property seems to have no affect if Horizontal or Vertical
+## Layout
+* Layout property seems to have no affect if Horizontal or Vertical?
 
 ## Background
-Macroquad's `background` style properties have no effect on the group.
+Macroquad's `background` style properties have no effect on the group. I've addressed this with my 
+Group wrapper.
 
 **Examples**:
 * [examples/background.rs](examples/background.rs)
 
 ## Margins
 Macroquad style `margin` and `background_margin` have no effect when a static `size()` is set for a 
-widget. Since the group constructor and common use cases for groups always have a static size the 
-margin values on the style are not useful.
+widget. Since the group constructor requires a static size this means that margin values will never 
+be used. I've addressed this with my group wrapper.
 
 **Examples**:
 * [examples/margins.rs](examples/margins.rs)

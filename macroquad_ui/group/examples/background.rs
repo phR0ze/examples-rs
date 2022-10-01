@@ -30,7 +30,7 @@ async fn main() {
         Skin { group_style, ..ui.default_skin() }
     };
 
-    let mut bg_group = Group::new()
+    let mut bg_group = Group::new(hash!())
         .with_size(Size::Static(200., 200.))
         .with_position(Position::RightCenter(None))
         .with_background(bg.clone());
@@ -61,8 +61,8 @@ async fn main() {
         });
         root_ui().pop_skin();
 
-        // background solved with new Group
-        Group::new().with_size(Size::Static(200., 200.)).with_position(Position::LeftCenter(None)).ui(
+        // New Group without background
+        Group::new(hash!()).with_size(Size::Static(200., 200.)).with_position(Position::LeftCenter(None)).ui(
             &mut *root_ui(),
             Size::screen(),
             |ui, _| {
@@ -73,7 +73,7 @@ async fn main() {
             },
         );
 
-        // background solved with new Group
+        // New Group with background
         bg_group.ui(&mut *root_ui(), Size::screen(), |ui, _| {
             widgets::Button::new("button 1").ui(ui);
             widgets::Button::new("button 2").ui(ui);

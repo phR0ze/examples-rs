@@ -6,6 +6,11 @@ Documenting Macroquad's immediate mode UI.
 
 ### Quick links
 * [Overview](#overview)
+  * [Clickable](#clickable)
+  * [Draggable](#draggable)
+  * [Layout](#layout)
+  * [Scrollable](#scrollable)
+  * [Stack overflow](#stack-overflow)
 * [Ui](#ui)
 * [Skin](#skin)
   * [Skin fields](#skin-fields)
@@ -68,6 +73,14 @@ let skin = Skin {
     ..ui.default_skin()
 };
 ```
+
+### Stack overflow
+If you don't use unique `Id` values you can get a `stack overflow` errors. I ran into this issue when 
+trying to next Group object wrappers. I wrote a struct method that instantiated a Macroquad group for 
+me. Because the `hash!()` default implementation without any argument uses a concatenation of
+`file!(), line!(), column!()` my implementation which has the same file, line, column combination 
+for every call will internally cause Macroquad to recurse into oblivion. This can be solved by using 
+a unique `Id` for each group instance.
 
 ## Ui
 The `Ui` object is the type returned from `root_ui()` and provides creation functions for a number of 
