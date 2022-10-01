@@ -31,7 +31,7 @@ async fn main() {
     };
 
     let mut bg_group = Group::new()
-        .with_size(Size::Custom(200., 200.))
+        .with_size(Size::Static(200., 200.))
         .with_position(Position::RightCenter(None))
         .with_background(bg.clone());
 
@@ -62,7 +62,7 @@ async fn main() {
         root_ui().pop_skin();
 
         // background solved with new Group
-        Group::new().with_size(Size::Custom(200., 200.)).with_position(Position::LeftCenter(None)).ui(
+        Group::new().with_size(Size::Static(200., 200.)).with_position(Position::LeftCenter(None)).ui(
             &mut *root_ui(),
             |ui, _| {
                 widgets::Button::new("button 1").ui(ui);

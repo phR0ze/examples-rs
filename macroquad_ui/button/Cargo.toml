@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 macroquad = "0.3.24"
 core = { path = "../core" }
+group = { path = "../group" }
 
 [package.metadata.android]
 label = "button"

@@ -21,13 +21,17 @@ pub enum Position {
     /// * accepts and optional offset value
     RightTop(Option<RectOffset>),
 
+    /// Position on the left horizontally and top vertically
+    /// * accepts and optional offset value
+    LeftTop(Option<RectOffset>),
+
     /// Position on the left horizontally and center vertically
     /// * accepts and optional offset value
     LeftCenter(Option<RectOffset>),
 
-    /// Position on the left horizontally and top vertically
+    /// Position on the left horizontally and bottom vertically
     /// * accepts and optional offset value
-    LeftTop(Option<RectOffset>),
+    LeftBottom(Option<RectOffset>),
 
     /// Custom position relative to the containing widget
     Custom(f32, f32),
@@ -50,10 +54,12 @@ impl Position {
             Position::RightCenter(Some(offset)) => Position::RightCenter(Some(scale_rect_p(*offset))),
             Position::RightTop(None) => Position::RightTop(None),
             Position::RightTop(Some(offset)) => Position::RightTop(Some(scale_rect_p(*offset))),
-            Position::LeftCenter(None) => Position::LeftCenter(None),
-            Position::LeftCenter(Some(offset)) => Position::LeftCenter(Some(scale_rect_p(*offset))),
             Position::LeftTop(None) => Position::LeftTop(None),
             Position::LeftTop(Some(offset)) => Position::LeftTop(Some(scale_rect_p(*offset))),
+            Position::LeftCenter(None) => Position::LeftCenter(None),
+            Position::LeftCenter(Some(offset)) => Position::LeftCenter(Some(scale_rect_p(*offset))),
+            Position::LeftBottom(None) => Position::LeftBottom(None),
+            Position::LeftBottom(Some(offset)) => Position::LeftBottom(Some(scale_rect_p(*offset))),
             Position::Custom(x, y) => Position::Custom(*x, *y),
         }
     }
@@ -83,12 +89,16 @@ impl Position {
             Position::RightTop(Some(offset)) => {
                 vec2(container.x - target.x + offset.left - offset.right, offset.top - offset.bottom)
             },
+            Position::LeftTop(None) => vec2(0.0, 0.0),
+            Position::LeftTop(Some(offset)) => vec2(offset.left - offset.right, offset.top - offset.bottom),
             Position::LeftCenter(None) => vec2(0.0, (container.y - target.y) / 2.0),
             Position::LeftCenter(Some(offset)) => {
                 vec2(offset.left - offset.right, (container.y - target.y) / 2.0 + offset.top - offset.bottom)
             },
-            Position::LeftTop(None) => vec2(0.0, 0.0),
-            Position::LeftTop(Some(offset)) => vec2(offset.left - offset.right, offset.top - offset.bottom),
+            Position::LeftBottom(None) => vec2(0.0, container.y - target.y),
+            Position::LeftBottom(Some(offset)) => {
+                vec2(offset.left - offset.right, container.y - target.y + offset.top - offset.bottom)
+            },
             Position::Custom(x, y) => vec2(*x, *y),
         };
         if let Some(start) = start {
@@ -101,14 +111,15 @@ impl Position {
     /// Calculate the position vector based on the given component size
     /// * `target` is the component's size to be taken into account
     pub fn vec2(&self, target: Vec2) -> Vec2 {
-        let container = vec2(screen_width(), screen_height());
+        let container = Size::screen();
         match self {
             Position::Center(x) => Position::Center(*x).relative(target, container, None),
             Position::CenterTop(x) => Position::CenterTop(*x).relative(target, container, None),
             Position::RightCenter(x) => Position::RightCenter(*x).relative(target, container, None),
             Position::RightTop(x) => Position::RightTop(*x).relative(target, container, None),
-            Position::LeftCenter(x) => Position::LeftCenter(*x).relative(target, container, None),
             Position::LeftTop(x) => Position::LeftTop(*x).relative(target, container, None),
+            Position::LeftCenter(x) => Position::LeftCenter(*x).relative(target, container, None),
+            Position::LeftBottom(x) => Position::LeftBottom(*x).relative(target, container, None),
             Position::Custom(x, y) => vec2(*x, *y),
         }
     }

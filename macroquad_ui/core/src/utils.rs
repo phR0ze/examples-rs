@@ -16,6 +16,11 @@ pub const SIZE_MULTIPLIER: f32 = 4.0;
 /// Default font size
 pub const DEFAULT_FONT_SIZE: f32 = 30.0;
 
+/// Instantiate a margin pair
+pub fn margin(val1: f32, val2: f32) -> Option<(f32, f32)> {
+    Some((val1, val2))
+}
+
 /// Instantiate a RectOffset
 pub fn rect(left: f32, right: f32, top: f32, bottom: f32) -> Option<RectOffset> {
     Some(RectOffset::new(left, right, top, bottom))
@@ -72,6 +77,7 @@ pub struct Fps {
 }
 
 impl Fps {
+    /// Create a new Fps light instance
     pub fn new() -> Fps {
         Fps {
             dirty: true,
@@ -82,6 +88,11 @@ impl Fps {
             font_color: BLACK,
             position: Position::LeftTop(rect(10., 0., 10., 0.)),
         }
+    }
+
+    /// Create a new Fps dark instance
+    pub fn dark() -> Fps {
+        Fps::new().with_font_color(WHITE)
     }
 
     /// Set the position

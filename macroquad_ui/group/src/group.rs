@@ -24,7 +24,7 @@ impl Group {
     pub fn new() -> Self {
         Group {
             dirty: true,
-            size: Size::default(),
+            size: Size::Calculated(Width::Half(None), Height::Half(None)),
             position: Position::default(),
             padding: RectOffset::default(),
             background: None,
@@ -120,13 +120,14 @@ impl Group {
     }
 
     /// Draw the group and call the callback with group's size and position.
+    /// * `container` is the containing widget's size
     /// * `f` is a callback with params (Ui, size)
-    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, f: F) {
+    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, container: Vec2, f: F) {
         self.update(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
-        // Draw button as workaround for background image
-        let size = self.size.vec2();
+        // Draw button behind group to get background image
+        let size = self.size.relative(container);
         let position = self.position.vec2(size);
         widgets::Button::new("").size(size).position(position).ui(ui);
 

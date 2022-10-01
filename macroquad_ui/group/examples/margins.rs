@@ -60,7 +60,7 @@ async fn main() {
         // margins that work
         Group::new()
             .with_padding(20., 20., 20., 20.)
-            .with_size(Size::Custom(150., 150.))
+            .with_size(Size::Static(150., 150.))
             .with_position(Position::Center(None))
             .ui(&mut *root_ui(), |ui, _| {
                 widgets::Button::new("button 1").ui(ui);

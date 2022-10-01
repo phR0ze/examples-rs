@@ -45,7 +45,7 @@ async fn main() {
         // scrolling disabled with new Group
         Group::new()
             .with_border_color(WHITE)
-            .with_size(Size::Custom(80., 80.))
+            .with_size(Size::Static(80., 80.))
             .with_position(Position::Custom(200., 100.))
             .ui(&mut *root_ui(), |ui, _| {
                 widgets::Button::new("button 1").ui(ui);
