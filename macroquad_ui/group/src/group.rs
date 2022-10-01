@@ -26,7 +26,7 @@ impl Group {
         Group {
             id,
             dirty: true,
-            size: Size::Calculated(Width::Half(None), Height::Half(None)),
+            size: Size::Calc(Width::Half(None), Height::Half(None)),
             position: Position::default(),
             padding: RectOffset::default(),
             background: None,
