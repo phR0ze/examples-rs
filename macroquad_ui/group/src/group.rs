@@ -124,12 +124,13 @@ impl Group {
     /// * `f` is a callback with params (Ui, size)
     pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, container: Vec2, f: F) {
         self.update(ui);
+        println!("draw1");
         ui.push_skin(self.skin.as_ref().unwrap());
 
         // Draw button behind group to get background image
         let size = self.size.relative(container);
         let position = self.position.vec2(size);
-        widgets::Button::new("").size(size).position(position).ui(ui);
+        //widgets::Button::new("").size(size).position(position).ui(ui);
 
         // Calculate group size and position taking padding into account.
         // Padding reduces the group size and shifts position to even it out.
@@ -143,6 +144,7 @@ impl Group {
             ui.pop_skin();
             f(ui, group_size)
         });
+        println!("draw2");
 
         // Together they form window like functionality that can resize dynamnically
         // based on the application window size changes. MQ's stock window doesn't
