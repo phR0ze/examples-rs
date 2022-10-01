@@ -58,9 +58,9 @@ let skin = Skin {
 ```
 
 ## Backlog
-* Auto sized based on width and height directives
 
 ## Completed
+* Auto sized based on width and height directives [examples/relative.rs](examples/relative.rs)
 * Support padding inside group space [examples/margins.rs](examples/margins.rs)
 * Support disabling scrolling [examples/scrolling.rs](examples/scrolling.rs)
 * Support backgrounds [examples/background.rs](examples/background.rs)

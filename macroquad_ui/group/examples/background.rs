@@ -64,6 +64,7 @@ async fn main() {
         // background solved with new Group
         Group::new().with_size(Size::Static(200., 200.)).with_position(Position::LeftCenter(None)).ui(
             &mut *root_ui(),
+            Size::screen(),
             |ui, _| {
                 widgets::Button::new("button 1").ui(ui);
                 widgets::Button::new("button 2").ui(ui);
@@ -73,7 +74,7 @@ async fn main() {
         );
 
         // background solved with new Group
-        bg_group.ui(&mut *root_ui(), |ui, _| {
+        bg_group.ui(&mut *root_ui(), Size::screen(), |ui, _| {
             widgets::Button::new("button 1").ui(ui);
             widgets::Button::new("button 2").ui(ui);
             widgets::Button::new("button 3").ui(ui);
