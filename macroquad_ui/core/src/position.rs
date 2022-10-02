@@ -1,44 +1,47 @@
-//! Position provides additional functionality around positioning widgets
+//! Position provides functionality for positioning widgets on the screen
 use crate::prelude::*;
 
-/// Position is a directive used to calculate the actual position. The enum values are
-/// named in a WidthHeight camel case describing the width and height positioning directive.
+/// Position is a directive used to guide the calculation of the actual position
 #[derive(Debug, Copy, Clone)]
 pub enum Position {
-    /// Position center horizontally and center vertically
-    /// * accepts and optional offset value
-    Center(Option<RectOffset>),
-
-    /// Position center horizontally and top vertically
+    /// Position in the center horizontally and in the top vertically
     /// * accepts and optional offset value
     CenterTop(Option<RectOffset>),
 
-    /// Position on the right horizontally and center vertically
+    /// Position in the center horizontally and in the center vertically
+    /// * accepts and optional offset value
+    Center(Option<RectOffset>),
+
+    /// Position in the center horizontally and in the bottom vertically
+    /// * accepts and optional offset value
+    CenterBottom(Option<RectOffset>),
+
+    /// Position in the right horizontally and in the center vertically
     /// * accepts and optional offset value
     RightCenter(Option<RectOffset>),
 
-    /// Position on the right horizontally and top vertically
+    /// Position in the right horizontally and in the top vertically
     /// * accepts and optional offset value
     RightTop(Option<RectOffset>),
 
-    /// Position on the left horizontally and top vertically
+    /// Position in the left horizontally and in the top vertically
     /// * accepts and optional offset value
     LeftTop(Option<RectOffset>),
 
-    /// Position on the left horizontally and center vertically
+    /// Position in the left horizontally and in the center vertically
     /// * accepts and optional offset value
     LeftCenter(Option<RectOffset>),
 
-    /// Position on the left horizontally and bottom vertically
+    /// Position in the left horizontally and in the bottom vertically
     /// * accepts and optional offset value
     LeftBottom(Option<RectOffset>),
 
-    /// Custom position relative to the containing widget
+    /// Position horizontally with the given value and vertically with the given value
     Custom(f32, f32),
 }
 
 impl Position {
-    /// Position of origin
+    /// Returns the origin position
     pub fn origin() -> Vec2 {
         vec2(0.0, 0.0)
     }
@@ -46,10 +49,12 @@ impl Position {
     /// Scale the positional margins
     pub fn scale(&self) -> Position {
         match self {
-            Position::Center(None) => Position::Center(None),
-            Position::Center(Some(offset)) => Position::Center(Some(scale_rect_p(*offset))),
             Position::CenterTop(None) => Position::CenterTop(None),
             Position::CenterTop(Some(offset)) => Position::CenterTop(Some(scale_rect_p(*offset))),
+            Position::Center(None) => Position::Center(None),
+            Position::Center(Some(offset)) => Position::Center(Some(scale_rect_p(*offset))),
+            Position::CenterBottom(None) => Position::CenterBottom(None),
+            Position::CenterBottom(Some(offset)) => Position::CenterBottom(Some(scale_rect_p(*offset))),
             Position::RightCenter(None) => Position::RightCenter(None),
             Position::RightCenter(Some(offset)) => Position::RightCenter(Some(scale_rect_p(*offset))),
             Position::RightTop(None) => Position::RightTop(None),
@@ -64,44 +69,49 @@ impl Position {
         }
     }
 
-    /// Calculate the position vector based on the given widget size and the
-    /// containing widget size and the positioning directive.
-    /// * `target` is the size of the target component to position
-    /// * `container` is the containing widget's size
-    /// * `start` when given is an optional offset to account for containers that don't reset position to (0,0)
-    pub fn relative(&self, target: Vec2, container: Vec2, start: Option<Vec2>) -> Vec2 {
+    /// Calculate the position vector based on the given widget size and positioning directive as well
+    /// as the containing widget's size and optionally the containing widget's position.
+    /// * `size` is the size of the target component to position
+    /// * `cont_size` is the containing widget's size
+    /// * `cont_pos` is an optional offset to account for containers that don't reset position to (0,0)
+    pub fn relative(&self, size: Vec2, cont_size: Vec2, cont_pos: Option<Vec2>) -> Vec2 {
         let mut pos = match self {
-            Position::Center(None) => vec2(container.x - target.x, container.y - target.y) / 2.0,
-            Position::Center(Some(offset)) => vec2(
-                (container.x - target.x) / 2.0 + offset.left - offset.right,
-                (container.y - target.y) / 2.0 + offset.top - offset.bottom,
-            ),
-            Position::CenterTop(None) => vec2((container.x - target.x) / 2.0, 0.0),
+            Position::CenterTop(None) => vec2((cont_size.x - size.x) / 2.0, 0.0),
             Position::CenterTop(Some(offset)) => {
-                vec2((container.x - target.x) / 2.0 + offset.left - offset.right, offset.top - offset.bottom)
+                vec2((cont_size.x - size.x) / 2.0 + offset.left - offset.right, offset.top - offset.bottom)
             },
-            Position::RightCenter(None) => vec2(container.x - target.x, (container.y - target.y) / 2.0),
-            Position::RightCenter(Some(offset)) => vec2(
-                container.x - target.x + offset.left - offset.right,
-                (container.y - target.y) / 2.0 + offset.top - offset.bottom,
+            Position::Center(None) => vec2(cont_size.x - size.x, cont_size.y - size.y) / 2.0,
+            Position::Center(Some(offset)) => vec2(
+                (cont_size.x - size.x) / 2.0 + offset.left - offset.right,
+                (cont_size.y - size.y) / 2.0 + offset.top - offset.bottom,
             ),
-            Position::RightTop(None) => vec2(container.x - target.x, 0.0),
+            Position::CenterBottom(None) => vec2((cont_size.x - size.x) / 2.0, cont_size.y - size.y),
+            Position::CenterBottom(Some(offset)) => vec2(
+                (cont_size.x - size.x) / 2.0 + offset.left - offset.right,
+                cont_size.y - size.y + offset.top - offset.bottom,
+            ),
+            Position::RightCenter(None) => vec2(cont_size.x - size.x, (cont_size.y - size.y) / 2.0),
+            Position::RightCenter(Some(offset)) => vec2(
+                cont_size.x - size.x + offset.left - offset.right,
+                (cont_size.y - size.y) / 2.0 + offset.top - offset.bottom,
+            ),
+            Position::RightTop(None) => vec2(cont_size.x - size.x, 0.0),
             Position::RightTop(Some(offset)) => {
-                vec2(container.x - target.x + offset.left - offset.right, offset.top - offset.bottom)
+                vec2(cont_size.x - size.x + offset.left - offset.right, offset.top - offset.bottom)
             },
             Position::LeftTop(None) => vec2(0.0, 0.0),
             Position::LeftTop(Some(offset)) => vec2(offset.left - offset.right, offset.top - offset.bottom),
-            Position::LeftCenter(None) => vec2(0.0, (container.y - target.y) / 2.0),
+            Position::LeftCenter(None) => vec2(0.0, (cont_size.y - size.y) / 2.0),
             Position::LeftCenter(Some(offset)) => {
-                vec2(offset.left - offset.right, (container.y - target.y) / 2.0 + offset.top - offset.bottom)
+                vec2(offset.left - offset.right, (cont_size.y - size.y) / 2.0 + offset.top - offset.bottom)
             },
-            Position::LeftBottom(None) => vec2(0.0, container.y - target.y),
+            Position::LeftBottom(None) => vec2(0.0, cont_size.y - size.y),
             Position::LeftBottom(Some(offset)) => {
-                vec2(offset.left - offset.right, container.y - target.y + offset.top - offset.bottom)
+                vec2(offset.left - offset.right, cont_size.y - size.y + offset.top - offset.bottom)
             },
             Position::Custom(x, y) => vec2(*x, *y),
         };
-        if let Some(start) = start {
+        if let Some(start) = cont_pos {
             pos.x += start.x;
             pos.y += start.y;
         }
@@ -113,8 +123,9 @@ impl Position {
     pub fn vec2(&self, target: Vec2) -> Vec2 {
         let container = Size::screen();
         match self {
-            Position::Center(x) => Position::Center(*x).relative(target, container, None),
             Position::CenterTop(x) => Position::CenterTop(*x).relative(target, container, None),
+            Position::Center(x) => Position::Center(*x).relative(target, container, None),
+            Position::CenterBottom(x) => Position::CenterBottom(*x).relative(target, container, None),
             Position::RightCenter(x) => Position::RightCenter(*x).relative(target, container, None),
             Position::RightTop(x) => Position::RightTop(*x).relative(target, container, None),
             Position::LeftTop(x) => Position::LeftTop(*x).relative(target, container, None),
