@@ -131,3 +131,9 @@ impl Size {
         }
     }
 }
+
+impl Default for Size {
+    fn default() -> Self {
+        Size::Percent(0.50, 0.50)
+    }
+}

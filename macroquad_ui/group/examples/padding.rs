@@ -11,8 +11,14 @@ fn main_conf() -> Conf {
     }
 }
 
+fn skin_with_color(color: Color) -> Skin {
+    let button_style = root_ui().style_builder().color(color).color_hovered(color).color_clicked(color).build();
+    Skin { button_style, ..root_ui().default_skin() }
+}
+
 #[macroquad::main(main_conf)]
 async fn main() {
+    let blue_skin = skin_with_color(BLUE);
     let mut fps = Fps::new();
     loop {
         clear_background(WHITE);
@@ -20,21 +26,14 @@ async fn main() {
 
         Group::new(gid!())
             .with_size(Size::Percent(0.95, 0.45))
+            .with_padding(50., 50., 50., 50.)
             .with_position(Position::CenterTop(rect(0., 0., 40., 0.)))
             .ui(&mut *root_ui(), Size::screen(), |ui, cont_size| {
-                Group::new(gid!())
-                    .with_size(Size::Percent(0.85, 0.85))
-                    .with_position(Position::Center(None))
-                    .with_background_color(BLUE)
-                    .ui(ui, cont_size, |ui, cont_size| {
-                        Group::new(gid!())
-                            .with_size(Size::Percent(0.85, 0.85))
-                            .with_position(Position::Center(None))
-                            .with_background_color(GREEN)
-                            .ui(ui, cont_size, |ui, cont_size| {
-                                //
-                            });
-                    });
+                ui.push_skin(&blue_skin);
+                let size1 = Size::Percent(1., 1.).relative(cont_size);
+                let pos1 = Position::Center(None).relative(size1, cont_size, None);
+                widgets::Button::new("blue is group content offset by padding").size(size1).position(pos1).ui(ui);
+                ui.pop_skin();
             });
 
         next_frame().await

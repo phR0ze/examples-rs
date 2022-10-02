@@ -1,15 +1,13 @@
-//! Group provides a relatively positioned MQ group that will adjust to maintain its
-//! original position relative to the app window size. This is a work around for the
-//! stock MQ window that has a static position regardless of application window size
-//! changes.
-//!
-//! Inspiration for this work-around comes from https://github.com/fishfolks/jumpy
+//! Group provides a wrapper around the stock Macroquad group providing addtional functionality
+//! * simpler more direct property manipulation
+//! * relative positioning that adjusts for app sizing adjustments unlinke stock MQ Window widget
+//! * background color and background image support
+//! * padding support
+//! * disable scrolling easily
 use core::prelude::*;
 
 #[derive(Debug, Clone)]
-pub struct Group {
-    id: Id,                      // unique group id
-    dirty: bool,                 // track if the group needs updated before drawing
+pub struct GroupStyle {
     size: Size,                  // size of the group on the screen
     position: Position,          // position the group on the screen
     padding: RectOffset,         // pad inside group pushing content in from edges
@@ -17,22 +15,31 @@ pub struct Group {
     background_color: Color,     // background color to use if background is not set
     border_color: Option<Color>, // optional border color to use
     scrolling: bool,             // enable scrolling when true
-    skin: Option<Skin>,          // cached MQ skin for drawing
+}
+
+#[derive(Debug, Clone)]
+pub struct Group {
+    id: String,         // unique group id
+    dirty: bool,        // track if the group needs updated before drawing
+    style: GroupStyle,  // track the group's style properties
+    skin: Option<Skin>, // cached MQ skin for drawing
 }
 
 impl Group {
     /// Create a new group instance
-    pub fn new(id: Id) -> Self {
+    pub fn new<T: AsRef<str>>(id: T) -> Self {
         Group {
-            id,
+            id: id.as_ref().to_string(),
             dirty: true,
-            size: Size::Calc(Width::Half(None), Height::Half(None)),
-            position: Position::default(),
-            padding: RectOffset::default(),
-            background: None,
-            background_color: colors::GRAY,
-            border_color: None,
-            scrolling: false,
+            style: GroupStyle {
+                size: Size::default(),
+                position: Position::default(),
+                padding: RectOffset::default(),
+                background: None,
+                background_color: colors::GRAY,
+                border_color: None,
+                scrolling: false,
+            },
             skin: None,
         }
     }
@@ -40,7 +47,7 @@ impl Group {
     /// Set size of the group
     /// * handles scaling for mobile
     pub fn with_size(self, size: Size) -> Self {
-        Group { size, ..self }
+        Group { style: GroupStyle { size, ..self.style }, ..self }
     }
 
     /// Set position on the screen
@@ -48,7 +55,7 @@ impl Group {
         Group { position: pos.into(), ..self }
     }
 
-    /// Pad inside group pushing content in from edges
+    /// Pad inside the group pushing content in from edges
     /// * handles scaling for mobile
     pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Group { padding: scale_rect(left, right, top, bottom), ..self }
@@ -79,11 +86,9 @@ impl Group {
         if !self.dirty {
             return;
         }
-        // This is a work-around for Macroquad's lack of relative positioning for windows.
-        // By using a button with a background image and a group for layout we can mimic
-        // the base window functionality while providing relative positioning.
-        // BLANK color gets rid of the default group 1px white border for group
-        // and solid white fill for the button
+
+        // BLANK color gets rid of the default group 1px white border for group and solid white fill
+        // for the button
         let border_color = self.border_color.unwrap_or(BLANK);
         let group_style = ui.style_builder().color(border_color).color_hovered(BLANK).color_clicked(BLANK).build();
 
@@ -121,33 +126,34 @@ impl Group {
         self.dirty = false;
     }
 
-    /// Draw the group and call the callback with group's size and position.
-    /// * `container` is the containing widget's size
-    /// * `f` is a callback with params (Ui, size)
-    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, container: Vec2, f: F) {
+    /// Draw the widget and execute the callback with group properties
+    /// * `cont_size` is the containing widget's size
+    /// * `f` is a callback with params (Ui, group_size)
+    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, cont_size: Vec2, f: F) {
         self.update(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
-        // Draw button behind group to get background image
-        let size = self.size.relative(container);
-        let position = self.position.vec2(size);
-        widgets::Button::new("").size(size).position(position).ui(ui);
+        // Using a outer containing group for all components for moveability
+        let outer_size = self.size.relative(cont_size);
+        let outer_pos = self.position.relative(outer_size, cont_size, None);
+        widgets::Group::new(hash!(&self.id), outer_size).position(outer_pos).ui(ui, |ui| {
+            // Draw button as the first item in the group filling the entire outer group size to
+            // provide button features such as background image or color and clickability.
+            widgets::Button::new("").size(outer_size).position(vec2(0., 0.)).ui(ui);
 
-        // Calculate group size and position taking padding into account.
-        // Padding reduces the group size and shifts position to even it out.
-        let group_size =
-            vec2(size.x - self.padding.left - self.padding.right, size.y - self.padding.top - self.padding.bottom);
-        let group_position = vec2(position.x + self.padding.left, position.y + self.padding.top);
+            // Draw the inner group to handle padding for nested widgets
+            let inner_size = vec2(
+                outer_size.x - self.padding.left - self.padding.right,
+                outer_size.y - self.padding.top - self.padding.bottom,
+            );
+            let inner_pos = vec2(self.padding.left, self.padding.top);
+            let inner_id = hash!(format!("{}-inner", self.id));
+            widgets::Group::new(inner_id, inner_size).position(inner_pos).ui(ui, |ui| {
+                ui.pop_skin();
 
-        // Group provides a box to layout out any widgets inside that overlays
-        // the non-interactive button.
-        widgets::Group::new(self.id, group_size).position(group_position).ui(ui, |ui| {
-            ui.pop_skin();
-            f(ui, group_size)
+                // Draw content for the group
+                f(ui, inner_size)
+            });
         });
-
-        // Together they form window like functionality that can resize dynamnically
-        // based on the application window size changes. MQ's stock window doesn't
-        // provide this ability; instead it is static regardless of parent window size
     }
 }

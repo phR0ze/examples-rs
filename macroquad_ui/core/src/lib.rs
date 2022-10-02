@@ -4,6 +4,10 @@
 //! ```
 //! use core::prelude::*;
 //! ```
+#[macro_use]
+mod macros;
+
+mod fps;
 mod position;
 mod size;
 mod utils;
@@ -22,7 +26,13 @@ pub mod prelude {
         ui::{hash, root_ui, widgets, Id, Skin, Style, Ui},
     };
 
+    // Export macros by name
+    pub use crate::gid;
+
     // Export internal types
+    pub use crate::fps::*;
+    pub use crate::fps::*;
+    pub use crate::macros::*;
     pub use crate::position::*;
     pub use crate::size::*;
     pub use crate::utils::*;
