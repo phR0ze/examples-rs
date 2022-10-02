@@ -14,8 +14,8 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let mut fps = Fps::dark();
-    let mut group1 = Group::new(hash!()).with_position(Position::RightTop(None));
-    let mut group2 = Group::new(hash!()).with_background_color(WHITE).with_position(Position::LeftBottom(None));
+    let mut group1 = Group::new(gid!()).with_position(Position::RightTop(None));
+    let mut group2 = Group::new(gid!()).with_background_color(WHITE).with_position(Position::LeftBottom(None));
 
     loop {
         clear_background(BLACK);

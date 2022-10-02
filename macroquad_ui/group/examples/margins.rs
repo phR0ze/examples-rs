@@ -58,7 +58,7 @@ async fn main() {
         root_ui().pop_skin();
 
         // margins that work
-        Group::new(hash!())
+        Group::new(gid!())
             .with_padding(20., 20., 20., 20.)
             .with_size(Size::Static(150., 150.))
             .with_position(Position::Center(None))
