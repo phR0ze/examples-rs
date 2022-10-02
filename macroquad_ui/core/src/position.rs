@@ -37,7 +37,7 @@ pub enum Position {
     LeftBottom(Option<RectOffset>),
 
     /// Position horizontally with the given value and vertically with the given value
-    Custom(f32, f32),
+    Static(f32, f32),
 }
 
 impl Position {
@@ -65,7 +65,7 @@ impl Position {
             Position::LeftCenter(Some(offset)) => Position::LeftCenter(Some(scale_rect_p(*offset))),
             Position::LeftBottom(None) => Position::LeftBottom(None),
             Position::LeftBottom(Some(offset)) => Position::LeftBottom(Some(scale_rect_p(*offset))),
-            Position::Custom(x, y) => Position::Custom(*x, *y),
+            Position::Static(x, y) => Position::Static(*x, *y),
         }
     }
 
@@ -109,7 +109,7 @@ impl Position {
             Position::LeftBottom(Some(offset)) => {
                 vec2(offset.left - offset.right, cont_size.y - size.y + offset.top - offset.bottom)
             },
-            Position::Custom(x, y) => vec2(*x, *y),
+            Position::Static(x, y) => vec2(*x, *y),
         };
         if let Some(start) = cont_pos {
             pos.x += start.x;
@@ -131,7 +131,7 @@ impl Position {
             Position::LeftTop(x) => Position::LeftTop(*x).relative(target, container, None),
             Position::LeftCenter(x) => Position::LeftCenter(*x).relative(target, container, None),
             Position::LeftBottom(x) => Position::LeftBottom(*x).relative(target, container, None),
-            Position::Custom(x, y) => vec2(*x, *y),
+            Position::Static(x, y) => vec2(*x, *y),
         }
     }
 }

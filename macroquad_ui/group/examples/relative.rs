@@ -13,6 +13,10 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
+    let group_bldr = GroupBuilder::new()
+        .size(Size::Percent(0.85, 0.85))
+        .position(Position::Center(None))
+        .background_color(BLUE);
     let mut fps = Fps::new();
     loop {
         clear_background(WHITE);
