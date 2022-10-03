@@ -25,22 +25,22 @@ async fn main() {
         Group::new(gid!())
             .with_size(Size::Percent(0.95, 0.45))
             .with_position(Position::CenterTop(rect(0., 0., 40., 0.)))
-            .ui(&mut *root_ui(), Size::screen(), |ui, cont_size| {
-                grouper.build(gid!()).ui(ui, cont_size, |ui, cont_size| {
-                    grouper.build(gid!()).with_background_color(GREEN).ui(ui, cont_size, |ui, cont_size| {
-                        grouper.build(gid!()).with_background_color(VIOLET).ui(ui, cont_size, |ui, cont_size| {
+            .ui(&mut *root_ui(), Size::screen(), |ui, size, offset| {
+                grouper.build(gid!()).ui(ui, size, |ui, size, offset| {
+                    grouper.build(gid!()).with_background_color(GREEN).ui(ui, size, |ui, size, offset| {
+                        grouper.build(gid!()).with_background_color(VIOLET).ui(ui, size, |ui, size, offset| {
                             grouper.build(gid!()).with_background_color(YELLOW).ui(
                                 ui,
-                                cont_size,
-                                |ui, cont_size| {
+                                size,
+                                |ui, size, offset| {
                                     grouper.build(gid!()).with_background_color(ORANGE).ui(
                                         ui,
-                                        cont_size,
-                                        |ui, cont_size| {
+                                        size,
+                                        |ui, size, offset| {
                                             grouper.build(gid!()).with_background_color(RED).ui(
                                                 ui,
-                                                cont_size,
-                                                |ui, cont_size| {
+                                                size,
+                                                |ui, size, offset| {
                                                     //
                                                 },
                                             );

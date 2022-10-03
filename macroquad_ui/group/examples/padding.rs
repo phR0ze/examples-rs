@@ -28,10 +28,10 @@ async fn main() {
             .with_size(Size::Percent(0.95, 0.45))
             .with_padding(50., 50., 50., 50.)
             .with_position(Position::CenterTop(rect(0., 0., 40., 0.)))
-            .ui(&mut *root_ui(), Size::screen(), |ui, cont_size| {
+            .ui(&mut *root_ui(), Size::screen(), |ui, size, pos| {
                 ui.push_skin(&blue_skin);
-                let size1 = Size::Percent(1., 1.).relative(cont_size);
-                let pos1 = Position::Center(None).relative(size1, cont_size, None);
+                let size1 = Size::Percent(1., 1.).relative(size);
+                let pos1 = Position::Center(None).relative(size1, size, Some(pos));
                 widgets::Button::new("blue is group content offset by padding").size(size1).position(pos1).ui(ui);
                 ui.pop_skin();
             });

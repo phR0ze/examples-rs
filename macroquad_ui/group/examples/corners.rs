@@ -21,8 +21,8 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        group1.ui(&mut *root_ui(), Size::screen(), |_, _| {});
-        group2.ui(&mut *root_ui(), Size::screen(), |_, _| {});
+        group1.ui(&mut *root_ui(), Size::screen(), |_, _, _| {});
+        group2.ui(&mut *root_ui(), Size::screen(), |_, _, _| {});
 
         next_frame().await
     }

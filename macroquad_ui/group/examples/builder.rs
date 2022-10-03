@@ -22,11 +22,7 @@ async fn main() {
         for i in 1..10 {
             for j in 1..7 {
                 let pos = Position::Static(j as f32 * (50. + 10.), i as f32 * (50. + 10.));
-                grouper.build(i.to_string()).with_position(pos).ui(
-                    &mut *root_ui(),
-                    Size::screen(),
-                    |ui, cont_size| {},
-                );
+                grouper.build(i.to_string()).with_position(pos).ui(&mut *root_ui(), Size::screen(), |ui, _, _| {});
             }
         }
 

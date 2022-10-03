@@ -175,8 +175,8 @@ impl Group {
 
     /// Draw the widget and execute the callback with group properties
     /// * `cont_size` is the containing widget's size
-    /// * `f` is a callback with params (Ui, group_size)
-    pub fn ui<F: FnOnce(&mut Ui, Vec2)>(&mut self, ui: &mut Ui, cont_size: Vec2, f: F) {
+    /// * `f` is a callback with params (Ui, cont_size, pos_offset)
+    pub fn ui<F: FnOnce(&mut Ui, Vec2, Vec2)>(&mut self, ui: &mut Ui, cont_size: Vec2, f: F) {
         self.update(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
@@ -187,20 +187,15 @@ impl Group {
             // Draw button as the first item in the group filling the entire outer group size to
             // provide button features such as background image or color and clickability.
             widgets::Button::new("").size(outer_size).position(vec2(0., 0.)).ui(ui);
+            ui.pop_skin();
 
-            // Draw the inner group to handle padding for nested widgets
+            // Draw content, passing inner size and positional offset
             let inner_size = vec2(
                 outer_size.x - self.conf.padding.left - self.conf.padding.right,
                 outer_size.y - self.conf.padding.top - self.conf.padding.bottom,
             );
-            let inner_pos = vec2(self.conf.padding.left, self.conf.padding.top);
-            let inner_id = hash!(format!("{}-inner", self.id));
-            widgets::Group::new(inner_id, inner_size).position(inner_pos).ui(ui, |ui| {
-                ui.pop_skin();
-
-                // Draw content for the group
-                f(ui, inner_size)
-            });
+            let inner_pos_offset = vec2(self.conf.padding.left, self.conf.padding.top);
+            f(ui, inner_size, inner_pos_offset)
         });
     }
 }

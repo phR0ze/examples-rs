@@ -47,7 +47,7 @@ async fn main() {
             .with_border_color(WHITE)
             .with_size(Size::Static(80., 80.))
             .with_position(Position::Static(200., 100.))
-            .ui(&mut *root_ui(), Size::screen(), |ui, _| {
+            .ui(&mut *root_ui(), Size::screen(), |ui, _, _| {
                 widgets::Button::new("button 1").ui(ui);
                 widgets::Button::new("button 2").ui(ui);
                 widgets::Button::new("button 3").ui(ui);

@@ -59,9 +59,10 @@ let skin = Skin {
 ```
 
 ## Backlog
-* Preserve and pass in styling?
+* Add 
 
 ## Completed
+* GroupBuilder for replicating configuration [examples/builder.rs](examples/builder.rs)
 * Relative positioning based on size and container size and positioning [examples/relative.rs](examples/relative.rs)
 * Relative sizing based on width and height directives [examples/relative.rs](examples/relative.rs)
 * Support padding inside group space [examples/padding.rs](examples/padding.rs)

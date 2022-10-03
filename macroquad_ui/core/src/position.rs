@@ -73,8 +73,8 @@ impl Position {
     /// as the containing widget's size and optionally the containing widget's position.
     /// * `size` is the size of the target component to position
     /// * `cont_size` is the containing widget's size
-    /// * `cont_pos` is an optional offset to account for containers that don't reset position to (0,0)
-    pub fn relative(&self, size: Vec2, cont_size: Vec2, cont_pos: Option<Vec2>) -> Vec2 {
+    /// * `cont_pos_offset` is the containing positioning offset to account for
+    pub fn relative(&self, size: Vec2, cont_size: Vec2, cont_pos_offset: Option<Vec2>) -> Vec2 {
         let mut pos = match self {
             Position::CenterTop(None) => vec2((cont_size.x - size.x) / 2.0, 0.0),
             Position::CenterTop(Some(offset)) => {
@@ -111,7 +111,7 @@ impl Position {
             },
             Position::Static(x, y) => vec2(*x, *y),
         };
-        if let Some(start) = cont_pos {
+        if let Some(start) = cont_pos_offset {
             pos.x += start.x;
             pos.y += start.y;
         }
