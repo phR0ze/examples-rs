@@ -59,9 +59,10 @@ let skin = Skin {
 ```
 
 ## Backlog
-* Image grid even in `--release` is only 7 fps [examples/grid.rs](examples/grid.rs)
 
 ## Completed
+* Clickable group [examples/clickable.rs](examples/clickable.rs)
+* Image grid at 60 fps using Texture2d [examples/grid.rs](examples/grid.rs)
 * GroupBuilder for replicating configuration [examples/builder.rs](examples/builder.rs)
 * Relative positioning based on size and container size and positioning [examples/relative.rs](examples/relative.rs)
 * Relative sizing based on width and height directives [examples/relative.rs](examples/relative.rs)

@@ -13,7 +13,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let bg = Image::from_file_with_format(include_bytes!("../assets/background.png"), None);
+    let bg = Texture2D::from_file_with_format(include_bytes!("../assets/background.png"), None);
     let columns = 4;
     let spacing = 10.0;
     let w = screen_width() / columns as f32 - spacing - (spacing / columns as f32);

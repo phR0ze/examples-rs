@@ -33,7 +33,7 @@ async fn main() {
     let mut bg_group = Group::new(gid!())
         .with_size(Size::Static(200., 200.))
         .with_position(Position::RightCenter(None))
-        .with_background(bg.clone());
+        .with_background(Texture2D::from_image(&bg));
 
     let mut fps = Fps::new();
     loop {
