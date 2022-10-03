@@ -59,7 +59,7 @@ let skin = Skin {
 ```
 
 ## Backlog
-* Add 
+* Image grid even in `--release` is only 7 fps [examples/grid.rs](examples/grid.rs)
 
 ## Completed
 * GroupBuilder for replicating configuration [examples/builder.rs](examples/builder.rs)
