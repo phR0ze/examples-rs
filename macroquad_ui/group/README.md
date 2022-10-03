@@ -59,6 +59,7 @@ let skin = Skin {
 ```
 
 ## Backlog
+* Draggable groups
 
 ## Completed
 * Clickable group [examples/clickable.rs](examples/clickable.rs)

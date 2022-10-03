@@ -16,7 +16,7 @@ async fn main() {
     let columns = 4;
     let spacing = 10.0;
     let w = screen_width() / columns as f32 - spacing - (spacing / columns as f32);
-    let grouper = GroupBuilder::new().size(Size::Static(w, w)).background_color(BLUE);
+    let grouper = GroupBuilder::new().size(Size::Static(w, w)).background_color(BLUE).draggable(true);
 
     // Track groups outside main look for click persistence
     let mut groups = vec![];
@@ -35,11 +35,11 @@ async fn main() {
 
         for group in groups.iter_mut() {
             group.ui(&mut *root_ui(), Size::screen(), |_, _, _| {});
-            if group.toggle() {
-                group.background_color(RED);
-            } else {
-                group.background_color(BLUE);
-            }
+            // if group.toggle() {
+            //     group.background_color(RED);
+            // } else {
+            //     group.background_color(BLUE);
+            // }
         }
 
         next_frame().await
