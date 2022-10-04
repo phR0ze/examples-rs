@@ -8,6 +8,7 @@
 mod macros;
 
 mod fps;
+mod label;
 mod position;
 mod size;
 mod utils;
@@ -31,7 +32,7 @@ pub mod prelude {
 
     // Export internal types
     pub use crate::fps::*;
-    pub use crate::fps::*;
+    pub use crate::label::*;
     pub use crate::macros::*;
     pub use crate::position::*;
     pub use crate::size::*;

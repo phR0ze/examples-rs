@@ -60,6 +60,8 @@ let skin = Skin {
 
 ## Backlog
 * Draggable groups
+* Hoverable shows selection
+* Border color is visiable even with a background image
 
 ## Completed
 * Clickable group [examples/clickable.rs](examples/clickable.rs)
@@ -68,5 +70,5 @@ let skin = Skin {
 * Relative positioning based on size and container size and positioning [examples/relative.rs](examples/relative.rs)
 * Relative sizing based on width and height directives [examples/relative.rs](examples/relative.rs)
 * Support padding inside group space [examples/padding.rs](examples/padding.rs)
-* Support disabling scrolling [examples/scrolling.rs](examples/scrolling.rs)
+* Support disabling scrollable [examples/scrollable.rs](examples/scrollable.rs)
 * Support backgrounds [examples/background.rs](examples/background.rs)

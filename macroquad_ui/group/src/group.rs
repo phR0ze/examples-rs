@@ -11,14 +11,16 @@ use core::prelude::*;
 /// the Group or to configure a GroupBuilder and repeatedly use it to build new Group instances.
 #[derive(Debug, Clone)]
 pub struct GroupBuilder {
-    size: Size,                    // size of the group on the screen
-    position: Position,            // position the group on the screen
-    padding: RectOffset,           // pad inside group pushing content in from edges
-    background: Option<Texture2D>, // optional background image to use, takes priority over background color
-    background_color: Color,       // background color to use if background is not set
-    border_color: Option<Color>,   // optional border color to use
-    scrolling: bool,               // enable scrolling when true
-    draggable: bool,               // enable dragging when true
+    size: Size,                        // size of the group on the screen
+    position: Position,                // position the group on the screen
+    padding: RectOffset,               // pad inside group pushing content in from edges
+    background: Option<Texture2D>,     // optional background image to use
+    background_color: Color,           // background color to use if background is not set
+    border_color: Option<Color>,       // optional border color to use
+    border_hover_color: Option<Color>, // optional border color to use when hovering and hoverable is true
+    draggable: bool,                   // enable dragging when true
+    hoverable: bool,                   // enable hovering when true
+    scrollable: bool,                  // enable scrolling when true
 }
 
 impl GroupBuilder {
@@ -31,8 +33,10 @@ impl GroupBuilder {
             background: None,
             background_color: colors::GRAY,
             border_color: None,
-            scrolling: false,
+            border_hover_color: None,
             draggable: false,
+            hoverable: false,
+            scrollable: false,
         }
     }
 
@@ -53,7 +57,9 @@ impl GroupBuilder {
         GroupBuilder { padding: scale_rect(left, right, top, bottom), ..self }
     }
 
-    /// Set the background image to use. Takes priority over background color
+    /// Set the background image to use. When a border color is used in conjunction with a
+    /// background image the background image will be reduced by 1px to allow for the border color
+    /// to be visible.
     pub fn background(self, background: Texture2D) -> Self {
         GroupBuilder { background: Some(background), ..self }
     }
@@ -68,14 +74,24 @@ impl GroupBuilder {
         GroupBuilder { border_color: Some(color), ..self }
     }
 
-    /// Set scrolling state
-    pub fn scrolling(self, scrolling: bool) -> Self {
-        GroupBuilder { scrolling, ..self }
+    /// Set the border hover color to use
+    pub fn border_hover_color(self, color: Color) -> Self {
+        GroupBuilder { border_hover_color: Some(color), ..self }
     }
 
     /// Set draggable state
     pub fn draggable(self, draggable: bool) -> Self {
         GroupBuilder { draggable, ..self }
+    }
+
+    /// Set hoverable state
+    pub fn hoverable(self, hoverable: bool) -> Self {
+        GroupBuilder { hoverable, ..self }
+    }
+
+    /// Set scrollable state
+    pub fn scrollable(self, scrollable: bool) -> Self {
+        GroupBuilder { scrollable, ..self }
     }
 
     /// Instantiate a group object from the group configuration
@@ -146,14 +162,24 @@ impl Group {
         Group { dirty: true, conf: GroupBuilder { border_color: Some(color), ..self.conf }, ..self }
     }
 
-    /// Set scrolling state
-    pub fn with_scrolling(self, scrolling: bool) -> Self {
-        Group { dirty: true, conf: GroupBuilder { scrolling, ..self.conf }, ..self }
+    /// Set the border hover color to use
+    pub fn with_border_hover_color(self, color: Color) -> Self {
+        Group { dirty: true, conf: GroupBuilder { border_hover_color: Some(color), ..self.conf }, ..self }
     }
 
     /// Set draggable state
     pub fn with_draggable(self, draggable: bool) -> Self {
         Group { dirty: true, conf: GroupBuilder { draggable, ..self.conf }, ..self }
+    }
+
+    /// Set hoverable state
+    pub fn with_hoverable(self, hoverable: bool) -> Self {
+        Group { dirty: true, conf: GroupBuilder { hoverable, ..self.conf }, ..self }
+    }
+
+    /// Set scrolling state
+    pub fn with_scrollable(self, scrollable: bool) -> Self {
+        Group { dirty: true, conf: GroupBuilder { scrollable, ..self.conf }, ..self }
     }
 
     /// Set position on the screen
@@ -206,7 +232,7 @@ impl Group {
         };
 
         // Hide the group scrollbar when content expands beyond the group size
-        if !self.conf.scrolling {
+        if !self.conf.scrollable {
             let scroll_width = 0.0;
             let scroll_multiplier = 0.0;
             let scrollbar_style =
