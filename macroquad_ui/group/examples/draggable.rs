@@ -16,7 +16,8 @@ async fn main() {
     let columns = 4;
     let spacing = 10.0;
     let w = screen_width() / columns as f32 - spacing - (spacing / columns as f32);
-    let grouper = GroupBuilder::new().size(Size::Static(w, w)).background_color(BLUE).draggable(true);
+    let red = GroupBuilder::new().size(Size::Static(w, w)).background_color(RED).draggable(true);
+    let blue = GroupBuilder::new().size(Size::Static(w, w)).background_color(BLUE).draggable(true);
 
     // Track groups outside main look for click persistence
     let mut groups = vec![];
@@ -24,7 +25,7 @@ async fn main() {
         for j in 0..columns {
             let id = format!("{},{}", i, j);
             let pos = Position::Static(j as f32 * (w + spacing) + spacing, i as f32 * (w + spacing) + spacing);
-            groups.push(grouper.build(id).with_position(pos));
+            groups.push(blue.build(id).with_position(pos));
         }
     }
 
@@ -34,12 +35,13 @@ async fn main() {
         fps.ui(&mut *root_ui());
 
         for group in groups.iter_mut() {
-            group.ui(&mut *root_ui(), Size::screen(), |_, _, _| {});
-            // if group.toggle() {
-            //     group.background_color(RED);
-            // } else {
-            //     group.background_color(BLUE);
-            // }
+            let drag = group.ui(&mut *root_ui(), Size::screen(), |_, _, _| {});
+            if group.toggle() {
+                group.background_color(RED);
+            }
+            if let Drag::Dropped(pos, _) = drag {
+                group.position(pos);
+            }
         }
 
         next_frame().await

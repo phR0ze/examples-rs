@@ -23,7 +23,7 @@ pub mod prelude {
     pub use macroquad::{
         color::colors,
         prelude::*,
-        ui::{hash, root_ui, widgets, Id, Skin, Style, Ui},
+        ui::{hash, root_ui, widgets, Drag, Id, Skin, Style, Ui},
     };
 
     // Export macros by name

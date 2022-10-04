@@ -141,3 +141,9 @@ impl Default for Position {
         Position::Center(None)
     }
 }
+
+impl From<Vec2> for Position {
+    fn from(val: Vec2) -> Self {
+        Position::Static(val.x, val.y)
+    }
+}

@@ -156,10 +156,21 @@ impl Group {
         Group { dirty: true, conf: GroupBuilder { draggable, ..self.conf }, ..self }
     }
 
+    /// Set position on the screen
+    pub fn position<T: Into<Position>>(&mut self, pos: T) {
+        self.dirty = true;
+        self.conf.position = pos.into();
+    }
+
     /// Set the background color to use. Only has affect if background image not set
     pub fn background_color(&mut self, color: Color) {
         self.dirty = true;
         self.conf.background_color = color;
+    }
+
+    /// Return the id
+    pub fn id(&self) -> &str {
+        self.id.as_str()
     }
 
     /// Return the clicked state
@@ -221,7 +232,7 @@ impl Group {
     /// Draw the widget and execute the callback with group properties
     /// * `cont_size` is the containing widget's size
     /// * `f` is a callback with params (Ui, cont_size, pos_offset)
-    pub fn ui<F: FnOnce(&mut Ui, Vec2, Vec2)>(&mut self, ui: &mut Ui, cont_size: Vec2, f: F) {
+    pub fn ui<F: FnOnce(&mut Ui, Vec2, Vec2)>(&mut self, ui: &mut Ui, cont_size: Vec2, f: F) -> Drag {
         self.update_skin(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
@@ -253,6 +264,6 @@ impl Group {
             );
             let inner_pos_offset = vec2(self.conf.padding.left, self.conf.padding.top);
             f(ui, inner_size, inner_pos_offset)
-        });
+        })
     }
 }
