@@ -13,6 +13,21 @@ pub const SIZE_MULTIPLIER: f32 = 4.0;
 /// Default font size
 pub const DEFAULT_FONT_SIZE: f32 = 30.0;
 
+/// Return an empty vector
+pub fn empty() -> Vec2 {
+    vec2(0.0, 0.0)
+}
+
+/// Return an the given offset vector wrapped in Some()
+pub fn offset(x: f32, y: f32) -> Option<Vec2> {
+    Some(vec2(x, y))
+}
+
+/// Return the current screen size
+pub fn screen() -> Vec2 {
+    vec2(screen_width(), screen_height())
+}
+
 /// Instantiate a margin pair
 pub fn margin(val1: f32, val2: f32) -> Option<(f32, f32)> {
     Some((val1, val2))

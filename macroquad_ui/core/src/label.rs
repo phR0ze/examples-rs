@@ -9,7 +9,9 @@ pub struct LabelBuilder {
     size: Option<Size>,          // sizing of the widget
     position: Position,          // position of of the widget
     font: Option<&'static [u8]>, // font to use for button text
-    font_color: Color,           // font color to use for button text
+    font_color: Color,           // font color to use
+    font_color_clk: Color,       // font color to use when clicked
+    font_color_hov: Color,       // font color to use when hovered
     font_size: u16,              // font size to use for button text
     margin: RectOffset,          // allow for this space around widget content
 }
@@ -23,8 +25,47 @@ impl LabelBuilder {
             font: None,
             font_size: scale(DEFAULT_FONT_SIZE) as u16,
             font_color: colors::BLACK,
+            font_color_clk: colors::BLACK,
+            font_color_hov: colors::BLACK,
             margin: RectOffset::default(),
         }
+    }
+
+    /// Set size of the group
+    /// * handles scaling for mobile
+    pub fn size<T: Into<Option<Size>>>(self, size: T) -> Self {
+        Self { size: size.into(), ..self }
+    }
+
+    /// Set position on the screen
+    pub fn position(self, position: Position) -> Self {
+        Self { position, ..self }
+    }
+
+    /// Set font to use
+    pub fn font(self, font: Option<&'static [u8]>) -> Self {
+        Self { font, ..self }
+    }
+
+    /// Set font size to use
+    /// * handles scaling for mobile
+    pub fn font_size(self, size: f32) -> Self {
+        Self { font_size: scale(size) as u16, ..self }
+    }
+
+    /// Set font color to use
+    pub fn font_color(self, color: Color) -> Self {
+        Self { font_color: color, ..self }
+    }
+
+    /// Set font color to use when clicked
+    pub fn font_color_clk(self, color: Color) -> Self {
+        Self { font_color_clk: color, ..self }
+    }
+
+    /// Set font color to use when hovered
+    pub fn font_color_hov(self, color: Color) -> Self {
+        Self { font_color_hov: color, ..self }
     }
 
     /// Create a new widget instance from this builder
@@ -85,6 +126,16 @@ impl Label {
     /// Set font color to use
     pub fn with_font_color(self, color: Color) -> Self {
         Self { dirty: true, conf: LabelBuilder { font_color: color, ..self.conf }, ..self }
+    }
+
+    /// Set font color to use when clicked
+    pub fn with_font_color_clk(self, color: Color) -> Self {
+        Self { dirty: true, conf: LabelBuilder { font_color_clk: color, ..self.conf }, ..self }
+    }
+
+    /// Set font color to use when hovered
+    pub fn with_font_color_hov(self, color: Color) -> Self {
+        Self { dirty: true, conf: LabelBuilder { font_color_hov: color, ..self.conf }, ..self }
     }
 
     /// Get the widget's text value

@@ -7,6 +7,7 @@
 #[macro_use]
 mod macros;
 
+mod button;
 mod fps;
 mod label;
 mod position;
@@ -31,6 +32,7 @@ pub mod prelude {
     pub use crate::gid;
 
     // Export internal types
+    pub use crate::button::*;
     pub use crate::fps::*;
     pub use crate::label::*;
     pub use crate::macros::*;
