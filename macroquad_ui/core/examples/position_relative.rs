@@ -53,7 +53,7 @@ async fn main() {
         widgets::Button::new("").size(size4).position(pos4).ui(&mut *root_ui());
         root_ui().pop_skin();
 
-        Label::new("relative to screen with offset").ui(&mut *root_ui(), size4, pos4);
+        Label::new("relative to screen with offset").ui(&mut *root_ui(), size4, Some(pos4));
 
         // No need for positional offset of containing widget
         let size5 = Size::Percent(0.95, 0.40).relative(screen(), None);
@@ -83,7 +83,7 @@ async fn main() {
             widgets::Button::new("").size(size9).position(pos9).ui(ui);
             ui.pop_skin();
 
-            Label::new("relative to group with NO offset").ui(ui, size5, origin());
+            Label::new("relative to group with NO offset").ui(ui, size5, None);
         });
 
         next_frame().await

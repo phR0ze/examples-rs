@@ -1,4 +1,5 @@
-//! Label encapsulates and automates the manipulation Macroquad labels.
+//! Label encapsulates and extends Macroquad's button supporting:
+//! * Calculated sizing and positioning relative to containing widget
 use crate::prelude::*;
 
 /// LabelBuilder provides the ability to preserve widget configuration and be able to repeatedly
@@ -170,11 +171,11 @@ impl Label {
     /// Draw the widget on the screen
     /// * `cont_size` is the containing widget's size
     /// * `offset` any positional offset to take into account
-    pub fn ui(&mut self, ui: &mut Ui, cont_size: Vec2, offset: Vec2) {
+    pub fn ui(&mut self, ui: &mut Ui, cont_size: Vec2, offset: Option<Vec2>) {
         self.update_skin(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
-        let pos = self.conf.position.relative(self.calc_size, cont_size, Some(offset));
+        let pos = self.conf.position.relative(self.calc_size, cont_size, offset);
         widgets::Label::new(self.text.as_str()).size(self.calc_size).position(pos).ui(ui);
 
         ui.pop_skin();

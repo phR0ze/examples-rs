@@ -147,6 +147,11 @@ pub enum Size {
 }
 
 impl Size {
+    /// Set width to 1/2 of the horizontal space and height dynamic
+    pub fn half_width() -> Size {
+        Size::Calc(Width::Half(None), Height::Dynamic)
+    }
+
     /// Set width to 3/4 of the horizontal space and height dynamic
     pub fn three_quarter_width() -> Size {
         Size::Calc(Width::ThreeQuarter(None), Height::Dynamic)

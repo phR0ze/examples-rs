@@ -1,4 +1,3 @@
-use button::prelude::*;
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -22,7 +21,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        button.ui(&mut *root_ui(), Size::screen());
+        button.ui(&mut *root_ui(), screen(), None);
         if button.activated() {
             draw_rectangle(200., 300., 50., 50., RED);
         }

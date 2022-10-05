@@ -1,6 +1,4 @@
-use button::prelude::*;
 use core::prelude::*;
-use group::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
@@ -15,8 +13,9 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let mut settings = Button::new("Settings")
+        .with_background_color(GRAY)
         .with_position(Position::LeftCenter(None))
-        .with_width(Width::ThreeQuarter(0., 0.))
+        .with_size(Size::three_quarter_width())
         .with_padding(0.0, 0.0, 10.0, 10.0)
         .with_label_position(Position::LeftCenter(rect(40.0, 0., 0., 0.)));
 
@@ -33,9 +32,9 @@ async fn main() {
 
         root_ui().push_skin(&white_border);
         let size = vec2(300., 300.);
-        let pos = vec2((screen_width() - size.x) / 2.0, (screen_height() - size.y) / 2.0);
-        Group::new().with_size().ui(&mut *root_ui(), |ui| {
-            settings.ui(ui, size);
+        let pos = Position::Center(None).relative(size, screen(), None);
+        widgets::Group::new(hash!(), size).position(pos).ui(&mut *root_ui(), |ui| {
+            settings.ui(ui, size, None);
             if settings.activated() {
                 draw_rectangle(100., 100., 50., 50., RED);
             }

@@ -359,12 +359,12 @@ impl Button {
             self.clicked = true;
         }
 
-        // // Draw icon
-        // if let Some(icon) = &self.icon {
-        //     let icon_size = vec2(self.label_size.y, self.label_size.y);
-        //     let icon_pos = self.icon_position.relative(icon_size, btn_size, Some(btn_pos));
-        //     widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
-        // }
+        // Draw icon
+        if let Some(icon) = &self.conf.icon {
+            let icon_size = vec2(self.label_size_calc.y, self.label_size_calc.y);
+            let icon_pos = self.conf.icon_position.relative(icon_size, btn_size, Some(btn_pos));
+            widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
+        }
 
         // Draw label
         let label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));
