@@ -1,32 +1,6 @@
 # core
 Utility functions and helpers
 
-## Layout Management
-After rewriting sizing and positioning code multiple times I think it might make sense to see how
-main stream UI tool kits have solved this.
-* [Gtk layout management](https://zetcode.com/gui/gtk2/gtklayoutmanagement/)
-  * GtkAlignment
-  * GtkHBox - single row
-  * GtkVBox - single column
-  * GtkTable - arrange by rows and columns
-* [WxWidgets Sizers](https://zetcode.com/gui/wxwidgets/layoutmanagement/)
-  * WxBoxSizer
-    * Vertical or Horizontal layout
-    * `.add(<widget>)` to add 
-    * border between widgets
-    * left, right, top, bottom, all, expand
-    * 
-  * WxStaticBoxSizer
-  * wxGridSizer
-  * wxFlexGridSizer
-  * wxGridBagSizer
-* [Qt5 layout management](https://zetcode.com/gui/qt5/layoutmanagement/)
-  * HBoxLayout
-  * VBoxLayout
-  * GridLayout
-  * FormLayout
-  * Enum AlignRight
-
 ## Backlog
 * Support for label to have clicked and hovered color changes
 * Relatively size the button based on the containing widget's size

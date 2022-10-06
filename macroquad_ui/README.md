@@ -1,5 +1,5 @@
 # macroquad ui
-Documenting Macroquad's immediate mode UI.
+Evaluating Macroquad's immediate mode UI and comparing to common UI designs.
 
 **References:**
 * [Macroquad UI docs](https://docs.rs/macroquad/latest/macroquad/ui/index.html)
@@ -11,6 +11,7 @@ Documenting Macroquad's immediate mode UI.
   * [Layout](#layout)
   * [Scrollable](#scrollable)
   * [Stack overflow](#stack-overflow)
+* [Layout management](#layout-management)
 * [Ui](#ui)
 * [Skin](#skin)
   * [Skin fields](#skin-fields)
@@ -81,6 +82,84 @@ me. Because the `hash!()` default implementation without any argument uses a con
 `file!(), line!(), column!()` my implementation which has the same file, line, column combination 
 for every call will internally cause Macroquad to recurse into oblivion. This can be solved by using 
 a unique `Id` for each group instance.
+
+## Layout management
+Layout management objects provide policy and configuration to guide the automatic arrangement of 
+child widgets within a parent widget including positioning and sizing dynamically for the available 
+space.
+
+**References**:
+* [Qt Layout Management](https://doc.qt.io/qt-6/layout.html)
+* [GTK4 Layout managers](https://blog.gtk.org/2019/03/27/layout-managers-in-gtk-4/)
+
+### Layout trait
+All objects implemeting the `Widget` trait have a `Widget::set_layout(layout: impl Layout)` function 
+that takes an objecdt implementing the `Layout` trait to manage. This layout manager is used to 
+layout the widget's children handling the positioning and resizing of the widget's children.
+
+### Layout types
+Every application will need a `Root Layout` which is 
+
+* Linear
+  * lays out widges in a horiztonal row, from left to right or right to left
+  * lays out widgets in a vertical column, from top to bottom or bottom to top
+* Grid - lays out widgets in a two-dimenstional grid. Widgets can occupy multiple cells
+* Form - lays out widgets in a 2-column label-field style
+
+### Adding Widgets to a Layout
+
+
+
+### Comparing various Ui designs
+After rewriting sizing and positioning code multiple times I think it might make sense to see how
+main stream UI tool kits have solved this.
+* Android layout management
+  * Constraint layout
+    * default layout in Android
+    * TopToTopOf, TopToBottomOf, BottomToTopOf, LeftToTopOf, LeftToBottomOf, LeftToLeftOf
+    * LeftToRightOf, LeftToTopOf...
+  * Relative layout
+    * positions widgets relative to each other
+    * attributes
+      * gravity
+      * layout_above
+      * layout_alignBottom, layout_alignLeft, layout_alignRight, layout_alignStart
+      * layout_alignParentBottom, parentEnd, parentLeft, parentRight, parentStart, parentTop
+      * centerHorizontal, centerInParent, centerVertical
+  * Linear layout
+    * horizontal or vertical
+    * attributes
+      * gravity
+      * orientation
+* [Gtk layout management](https://zetcode.com/gui/gtk2/gtklayoutmanagement/)
+  * GtkAlignment
+    * add an alignment config as the layout for another widget e.g. group.layout(Layout::l)
+    * params
+      * Horizontal alignment left or right
+      * Vertical alignment top or bottom 
+      * Horizontal expansion to fill up unused space
+      * Vertical expansion to fill up unused space
+  * GtkHBox - single row
+  * GtkVBox - single column
+  * GtkTable - arrange by rows and columns
+* [WxWidgets Sizers](https://zetcode.com/gui/wxwidgets/layoutmanagement/)
+  * WxBoxSizer
+    * Vertical or Horizontal layout
+    * `.add(<widget>)` to add 
+    * border between widgets
+    * left, right, top, bottom, all, expand
+  * WxStaticBoxSizer
+  * wxGridSizer
+  * wxFlexGridSizer
+  * wxGridBagSizer
+* [Qt5 layout management](https://zetcode.com/gui/qt5/layoutmanagement/)
+  * HBoxLayout
+  * VBoxLayout
+  * GridLayout
+  * FormLayout
+  * Enum AlignRight
+
+### Layout design
 
 ## Ui
 The `Ui` object is the type returned from `root_ui()` and provides creation functions for a number of 
