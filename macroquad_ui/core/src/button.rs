@@ -2,6 +2,7 @@
 //! * Border color for regular, clicked and hovered
 //! * Icon support with positioning and sizing inside button
 //!
+//! * Button activated toggle
 //! * Label positioning inside the button
 //! * Calculated sizing and positioning relative to containing widget
 use crate::prelude::*;
@@ -31,6 +32,8 @@ pub struct ButtonBuilder {
 
     // Icon properties
     icon: Option<Texture2D>, // optional icon to display
+    icon_size: Size,         // size to use for icon when drawing
+    icon_margin: RectOffset, // icon offset
     icon_position: Position, // position of the icon within the button
 }
 
@@ -54,6 +57,8 @@ impl ButtonBuilder {
             label_font_color_clk: None,
             label_font_color_hov: None,
             icon: None,
+            icon_size: Size::Dynamic,
+            icon_margin: RectOffset::default(),
             icon_position: Position::LeftCenter(None),
         }
     }
@@ -129,6 +134,21 @@ impl ButtonBuilder {
         Self { icon: icon.into(), ..self }
     }
 
+    /// Set icon size to use
+    pub fn icon_size(self, size: Size) -> Self {
+        Self { icon_size: size, ..self }
+    }
+
+    /// Set icon margin to use
+    pub fn icon_margin(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+        Self { icon_margin: RectOffset::new(left, right, top, bottom), ..self }
+    }
+
+    /// Set icon margin to use
+    pub fn icon_margin_p(self, margin: RectOffset) -> Self {
+        Self { icon_margin: margin, ..self }
+    }
+
     /// Position the icon inside the button
     /// * handles scaling for mobile
     pub fn icon_position(self, pos: Position) -> Self {
@@ -171,7 +191,8 @@ impl Button {
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
         Button::new(label)
             .with_icon(icon)
-            .with_icon_position(Position::LeftCenter(rect(20., 0., 0., 0.)))
+            .with_icon_margin(20., 20., 0., 0.)
+            .with_icon_position(Position::LeftCenter(None))
             .with_label_position(Position::LeftCenter(rect(80., 0., 3., 0.)))
     }
 
@@ -246,6 +267,24 @@ impl Button {
         Button { conf: ButtonBuilder { icon: icon.into(), ..self.conf }, ..self }
     }
 
+    /// Set icon size to use
+    pub fn with_icon_size(self, size: Size) -> Self {
+        Button { conf: ButtonBuilder { icon_size: size, ..self.conf }, ..self }
+    }
+
+    /// Set icon margin to use
+    pub fn with_icon_margin(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+        Button {
+            conf: ButtonBuilder { icon_margin: RectOffset::new(left, right, top, bottom), ..self.conf },
+            ..self
+        }
+    }
+
+    /// Set icon margin to use
+    pub fn with_icon_margin_p(self, margin: RectOffset) -> Self {
+        Button { conf: ButtonBuilder { icon_margin: margin, ..self.conf }, ..self }
+    }
+
     /// Position the icon inside the button
     /// * handles scaling for mobile
     pub fn with_icon_position(self, pos: Position) -> Self {
@@ -268,6 +307,14 @@ impl Button {
         // Take padding into account
         size.x += self.conf.padding.left + self.conf.padding.right;
         size.y += self.conf.padding.top + self.conf.padding.bottom;
+
+        // Take icon size into account
+        if let Some(icon) = &self.conf.icon {
+            let icon_size = self.conf.icon_size.relative(size, Some(vec2(icon.width(), icon.height())));
+            size.x += icon_size.x + self.conf.icon_margin.left + self.conf.icon_margin.right;
+            size.y +=
+                icon_size.y + self.conf.icon_margin.top + self.conf.icon_margin.bottom - self.label_size_calc.y;
+        }
 
         size
     }
@@ -359,15 +406,19 @@ impl Button {
             self.clicked = true;
         }
 
+        // Calculate label position
+        let mut label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));
+
         // Draw icon
         if let Some(icon) = &self.conf.icon {
-            let icon_size = vec2(self.label_size_calc.y, self.label_size_calc.y);
+            let icon_size = vec2(icon.width(), icon.height());
             let icon_pos = self.conf.icon_position.relative(icon_size, btn_size, Some(btn_pos));
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
+
+            // Update label position to start after icon margin
         }
 
         // Draw label
-        let label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));
         widgets::Label::new(self.label.as_str()).size(self.label_size_calc).position(label_pos).ui(ui);
 
         ui.pop_skin();
