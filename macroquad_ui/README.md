@@ -12,6 +12,7 @@ Evaluating Macroquad's immediate mode UI and comparing to common UI designs.
   * [Scrollable](#scrollable)
   * [Stack overflow](#stack-overflow)
 * [Layout management](#layout-management)
+  * [Margins, padding and spacing](#margins-padding-and-spacing)
 * [Ui](#ui)
 * [Skin](#skin)
   * [Skin fields](#skin-fields)
@@ -91,6 +92,16 @@ space.
 **References**:
 * [Qt Layout Management](https://doc.qt.io/qt-6/layout.html)
 * [GTK4 Layout managers](https://blog.gtk.org/2019/03/27/layout-managers-in-gtk-4/)
+* [GTK layout](https://itnext.io/understanding-gtk-layouts-13e5a36256fa)
+
+### Fill and expand
+
+### Margins, padding and spacing
+* ***Margins*** are additional space just outside the borders of the widget
+* ***Padding*** is additional space just inside the borders of the widget and content
+* ***Spacing*** is additional space between child widgets in the context of a parent widget
+
+![Margins vs Spacing](docs/images/margins-vs-spacing.png)
 
 ### Layout trait
 All objects implemeting the `Widget` trait have a `Widget::set_layout(layout: impl Layout)` function 
