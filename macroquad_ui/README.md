@@ -77,7 +77,7 @@ let skin = Skin {
 ```
 
 ### Stack overflow
-If you don't use unique `Id` values you can get a `stack overflow` errors. I ran into this issue when 
+If you don't use unique `Id` values you can get `stack overflow` errors. I ran into this issue when 
 trying to next Group object wrappers. I wrote a struct method that instantiated a Macroquad group for 
 me. Because the `hash!()` default implementation without any argument uses a concatenation of
 `file!(), line!(), column!()` my implementation which has the same file, line, column combination 
@@ -87,7 +87,7 @@ a unique `Id` for each group instance.
 ## Layout management
 Layout management objects provide policy and configuration to guide the automatic arrangement of 
 child widgets within a parent widget including positioning and sizing dynamically for the available 
-space.
+space. They are higher level constructs that allow you to move beyond exact postional coordinates.
 
 **References**:
 * [Qt Layout Management](https://doc.qt.io/qt-6/layout.html)
@@ -105,8 +105,12 @@ space.
 
 ### Layout trait
 All objects implemeting the `Widget` trait have a `Widget::set_layout(layout: impl Layout)` function 
-that takes an objecdt implementing the `Layout` trait to manage. This layout manager is used to 
+that takes an object implementing the `Layout` trait to manage. This layout manager is used to 
 layout the widget's children handling the positioning and resizing of the widget's children.
+
+Layout managers centralize, consolodate and encapsulate the complexity of layout code allowing 
+individual widgets to simply leverage this ability and don't need any container related properties 
+at all.
 
 ### Layout types
 Every application will need a `Root Layout` which is 
@@ -120,10 +124,12 @@ Every application will need a `Root Layout` which is
 ### Adding Widgets to a Layout
 
 
-
 ### Comparing various Ui designs
 After rewriting sizing and positioning code multiple times I think it might make sense to see how
 main stream UI tool kits have solved this.
+* egui
+  * Reactive mode only repaints if there is user input or animations in ui
+  * Scaling of all components dynamically with pixels per point
 * Android layout management
   * Constraint layout
     * default layout in Android
@@ -169,8 +175,6 @@ main stream UI tool kits have solved this.
   * GridLayout
   * FormLayout
   * Enum AlignRight
-
-### Layout design
 
 ## Ui
 The `Ui` object is the type returned from `root_ui()` and provides creation functions for a number of 
