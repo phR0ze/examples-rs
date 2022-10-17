@@ -94,7 +94,16 @@ space. They are higher level constructs that allow you to move beyond exact post
 * [GTK4 Layout managers](https://blog.gtk.org/2019/03/27/layout-managers-in-gtk-4/)
 * [GTK layout](https://itnext.io/understanding-gtk-layouts-13e5a36256fa)
 
+### Start and End
+Start and end layout locations
+
+![Start vs End](docs/images/start-vs-end.png)
+
 ### Fill and expand
+Fill consumes all space within its layout cell, but the layout cell itself doesn't expand; while 
+expand changes the layout cell's size relative to other cells settings.
+
+![Fill vs Expand](docs/images/fill-vs-expand.png)
 
 ### Margins, padding and spacing
 * ***Margins*** are additional space just outside the borders of the widget
