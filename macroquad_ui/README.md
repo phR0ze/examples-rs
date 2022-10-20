@@ -136,9 +136,11 @@ Every application will need a `Root Layout` which is
 ### Comparing various Ui designs
 After rewriting sizing and positioning code multiple times I think it might make sense to see how
 main stream UI tool kits have solved this.
-* egui
-  * Reactive mode only repaints if there is user input or animations in ui
-  * Scaling of all components dynamically with pixels per point
+* egui layout
+  * starts from a base container
+  * add layouts inside container and widgets inside layouts
+  * defines frame as object controlling background fill and stroke
+  * defines area as movable container
 * Android layout management
   * Constraint layout
     * default layout in Android
