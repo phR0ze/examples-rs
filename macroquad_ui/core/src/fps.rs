@@ -1,4 +1,5 @@
-//! Fps provides a simple frames per second widget to be displayed for debug purposes
+//! Fps provides a simple frames per second widget to be displayed for debug purposes.
+//! * Fps value is averaged over the last 10 seconds for a smoother appearance
 
 use crate::position::*;
 use crate::utils::*;
@@ -69,11 +70,11 @@ impl Fps {
         self.dirty = false;
     }
 
-    /// Draw the frames per second in the top left of the screen
+    /// Draw the frames per second as directed
     pub fn ui(&mut self, ui: &mut Ui) {
         self.update_skin(ui);
 
-        // Calculate fps
+        // Calculate fps averaging over last 10sec
         self.frames += 1;
         let us = self.start.elapsed().as_micros();
         if us == 0 {

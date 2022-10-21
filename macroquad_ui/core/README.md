@@ -1,6 +1,11 @@
 # core
 Utility functions and helpers
 
+## Containers
+
+### Group
+Group is the fundamental container object from which all others are derived
+
 ## Backlog
 * Support for label to have clicked and hovered color changes
 * Relatively size the button based on the containing widget's size

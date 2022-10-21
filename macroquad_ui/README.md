@@ -19,6 +19,8 @@ Evaluating Macroquad's immediate mode UI and comparing to common UI designs.
 * [Style](#style)
   * [StyleBuilder](#stylebuilder)
   * [Margins](#margins)
+* [Layout](#layout)
+  * lk
 * [Widgets](#widgets)
   * [Button](#button)
   * [Checkbox](#checkbox)
@@ -36,6 +38,8 @@ Evaluating Macroquad's immediate mode UI and comparing to common UI designs.
   * [TreeNodeToken](#treenodetoken)
   * [Window](#window)
   * [WindowToken](#windowtoken)
+* [Backlog](#backlog)
+* [Changelog](#changelog)
 
 ## Overview
 The UI entrypoint is `root_ui()`. You can dynamically create widgets through the root ui hook or 
@@ -142,23 +146,18 @@ main stream UI tool kits have solved this.
   * defines frame as object controlling background fill and stroke
   * defines area as movable container
 * Android layout management
-  * Constraint layout
+  * Choose a container and add a layout to it
+  * Constraint layout is an improved relative layout
     * default layout in Android
+    * positions widgets relative to each other
     * TopToTopOf, TopToBottomOf, BottomToTopOf, LeftToTopOf, LeftToBottomOf, LeftToLeftOf
     * LeftToRightOf, LeftToTopOf...
-  * Relative layout
-    * positions widgets relative to each other
-    * attributes
-      * gravity
-      * layout_above
-      * layout_alignBottom, layout_alignLeft, layout_alignRight, layout_alignStart
-      * layout_alignParentBottom, parentEnd, parentLeft, parentRight, parentStart, parentTop
-      * centerHorizontal, centerInParent, centerVertical
+    * layout_above
+    * layout_alignBottom, layout_alignLeft, layout_alignRight, layout_alignStart
+    * layout_alignParentBottom, parentEnd, parentLeft, parentRight, parentStart, parentTop
+    * centerHorizontal, centerInParent, centerVertical
   * Linear layout
     * horizontal or vertical
-    * attributes
-      * gravity
-      * orientation
 * [Gtk layout management](https://zetcode.com/gui/gtk2/gtklayoutmanagement/)
   * GtkAlignment
     * add an alignment config as the layout for another widget e.g. group.layout(Layout::l)
@@ -327,5 +326,6 @@ resized.
 ### WindowToken
 
 ## Backlog
+* Layout management based on Android contraint layout
 
 ## Changelog
