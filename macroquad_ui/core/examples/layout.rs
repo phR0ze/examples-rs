@@ -17,7 +17,11 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        draw_rectangle(200., 300., 50., 50., RED);
+        // container, defaults to full screen
+        let cont1 = screen();
+        draw_rectangle(0., 0., cont1.x, cont1.y, RED);
+
+        Layout::new().add(vec2(50., 50.), BLUE).add(vec2(50., 50.), GREEN).show(&mut *root_ui(), |ui| {});
 
         next_frame().await
     }

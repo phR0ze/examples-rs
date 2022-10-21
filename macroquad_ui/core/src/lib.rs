@@ -11,9 +11,10 @@ mod button;
 mod fps;
 mod frame;
 mod label;
+mod layout;
+mod panel;
 mod position;
 mod size;
-mod style;
 mod utils;
 
 /// All essential symbols in a simple consumable form
@@ -38,9 +39,10 @@ pub mod prelude {
     pub use crate::fps::*;
     pub use crate::frame::*;
     pub use crate::label::*;
+    pub use crate::layout::*;
     pub use crate::macros::*;
+    pub use crate::panel::*;
     pub use crate::position::*;
     pub use crate::size::*;
-    pub use crate::style::*;
     pub use crate::utils::*;
 }
