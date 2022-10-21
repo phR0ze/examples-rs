@@ -9,9 +9,11 @@ mod macros;
 
 mod button;
 mod fps;
+mod frame;
 mod label;
 mod position;
 mod size;
+mod style;
 mod utils;
 
 /// All essential symbols in a simple consumable form
@@ -34,9 +36,11 @@ pub mod prelude {
     // Export internal types
     pub use crate::button::*;
     pub use crate::fps::*;
+    pub use crate::frame::*;
     pub use crate::label::*;
     pub use crate::macros::*;
     pub use crate::position::*;
     pub use crate::size::*;
+    pub use crate::style::*;
     pub use crate::utils::*;
 }
