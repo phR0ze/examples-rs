@@ -89,14 +89,35 @@ for every call will internally cause Macroquad to recurse into oblivion. This ca
 a unique `Id` for each group instance.
 
 ## Layout management
-Layout management objects provide policy and configuration to guide the automatic arrangement of 
-child widgets within a parent widget including positioning and sizing dynamically for the available 
-space. They are higher level constructs that allow you to move beyond exact postional coordinates.
+Layout management typically involves layout objects that provide policy and configuration to guide 
+the automatic arrangement of child widgets within a parent widget including positioning and sizing 
+dynamically for the available space. They are higher level constructs that allow you to move beyond 
+exact postional coordinates. 
 
 **References**:
 * [Qt Layout Management](https://doc.qt.io/qt-6/layout.html)
 * [GTK4 Layout managers](https://blog.gtk.org/2019/03/27/layout-managers-in-gtk-4/)
 * [GTK layout](https://itnext.io/understanding-gtk-layouts-13e5a36256fa)
+
+### Design considerations
+
+* **Design 1: add widgets to a layout object** - 
+  Since we are dealing with an immediate mode Ui rather than a retained Ui, access to Ui component 
+  return values need to be immediately available. This means that in order to to add widgets to a 
+  layout object to later be drawn will require persisting the widget return values to be checked 
+  later. This also supposes that you have access to the widgets later to check the return values.
+
+* **Design 2: add layout to widgets** - 
+  This design does allow for shared functionality in the layout to be leveraged by the widget, but 
+  still seems to require passing the same layout onto other widgets or extracting information from 
+  the layout for other widget layouts to use. This doesn't seem that different than design 3 and only 
+  adds complexity.
+
+* **Design 3: pass layout to widgets when needed** - 
+  Allows for the same shared functionality to be leveraged by widgets and by passing the same layout 
+  to multiple widgets or other layouts we can persist and track layout properties and history to be 
+  leveraged in later computations much like design 1, but without the loss of access to the return 
+  values.
 
 ### Start and End
 Start and end layout locations
@@ -133,8 +154,6 @@ Every application will need a `Root Layout` which is
   * lays out widgets in a vertical column, from top to bottom or bottom to top
 * Grid - lays out widgets in a two-dimenstional grid. Widgets can occupy multiple cells
 * Form - lays out widgets in a 2-column label-field style
-
-### Adding Widgets to a Layout
 
 
 ### Comparing various Ui designs

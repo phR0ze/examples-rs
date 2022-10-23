@@ -7,10 +7,17 @@ Utility functions and helpers
 Group is the fundamental container object from which all others are derived
 
 ## Backlog
-* Need a container type object I can use to test layouts
+* Layout with frame
+* Layout nested
 
+## Completed
+* Layout fill
+* Layout margin
+* Layout spacing
+* Layout horizontal
+* Layout vertical 
 
-
+## Old Backlog
 * Support for label to have clicked and hovered color changes
 * Relatively size the button based on the containing widget's size
   * [examples/relative.rs](exmamples/relative.rs)
@@ -21,7 +28,7 @@ Group is the fundamental container object from which all others are derived
   * Size button 3/4 of relative container
   * Size button full size of relative container
 
-## Completed
+## Old Completed
 * Pass through support for button label size
 * Pass through support for button label color
 * Pass through support for button background color
