@@ -18,21 +18,21 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut base_layout = Layout::vert().size_p(0.75, 0.5).fill_w().spacing(10.).margin(10., 10., 60., 10.);
+        let mut base_layout = Layout::vert().size_p(0.75, 0.5).fill_w().spacing(10.).padding(10., 10., 60., 10.);
 
-        Region::new(RED).show(&mut *root_ui(), &mut base_layout);
-        Region::new(BLUE).show(&mut *root_ui(), &mut base_layout);
-        Region::new(GREEN).show(&mut *root_ui(), &mut base_layout);
-        Region::new(ORANGE).show(&mut *root_ui(), &mut base_layout);
-        Region::new(YELLOW).show(&mut *root_ui(), &mut base_layout);
-        Region::new(BROWN).show(&mut *root_ui(), &mut base_layout);
-        Region::new(BEIGE).show(&mut *root_ui(), &mut base_layout);
-        Region::new(PURPLE).show(&mut *root_ui(), &mut base_layout);
-        Region::new(PINK).show(&mut *root_ui(), &mut base_layout);
-        Region::new(GRAY).show(&mut *root_ui(), &mut base_layout);
-        Region::new(LIME).show(&mut *root_ui(), &mut base_layout);
-        Region::new(SKYBLUE).show(&mut *root_ui(), &mut base_layout);
-        Region::new(MAROON).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(RED).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(BLUE).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(GREEN).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(ORANGE).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(YELLOW).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(BROWN).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(BEIGE).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(PURPLE).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(PINK).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(GRAY).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(LIME).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(SKYBLUE).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(MAROON).show(&mut *root_ui(), &mut base_layout);
 
         next_frame().await
     }

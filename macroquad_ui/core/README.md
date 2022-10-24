@@ -8,10 +8,9 @@ Group is the fundamental container object from which all others are derived
 
 ## Backlog
 * Layout with frame
-* Layout nested sizing
-* Layout nested
 
 ## Completed
+* Layout nested [examples/layout_nested.rs](examples/layout_nested.rs)
 * Layout size [examples/layout_percentage.rs](examples/layout_percentage.rs)
 * Layout fill [examples/layout_fill_width.rs](examples/layout_fill_width.rs)
 * Layout margin [examples/layout_horizontal.rs](examples/layout_horizontal.rs)

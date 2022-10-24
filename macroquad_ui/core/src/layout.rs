@@ -1,36 +1,19 @@
 use crate::prelude::*;
 
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct Region {
-    size: Vec2,
-    color: Color,
-}
-
-impl Region {
-    pub fn new(color: Color) -> Self {
-        Self { size: vec2(50., 50.), color }
-    }
-
-    pub fn show(&mut self, ui: &mut Ui, layout: &mut Layout) {
-        let (pos, size) = layout.alloc(self.size);
-        draw_rectangle(pos.x, pos.y, size.x, size.y, self.color);
-    }
-}
-
 /// Layout describes a region of space and provides mechanisms for calculating where and how a
 /// widget should draw itself inside that region of space.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Layout {
-    x: f32,             // marks start of free horizontal space in the region
-    y: f32,             // marks start of free vertical space in the rgion
-    fill_w: bool,       // fill width of layout
-    fill_h: bool,       // fill height of layout
-    mode: LayoutMode,   // layout mode directive
-    margin: RectOffset, // space to reserve outside frame
-    size: Vec2,         // size of the layout region
-    pos: Vec2,          // position of the layout region
-    spacing: f32,       // space to include between widgets
-    objects: Vec<Rect>, // track allocated space in the region
+    x: f32,              // marks start of free horizontal space in the region
+    y: f32,              // marks start of free vertical space in the rgion
+    fill_w: bool,        // fill width of layout
+    fill_h: bool,        // fill height of layout
+    mode: LayoutMode,    // layout mode directive
+    size: Vec2,          // size of the layout region
+    pos: Vec2,           // position of the layout region
+    spacing: f32,        // space to include between widgets
+    padding: RectOffset, // push content in from layout edges this amount
+    objects: Vec<Rect>,  // track allocated space in the region
 
     // Parent layout properties
     parent: Option<Rect>, // parent layout to position inside of
@@ -62,21 +45,32 @@ impl Layout {
         Self { mode: LayoutMode::Vertical, ..self }
     }
 
+    /// Set the layout static position
+    pub fn pos_s(self, x: f32, y: f32) -> Self {
+        Self { pos: vec2(x, y), ..self }
+    }
+
     /// Set the layout size to full screen
     pub fn size_f(self) -> Self {
         Self { size: screen(), ..self }
     }
 
     /// Set the layout size to a percentage
-    /// * `width` is a percentage of the screen width range of (0.01 - 1.0)
-    /// * `height` is a percentage of the screen height range of (0.01 - 1.0)
+    /// * `width` is a percentage of the screen/parent width range of (0.01 - 1.0)
+    /// * `height` is a percentage of the screen/parent height range of (0.01 - 1.0)
     pub fn size_p(self, width: f32, height: f32) -> Self {
-        Self { size: vec2(screen_width() * width, screen_height() * height), ..self }
+        let parent = if let Some(parent) = self.parent { vec2(parent.w, parent.h) } else { screen() };
+        Self { size: vec2(parent.x * width, parent.y * height), ..self }
     }
 
     /// Set the layout size to a static size
     pub fn size_s(self, width: f32, height: f32) -> Self {
         Self { size: vec2(width, height), ..self }
+    }
+
+    /// Fill the entire layout
+    pub fn fill(self) -> Self {
+        Self { fill_w: true, fill_h: true, ..self }
     }
 
     /// Fill the entire width of the layout
@@ -94,20 +88,25 @@ impl Layout {
         Self { spacing, ..self }
     }
 
-    /// Adjust position to allow for the given margin outside this layout
-    pub fn margin(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Self { x: self.x + left, y: self.y + top, margin: RectOffset { left, right, top, bottom }, ..self }
+    /// Push content in from edges of layout this amount
+    pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+        Self { padding: RectOffset { left, right, top, bottom }, ..self }
     }
 
     /// Create a new layout inside the given layout
+    /// * new layout size is the size of the current layout minus padding
+    /// * new layout position is the position of the current layout after padding
     pub fn nest(&self) -> Self {
+        let parent = Rect::new(
+            self.pos.x + self.padding.left,
+            self.pos.y + self.padding.top,
+            self.size.x - self.padding.left - self.padding.right,
+            self.size.y - self.padding.top - self.padding.bottom,
+        );
         Self {
-            parent: Some(Rect::new(
-                self.pos.x + self.margin.left,
-                self.pos.y + self.margin.top,
-                self.size.x,
-                self.size.y,
-            )),
+            size: vec2(parent.w, parent.h),
+            pos: vec2(parent.x, parent.y),
+            parent: Some(parent),
             ..Self::default()
         }
     }
@@ -117,14 +116,19 @@ impl Layout {
     /// * TODO: need to determine how to handle allocations behind the layout region
     pub fn alloc(&mut self, size: Vec2) -> (Vec2, Vec2) {
         // Allocate space for the widget
-        let mut rect = Rect::new(self.x, self.y, size.x, size.y);
+        let mut rect = Rect::new(
+            self.x + self.pos.x + self.padding.left,
+            self.y + self.pos.y + self.padding.top,
+            size.x,
+            size.y,
+        );
 
         // Handle fill width and height
         if self.fill_w {
-            rect.w = self.size.x - self.margin.left - self.margin.right;
+            rect.w = self.size.x - self.padding.left - self.padding.right;
         }
         if self.fill_h {
-            rect.h = self.size.y - self.margin.top - self.margin.bottom;
+            rect.h = self.size.y - self.padding.top - self.padding.bottom;
         }
 
         match self.mode {
