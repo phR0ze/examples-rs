@@ -1,4 +1,4 @@
-//! Demonstrating full screen veritical layout with margin and spacing
+//! Demonstrating layout restricted in size to 75% of width of screen
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -18,7 +18,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut base_layout = Layout::root().vert_m().spacing(10.).margin(10., 10., 60., 10.);
+        let mut base_layout = Layout::vert().size_p(0.75, 0.5).fill_w().spacing(10.).margin(10., 10., 60., 10.);
 
         Region::new(RED).show(&mut *root_ui(), &mut base_layout);
         Region::new(BLUE).show(&mut *root_ui(), &mut base_layout);
@@ -29,6 +29,10 @@ async fn main() {
         Region::new(BEIGE).show(&mut *root_ui(), &mut base_layout);
         Region::new(PURPLE).show(&mut *root_ui(), &mut base_layout);
         Region::new(PINK).show(&mut *root_ui(), &mut base_layout);
+        Region::new(GRAY).show(&mut *root_ui(), &mut base_layout);
+        Region::new(LIME).show(&mut *root_ui(), &mut base_layout);
+        Region::new(SKYBLUE).show(&mut *root_ui(), &mut base_layout);
+        Region::new(MAROON).show(&mut *root_ui(), &mut base_layout);
 
         next_frame().await
     }

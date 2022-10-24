@@ -27,24 +27,56 @@ pub struct Layout {
     fill_h: bool,       // fill height of layout
     mode: LayoutMode,   // layout mode directive
     margin: RectOffset, // space to reserve outside frame
-    region: Rect,       // region to constrain the layout to
+    size: Vec2,         // size of the layout region
+    pos: Vec2,          // position of the layout region
     spacing: f32,       // space to include between widgets
     objects: Vec<Rect>, // track allocated space in the region
+
+    // Parent layout properties
+    parent: Option<Rect>, // parent layout to position inside of
 }
 
 impl Layout {
-    pub fn new(rect: Rect) -> Self {
-        Self { region: rect, ..Self::default() }
+    /// Create the default root layout filling the entire screen
+    pub fn root() -> Self {
+        Self::default().size_f()
     }
 
-    /// Put layout in horizontal mode
-    pub fn horz(self) -> Self {
+    /// Create a horizontal layout
+    pub fn horz() -> Self {
+        Self::default().horz_m()
+    }
+
+    /// Create a vertical layout
+    pub fn vert() -> Self {
+        Self::default().vert_m()
+    }
+
+    /// Set horizontal layout mode
+    pub fn horz_m(self) -> Self {
         Self { mode: LayoutMode::Horizontal, ..self }
     }
 
-    /// Put layout in vertical mode
-    pub fn vert(self) -> Self {
+    /// Set vertical layout mode
+    pub fn vert_m(self) -> Self {
         Self { mode: LayoutMode::Vertical, ..self }
+    }
+
+    /// Set the layout size to full screen
+    pub fn size_f(self) -> Self {
+        Self { size: screen(), ..self }
+    }
+
+    /// Set the layout size to a percentage
+    /// * `width` is a percentage of the screen width range of (0.01 - 1.0)
+    /// * `height` is a percentage of the screen height range of (0.01 - 1.0)
+    pub fn size_p(self, width: f32, height: f32) -> Self {
+        Self { size: vec2(screen_width() * width, screen_height() * height), ..self }
+    }
+
+    /// Set the layout size to a static size
+    pub fn size_s(self, width: f32, height: f32) -> Self {
+        Self { size: vec2(width, height), ..self }
     }
 
     /// Fill the entire width of the layout
@@ -62,30 +94,37 @@ impl Layout {
         Self { spacing, ..self }
     }
 
+    /// Adjust position to allow for the given margin outside this layout
     pub fn margin(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Self { x: self.x + left, y: self.y + top, margin: RectOffset { left, right, top, bottom }, ..self }
     }
 
-    // Base layout is full screen and intended as the base for all Ui layout
-    pub fn base() -> Self {
-        let screen = screen();
-        let mut layout = Self::default();
-        layout.region = Rect::new(0., 0., screen.x, screen.y);
-        layout
+    /// Create a new layout inside the given layout
+    pub fn nest(&self) -> Self {
+        Self {
+            parent: Some(Rect::new(
+                self.pos.x + self.margin.left,
+                self.pos.y + self.margin.top,
+                self.size.x,
+                self.size.y,
+            )),
+            ..Self::default()
+        }
     }
 
-    /// Allocate space for the given widget
-    ///  * returns tuple (position, size)
+    /// Allocate space for the given widget.
+    /// * returns tuple (position, size)
+    /// * TODO: need to determine how to handle allocations behind the layout region
     pub fn alloc(&mut self, size: Vec2) -> (Vec2, Vec2) {
         // Allocate space for the widget
         let mut rect = Rect::new(self.x, self.y, size.x, size.y);
 
-        // Handle fill
+        // Handle fill width and height
         if self.fill_w {
-            rect.w = self.region.w - self.margin.left - self.margin.right;
+            rect.w = self.size.x - self.margin.left - self.margin.right;
         }
         if self.fill_h {
-            rect.h = self.region.h - self.margin.top - self.margin.bottom;
+            rect.h = self.size.y - self.margin.top - self.margin.bottom;
         }
 
         match self.mode {

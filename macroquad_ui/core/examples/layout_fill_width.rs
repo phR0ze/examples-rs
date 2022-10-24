@@ -1,3 +1,4 @@
+//! Demonstrating full screen vertical layout filling the width of the layout
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -17,7 +18,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut base_layout = Layout::base().vert().fill_w().spacing(10.).margin(10., 10., 60., 10.);
+        let mut base_layout = Layout::root().vert_m().fill_w().spacing(10.).margin(10., 10., 60., 10.);
 
         Region::new(RED).show(&mut *root_ui(), &mut base_layout);
         Region::new(BLUE).show(&mut *root_ui(), &mut base_layout);

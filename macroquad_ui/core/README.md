@@ -8,14 +8,16 @@ Group is the fundamental container object from which all others are derived
 
 ## Backlog
 * Layout with frame
+* Layout nested sizing
 * Layout nested
 
 ## Completed
-* Layout fill
-* Layout margin
-* Layout spacing
-* Layout horizontal
-* Layout vertical 
+* Layout size [examples/layout_percentage.rs](examples/layout_percentage.rs)
+* Layout fill [examples/layout_fill_width.rs](examples/layout_fill_width.rs)
+* Layout margin [examples/layout_horizontal.rs](examples/layout_horizontal.rs)
+* Layout spacing [examples/layout_horizontal.rs](examples/layout_horizontal.rs)
+* Layout horizontal [examples/layout_horizontal.rs](examples/layout_horizontal.rs)
+* Layout vertical [examples/layout_vertical.rs](examples/layout_vertical.rs)
 
 ## Old Backlog
 * Support for label to have clicked and hovered color changes

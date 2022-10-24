@@ -1,3 +1,4 @@
+//! Demonstrating full screen horiztonal layout filling the height of the layout
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -17,7 +18,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut base_layout = Layout::base().fill_h().spacing(10.).margin(10., 10., 60., 10.);
+        let mut base_layout = Layout::root().fill_h().spacing(10.).margin(10., 10., 60., 10.);
 
         Region::new(RED).show(&mut *root_ui(), &mut base_layout);
         Region::new(BLUE).show(&mut *root_ui(), &mut base_layout);

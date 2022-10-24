@@ -1,3 +1,4 @@
+//! Demonstrating full screen horizontal layout with spacing and margin
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -17,7 +18,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut base_layout = Layout::base().spacing(10.).margin(10., 10., 10., 10.);
+        let mut base_layout = Layout::root().spacing(10.).margin(10., 10., 10., 10.);
 
         Region::new(RED).show(&mut *root_ui(), &mut base_layout);
         Region::new(BLUE).show(&mut *root_ui(), &mut base_layout);
