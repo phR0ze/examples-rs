@@ -12,7 +12,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let builder = ButtonBuilder::new().label_font_size(15.0).background_color(GRAY).padding(50., 50., 10., 10.);
+    let builder = ButtonBuilder1::new().label_font_size(15.0).background_color(GRAY).padding(50., 50., 10., 10.);
 
     let mut fps = Fps::new().with_font_color(WHITE);
     loop {

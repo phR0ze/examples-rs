@@ -8,6 +8,7 @@
 mod macros;
 
 mod button;
+mod button1;
 mod fps;
 mod frame;
 mod label;
@@ -36,6 +37,7 @@ pub mod prelude {
 
     // Export internal types
     pub use crate::button::*;
+    pub use crate::button1::*;
     pub use crate::fps::*;
     pub use crate::frame::*;
     pub use crate::label::*;

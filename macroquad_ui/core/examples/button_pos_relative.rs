@@ -12,7 +12,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut settings = Button::new("Settings")
+    let mut settings = Button1::new("Settings")
         .with_background_color(GRAY)
         .with_position(Position::LeftCenter(None))
         .with_size(Size::three_quarter_width())

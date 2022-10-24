@@ -1,7 +1,8 @@
 use crate::prelude::*;
 
 /// Layout describes a region of space and provides mechanisms for calculating where and how a
-/// widget should draw itself inside that region of space.
+/// widget should draw itself inside that region of space. Layout region space allocated to widgets
+/// is then tracked.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Layout {
     x: f32,              // marks start of free horizontal space in the region
@@ -20,6 +21,11 @@ pub struct Layout {
 }
 
 impl Layout {
+    /// Create the default layout
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     /// Create the default root layout filling the entire screen
     pub fn root() -> Self {
         Self::default().size_f()
@@ -91,6 +97,11 @@ impl Layout {
     /// Push content in from edges of layout this amount
     pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Self { padding: RectOffset { left, right, top, bottom }, ..self }
+    }
+
+    /// Size of the layout
+    pub fn size(&self) -> Vec2 {
+        self.size
     }
 
     /// Create a new layout inside the given layout

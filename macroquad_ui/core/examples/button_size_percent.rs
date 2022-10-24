@@ -18,7 +18,7 @@ fn skin_with_color(color: Color) -> Skin {
 #[macroquad::main(main_conf)]
 async fn main() {
     let gray_skin = skin_with_color(GRAY);
-    let gray_bldr = ButtonBuilder::new().background_color(GRAY).label_font_size(15.);
+    let gray_bldr = ButtonBuilder1::new().background_color(GRAY).label_font_size(15.);
     let mut fps = Fps::new().with_position(Position::LeftBottom(rect(10., 0., 0., 10.)));
 
     loop {

@@ -7,7 +7,10 @@ Utility functions and helpers
 Group is the fundamental container object from which all others are derived
 
 ## Backlog
-* Layout with frame
+* Layout inside button
+  * Layout to return size for parent layout
+  * Calculate icon size, spacing, padding, margin and label for total size
+  * Expand layout to be as large as button content then extract size value with `size()`
 
 ## Completed
 * Layout nested [examples/layout_nested.rs](examples/layout_nested.rs)
