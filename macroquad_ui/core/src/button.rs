@@ -7,12 +7,14 @@
 //! * Calculated sizing and positioning relative to containing widget
 use crate::prelude::*;
 
+const ICON_ID: &'static str = "icon";
+const LABEL_ID: &'static str = "label";
+
 /// ButtonBuilder provides the ability to preserve widget configuration and be able to repeatedly
 /// create new widget instances based on this configuration rather than have to configure each
 /// individual widget instance.
 #[derive(Debug, Clone)]
 pub struct ButtonBuilder {
-    layout: Layout,      // layout management
     size: Size,          // sizing of the widget
     position: Position,  // position of of the widget
     padding: RectOffset, // spaced provided around content size
@@ -44,7 +46,6 @@ impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         Self {
-            layout: Layout::new().expand(),
             size: Size::default(),
             position: Position::default(),
             padding: RectOffset::default(),
@@ -164,11 +165,11 @@ impl ButtonBuilder {
         Button {
             dirty: true,
             skin: None,
+            layout: Layout::new().with_expand(),
             conf: self.clone(),
             label: label.as_ref().to_string(),
             clicked: false,
             activated: false,
-            label_size: Vec2::default(),
         }
     }
 }
@@ -177,11 +178,11 @@ impl ButtonBuilder {
 pub struct Button {
     dirty: bool,         // track if a skin update is needed
     skin: Option<Skin>,  // skin to use for the entry titles
+    layout: Layout,      // layout management
     conf: ButtonBuilder, // configuration of the button
     label: String,       // button label text value
     clicked: bool,       // track button clicked state
     activated: bool,     // track button activation i.e. odd clicks
-    label_size: Vec2,    // calculated size of the label
 }
 
 /// Button encapsulates and extends Macroquad's button
@@ -193,19 +194,16 @@ impl Button {
 
     /// Create a new button instance with an icon
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
-        let mut button = Button::new(label)
+        Button::new(label)
             .with_icon(icon)
             .with_icon_margin(20., 20., 0., 0.)
             .with_icon_position(Position::LeftCenter(None))
-            .with_label_position(Position::LeftCenter(rect(80., 0., 3., 0.)));
-
-        //.with_layout(Layout::new().)
-        button
+            .with_label_position(Position::LeftCenter(rect(80., 0., 3., 0.)))
     }
 
     /// Set the button's layout manager
     pub fn with_layout(self, layout: Layout) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { layout, ..self.conf }, ..self }
+        Button { dirty: true, layout, ..self }
     }
 
     /// Set the button's size directive
@@ -308,14 +306,6 @@ impl Button {
         &self.label
     }
 
-    /// Returns the position of the button
-    /// * `container` is the containing widget's size to relatively position against
-    /// * `offset` any positional offset to take into account
-    pub fn position(&mut self, ui: &mut Ui, container: Vec2, offset: Option<Vec2>) -> Vec2 {
-        let size = self.size(ui, container);
-        self.conf.position.relative(size, container, offset)
-    }
-
     /// Returns true if button was clicked an odd number of times. 1st click will activate the
     /// button and the 2nd click will deactivate the button and so on.
     /// * Button must be instantiated outside main loop for this to work correctly
@@ -328,31 +318,8 @@ impl Button {
         self.clicked
     }
 
-    /// Calculate the size based on the size directive and the given container size
-    /// * `container` is the containing widget's size to relatively size against
-    // pub fn size(&mut self, ui: &mut Ui, container: Vec2) -> Vec2 {
-    //     self.update(ui);
-
-    //     // Calculate the relative size based on the containing widget's size
-    //     let mut size = self.conf.size.relative(container, Some(self.label_size_calc));
-
-    //     // Take padding into account
-    //     size.x += self.conf.padding.left + self.conf.padding.right;
-    //     size.y += self.conf.padding.top + self.conf.padding.bottom;
-
-    //     // Take icon size into account
-    //     if let Some(icon) = &self.conf.icon {
-    //         let icon_size = self.conf.icon_size.relative(size, Some(vec2(icon.width(), icon.height())));
-    //         size.x += icon_size.x + self.conf.icon_margin.left + self.conf.icon_margin.right;
-    //         size.y +=
-    //             icon_size.y + self.conf.icon_margin.top + self.conf.icon_margin.bottom - self.label_size_calc.y;
-    //     }
-
-    //     size
-    // }
-
-    /// Update the skin and other Ui required values in prepartion for `show`
-    fn update(&mut self, ui: &mut Ui) {
+    /// Prepare to draw the widgets such as skin updates and sizing calculations
+    fn ui(&mut self, ui: &mut Ui) {
         if !self.dirty {
             return;
         }
@@ -395,53 +362,49 @@ impl Button {
 
         // Create the skin based on override styles
         let skin = Skin { button_style, label_style, ..ui.default_skin() };
-        self.skin = Some(skin);
 
-        // Calculate text size
-        let mut layout = Layout::new().expand().padding_p(self.conf.padding);
+        // Calculate and cache button component sizes to reduce compute time
+        self.layout.reset();
         let label_size = text_size(ui, &skin, Some(&self.label));
-        let icon_size = if let Some(icon) = &self.conf.icon {
-            let mut icon_size = vec2(icon.width(), icon.height());
-            icon_size.x += self.conf.icon_margin.left + self.conf.icon_margin.right;
-            icon_size.y += self.conf.icon_margin.top + self.conf.icon_margin.bottom;
-            icon_size
-        } else {
-            vec2(0., 0.)
-        };
-        layout.alloc(icon_size);
-        layout.alloc(label_size);
-        self.conf.layout = layout;
+        if let Some(icon) = &self.conf.icon {
+            let icon_size = vec2(icon.width(), icon.height());
+            //icon_size.x += self.conf.icon_margin.left + self.conf.icon_margin.right;
+            //icon_size.y += self.conf.icon_margin.top + self.conf.icon_margin.bottom;
+            self.layout.alloc(ICON_ID, icon_size);
+        }
+        self.layout.alloc(LABEL_ID, label_size);
 
+        self.skin = Some(skin);
         self.dirty = false;
     }
 
     /// Draw the widget on the screen
-    /// * `layout` provides layout directive support for
+    /// * `layout` provides assistance and directives for sizing and positioning the widget
     /// * returns true when clicked in the current frame
     pub fn show(&mut self, ui: &mut Ui, layout: &mut Layout) -> bool {
-        self.update(ui);
+        self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
         self.clicked = false; // reset clicked
 
-        // Get layout allocation
-        //let (pos, size) = layout.alloc(self.size);
+        // Draw button
+        let (btn_pos, btn_size) = layout.alloc(&self.label, self.layout.size());
+        self.layout.set_pos(btn_pos.x, btn_pos.y);
+        if widgets::Button::new("").size(btn_size).position(btn_pos).ui(ui) {
+            self.activated = !self.activated;
+            self.clicked = true;
+        }
 
-        // // Draw button
-        // let btn_size = self.size(ui, container);
-        // let btn_pos = self.position(ui, container, offset);
-        // if widgets::Button::new("").size(btn_size).position(btn_pos).ui(ui) {
-        //     self.activated = !self.activated;
-        //     self.clicked = true;
-        // }
+        // Draw icon
+        if let Some(icon) = &self.conf.icon {
+            let rect = self.layout.widget_alloc(ICON_ID).unwrap();
+            let icon_size = vec2(rect.w, rect.h);
+            let icon_pos = vec2(rect.x, rect.y);
+            //let icon_size = self.layout.size_of(ICON_ID);
+            //let icon_pos = self.conf.icon_position.relative(icon_size, btn_size, Some(btn_pos));
+            widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
 
-        // // Draw icon
-        // if let Some(icon) = &self.conf.icon {
-        //     let icon_size = vec2(icon.width(), icon.height());
-        //     let icon_pos = self.conf.icon_position.relative(icon_size, btn_size, Some(btn_pos));
-        //     widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
-
-        //     // Update label position to start after icon margin
-        // }
+            // Update label position to start after icon margin
+        }
 
         // // Calculate label position
         // let mut label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));

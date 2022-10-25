@@ -20,7 +20,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut layout1 = Layout::root().vert_m().fill_w().padding(10., 10., 50., 10.);
+        let mut layout1 = Layout::root().with_vert().with_margin(0., 0., 50., 0.);
 
         button.show(&mut *root_ui(), &mut layout1);
         if button.activated() {
