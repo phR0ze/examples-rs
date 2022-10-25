@@ -20,19 +20,19 @@ async fn main() {
 
         let mut base_layout = Layout::vert().size_p(0.75, 0.5).fill_w().spacing(10.).padding(10., 10., 60., 10.);
 
-        Panel::new(RED).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(BLUE).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(GREEN).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(ORANGE).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(YELLOW).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(BROWN).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(BEIGE).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(PURPLE).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(PINK).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(GRAY).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(LIME).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(SKYBLUE).show(&mut *root_ui(), &mut base_layout);
-        Panel::new(MAROON).show(&mut *root_ui(), &mut base_layout);
+        Panel::new(RED).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(BLUE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(GREEN).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(ORANGE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(YELLOW).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(BROWN).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(BEIGE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(PURPLE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(PINK).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(GRAY).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(LIME).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(SKYBLUE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
+        Panel::new(MAROON).show(&mut *root_ui(), &mut base_layout, |_, _| {});
 
         next_frame().await
     }

@@ -44,7 +44,7 @@ impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         Self {
-            layout: Layout::default(),
+            layout: Layout::new().expand(),
             size: Size::default(),
             position: Position::default(),
             padding: RectOffset::default(),
@@ -168,20 +168,20 @@ impl ButtonBuilder {
             label: label.as_ref().to_string(),
             clicked: false,
             activated: false,
-            label_size_calc: vec2(0., 0.),
+            label_size: Vec2::default(),
         }
     }
 }
 
 #[derive(Debug, Clone)]
 pub struct Button {
-    dirty: bool,           // track if a skin update is needed
-    skin: Option<Skin>,    // skin to use for the entry titles
-    conf: ButtonBuilder,   // configuration of the button
-    label: String,         // button label text value
-    clicked: bool,         // track button clicked state
-    activated: bool,       // track button activation i.e. odd clicks
-    label_size_calc: Vec2, // calculated size of the label
+    dirty: bool,         // track if a skin update is needed
+    skin: Option<Skin>,  // skin to use for the entry titles
+    conf: ButtonBuilder, // configuration of the button
+    label: String,       // button label text value
+    clicked: bool,       // track button clicked state
+    activated: bool,     // track button activation i.e. odd clicks
+    label_size: Vec2,    // calculated size of the label
 }
 
 /// Button encapsulates and extends Macroquad's button
@@ -308,34 +308,6 @@ impl Button {
         &self.label
     }
 
-    /// Layout management for the button
-    pub fn layout(&self) -> &Layout {
-        &self.conf.layout
-    }
-
-    /// Calculate the size based on the size directive and the given container size
-    /// * `container` is the containing widget's size to relatively size against
-    pub fn size(&mut self, ui: &mut Ui, container: Vec2) -> Vec2 {
-        self.update(ui);
-
-        // Calculate the relative size based on the containing widget's size
-        let mut size = self.conf.size.relative(container, Some(self.label_size_calc));
-
-        // Take padding into account
-        size.x += self.conf.padding.left + self.conf.padding.right;
-        size.y += self.conf.padding.top + self.conf.padding.bottom;
-
-        // Take icon size into account
-        if let Some(icon) = &self.conf.icon {
-            let icon_size = self.conf.icon_size.relative(size, Some(vec2(icon.width(), icon.height())));
-            size.x += icon_size.x + self.conf.icon_margin.left + self.conf.icon_margin.right;
-            size.y +=
-                icon_size.y + self.conf.icon_margin.top + self.conf.icon_margin.bottom - self.label_size_calc.y;
-        }
-
-        size
-    }
-
     /// Returns the position of the button
     /// * `container` is the containing widget's size to relatively position against
     /// * `offset` any positional offset to take into account
@@ -355,6 +327,29 @@ impl Button {
     pub fn clicked(&self) -> bool {
         self.clicked
     }
+
+    /// Calculate the size based on the size directive and the given container size
+    /// * `container` is the containing widget's size to relatively size against
+    // pub fn size(&mut self, ui: &mut Ui, container: Vec2) -> Vec2 {
+    //     self.update(ui);
+
+    //     // Calculate the relative size based on the containing widget's size
+    //     let mut size = self.conf.size.relative(container, Some(self.label_size_calc));
+
+    //     // Take padding into account
+    //     size.x += self.conf.padding.left + self.conf.padding.right;
+    //     size.y += self.conf.padding.top + self.conf.padding.bottom;
+
+    //     // Take icon size into account
+    //     if let Some(icon) = &self.conf.icon {
+    //         let icon_size = self.conf.icon_size.relative(size, Some(vec2(icon.width(), icon.height())));
+    //         size.x += icon_size.x + self.conf.icon_margin.left + self.conf.icon_margin.right;
+    //         size.y +=
+    //             icon_size.y + self.conf.icon_margin.top + self.conf.icon_margin.bottom - self.label_size_calc.y;
+    //     }
+
+    //     size
+    // }
 
     /// Update the skin and other Ui required values in prepartion for `show`
     fn update(&mut self, ui: &mut Ui) {
@@ -400,10 +395,23 @@ impl Button {
 
         // Create the skin based on override styles
         let skin = Skin { button_style, label_style, ..ui.default_skin() };
-
-        // Calculate text size and include margin
-        self.label_size_calc = text_size(ui, &skin, Some(&self.label));
         self.skin = Some(skin);
+
+        // Calculate text size
+        let mut layout = Layout::new().expand().padding_p(self.conf.padding);
+        let label_size = text_size(ui, &skin, Some(&self.label));
+        let icon_size = if let Some(icon) = &self.conf.icon {
+            let mut icon_size = vec2(icon.width(), icon.height());
+            icon_size.x += self.conf.icon_margin.left + self.conf.icon_margin.right;
+            icon_size.y += self.conf.icon_margin.top + self.conf.icon_margin.bottom;
+            icon_size
+        } else {
+            vec2(0., 0.)
+        };
+        layout.alloc(icon_size);
+        layout.alloc(label_size);
+        self.conf.layout = layout;
+
         self.dirty = false;
     }
 

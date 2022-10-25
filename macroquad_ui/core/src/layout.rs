@@ -9,6 +9,7 @@ pub struct Layout {
     y: f32,              // marks start of free vertical space in the rgion
     fill_w: bool,        // fill width of layout
     fill_h: bool,        // fill height of layout
+    expand: bool,        // layout expands to track all content allocated
     mode: LayoutMode,    // layout mode directive
     size: Vec2,          // size of the layout region
     pos: Vec2,           // position of the layout region
@@ -89,6 +90,11 @@ impl Layout {
         Self { fill_h: true, ..self }
     }
 
+    /// Configure layout expansion. When enabled disables fill properties
+    pub fn expand(self) -> Self {
+        Self { expand: true, fill_h: false, fill_w: false, ..self }
+    }
+
     /// Space to allocate between widgets
     pub fn spacing(self, spacing: f32) -> Self {
         Self { spacing, ..self }
@@ -97,6 +103,11 @@ impl Layout {
     /// Push content in from edges of layout this amount
     pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         Self { padding: RectOffset { left, right, top, bottom }, ..self }
+    }
+
+    /// Push content in from edges of layout this amount
+    pub fn padding_p(self, padding: RectOffset) -> Self {
+        Self { padding, ..self }
     }
 
     /// Size of the layout
@@ -145,20 +156,32 @@ impl Layout {
         match self.mode {
             LayoutMode::Horizontal => {
                 self.x += rect.w;
+                if self.expand {
+                    self.size.x += rect.w;
+                }
 
                 // Allocate spacing if not the first widget
                 if !self.objects.is_empty() {
                     rect.x += self.spacing;
                     self.x += self.spacing;
+                    if self.expand {
+                        self.size.x += self.spacing;
+                    }
                 }
             },
             LayoutMode::Vertical => {
                 self.y += rect.h;
+                if self.expand {
+                    self.size.y += rect.h;
+                }
 
                 // Allocate spacing if not the first widget
                 if !self.objects.is_empty() {
                     rect.y += self.spacing;
                     self.y += self.spacing;
+                    if self.expand {
+                        self.size.y += self.spacing;
+                    }
                 }
             },
         }

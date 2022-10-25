@@ -11,8 +11,11 @@ impl Panel {
         Self { size: vec2(50., 50.), color }
     }
 
-    pub fn show(&mut self, ui: &mut Ui, layout: &mut Layout) {
+    /// Draw the widget on the screen
+    /// * `layout` provides layout directive support for
+    pub fn show<F: FnOnce(&mut Ui, &mut Layout)>(&mut self, ui: &mut Ui, layout: &mut Layout, f: F) {
         let (pos, size) = layout.alloc(self.size);
         draw_rectangle(pos.x, pos.y, size.x, size.y, self.color);
+        f(ui, layout)
     }
 }
