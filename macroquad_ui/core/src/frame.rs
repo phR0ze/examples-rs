@@ -2,7 +2,7 @@ use crate::prelude::*;
 
 /// Frame is not a widget or container but rather provides a set of properties for manipulating a
 /// widget's or container's
-/// * inner and outer margins
+/// * margin and padding
 /// * background color or image
 /// * stroke properties
 #[derive(Clone, Copy, Debug, Default, PartialEq)]

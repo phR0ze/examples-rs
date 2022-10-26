@@ -15,9 +15,7 @@ const LABEL_ID: &'static str = "label";
 /// individual widget instance.
 #[derive(Debug, Clone)]
 pub struct ButtonBuilder {
-    size: Size,          // sizing of the widget
-    position: Position,  // position of of the widget
-    padding: RectOffset, // spaced provided around content size
+    layout: Layout, // layout for the button overall
 
     // Background properties
     background: Option<Image>,           // background image to use
@@ -29,26 +27,22 @@ pub struct ButtonBuilder {
 
     // Font properties
     label_font: Option<&'static [u8]>,   // font to use for label
-    label_position: Position,            // position of the label within the button
     label_font_size: f32,                // font size to use for label
     label_font_color: Color,             // font color to use for label
     label_font_color_clk: Option<Color>, // font color to use for label when clicked
     label_font_color_hov: Option<Color>, // font color to use for label when hovered
+    label_layout: Layout,                // layout for the label
 
     // Icon properties
     icon: Option<Texture2D>, // optional icon to display
-    icon_size: Size,         // size to use for icon when drawing
-    icon_margin: RectOffset, // icon offset
-    icon_position: Position, // position of the icon within the button
+    icon_layout: Layout,     // layout for the icon
 }
 
 impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         Self {
-            size: Size::default(),
-            position: Position::default(),
-            padding: RectOffset::default(),
+            layout: Layout::default(),
             background: None,
             background_clk: None,
             background_hov: None,
@@ -56,40 +50,14 @@ impl ButtonBuilder {
             background_color_clk: None,
             background_color_hov: None,
             label_font: None,
-            label_position: Position::default(),
             label_font_size: scale(DEFAULT_FONT_SIZE),
             label_font_color: colors::BLACK,
             label_font_color_clk: None,
             label_font_color_hov: None,
+            label_layout: Layout::default(),
             icon: None,
-            icon_size: Size::Dynamic,
-            icon_margin: RectOffset::default(),
-            icon_position: Position::LeftCenter(None),
+            icon_layout: Layout::default(),
         }
-    }
-
-    /// Set the button's size directive
-    /// * handles scaling for mobile
-    pub fn size(self, size: Size) -> Self {
-        Self { size: size.scale(), ..self }
-    }
-
-    /// Position the button on the screen
-    /// * handles scaling for mobile
-    pub fn position(self, pos: Position) -> Self {
-        Self { position: pos.scale(), ..self }
-    }
-
-    /// Pad inside widget pushing content in from edges
-    /// * handles scaling for mobile
-    pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Self { padding: scale_rect(left, right, top, bottom), ..self }
-    }
-
-    /// Pad inside widget pushing content in from edges
-    /// * handles scaling for mobile
-    pub fn padding_p(self, padding: RectOffset) -> Self {
-        Self { padding: scale_rect_p(padding), ..self }
     }
 
     /// Set background image to use
@@ -128,36 +96,9 @@ impl ButtonBuilder {
         Self { label_font_color: color, ..self }
     }
 
-    /// Position the label inside the button
-    /// * handles scaling for mobile
-    pub fn label_position(self, pos: Position) -> Self {
-        Self { label_position: pos, ..self }
-    }
-
     /// Set icon to use
     pub fn icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
         Self { icon: icon.into(), ..self }
-    }
-
-    /// Set icon size to use
-    pub fn icon_size(self, size: Size) -> Self {
-        Self { icon_size: size, ..self }
-    }
-
-    /// Set icon margin to use
-    pub fn icon_margin(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Self { icon_margin: RectOffset::new(left, right, top, bottom), ..self }
-    }
-
-    /// Set icon margin to use
-    pub fn icon_margin_p(self, margin: RectOffset) -> Self {
-        Self { icon_margin: margin, ..self }
-    }
-
-    /// Position the icon inside the button
-    /// * handles scaling for mobile
-    pub fn icon_position(self, pos: Position) -> Self {
-        Self { icon_position: pos.scale(), ..self }
     }
 
     /// Create a new widget instance from this builder
@@ -165,7 +106,6 @@ impl ButtonBuilder {
         Button {
             dirty: true,
             skin: None,
-            layout: Layout::new().with_expand(),
             conf: self.clone(),
             label: label.as_ref().to_string(),
             clicked: false,
@@ -178,7 +118,6 @@ impl ButtonBuilder {
 pub struct Button {
     dirty: bool,         // track if a skin update is needed
     skin: Option<Skin>,  // skin to use for the entry titles
-    layout: Layout,      // layout management
     conf: ButtonBuilder, // configuration of the button
     label: String,       // button label text value
     clicked: bool,       // track button clicked state
@@ -196,38 +135,8 @@ impl Button {
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
         Button::new(label)
             .with_icon(icon)
-            .with_icon_margin(20., 20., 0., 0.)
-            .with_icon_position(Position::LeftCenter(None))
-            .with_label_position(Position::LeftCenter(rect(80., 0., 3., 0.)))
-    }
-
-    /// Set the button's layout manager
-    pub fn with_layout(self, layout: Layout) -> Self {
-        Button { dirty: true, layout, ..self }
-    }
-
-    /// Set the button's size directive
-    /// * handles scaling for mobile
-    pub fn with_size(self, size: Size) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { size: size.scale(), ..self.conf }, ..self }
-    }
-
-    /// Position the button on the screen
-    /// * handles scaling for mobile
-    pub fn with_position(self, pos: Position) -> Self {
-        Button { conf: ButtonBuilder { position: pos.scale(), ..self.conf }, ..self }
-    }
-
-    /// Pad inside widget pushing content in from edges
-    /// * handles scaling for mobile
-    pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Button { conf: ButtonBuilder { padding: scale_rect(left, right, top, bottom), ..self.conf }, ..self }
-    }
-
-    /// Pad inside widget pushing content in from edges
-    /// * handles scaling for mobile
-    pub fn with_padding_p(self, padding: RectOffset) -> Self {
-        Button { conf: ButtonBuilder { padding: scale_rect_p(padding), ..self.conf }, ..self }
+            .with_icon_layout(Layout::new().with_margin(20., 10., 10., 10.))
+            .with_label_layout(Layout::new().with_margin(10., 20., 10., 10.))
     }
 
     /// Set background image to use
@@ -266,10 +175,9 @@ impl Button {
         Button { dirty: true, conf: ButtonBuilder { label_font_color: color, ..self.conf }, ..self }
     }
 
-    /// Position the label inside the button
-    /// * handles scaling for mobile
-    pub fn with_label_position(self, pos: Position) -> Self {
-        Button { conf: ButtonBuilder { label_position: pos, ..self.conf }, ..self }
+    /// Set label layout to use
+    pub fn with_label_layout(self, layout: Layout) -> Self {
+        Button { conf: ButtonBuilder { label_layout: layout, ..self.conf }, ..self }
     }
 
     /// Set icon to use
@@ -277,28 +185,9 @@ impl Button {
         Button { conf: ButtonBuilder { icon: icon.into(), ..self.conf }, ..self }
     }
 
-    /// Set icon size to use
-    pub fn with_icon_size(self, size: Size) -> Self {
-        Button { conf: ButtonBuilder { icon_size: size, ..self.conf }, ..self }
-    }
-
-    /// Set icon margin to use
-    pub fn with_icon_margin(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        Button {
-            conf: ButtonBuilder { icon_margin: RectOffset::new(left, right, top, bottom), ..self.conf },
-            ..self
-        }
-    }
-
-    /// Set icon margin to use
-    pub fn with_icon_margin_p(self, margin: RectOffset) -> Self {
-        Button { conf: ButtonBuilder { icon_margin: margin, ..self.conf }, ..self }
-    }
-
-    /// Position the icon inside the button
-    /// * handles scaling for mobile
-    pub fn with_icon_position(self, pos: Position) -> Self {
-        Button { conf: ButtonBuilder { icon_position: pos.scale(), ..self.conf }, ..self }
+    /// Set icon layout to use
+    pub fn with_icon_layout(self, layout: Layout) -> Self {
+        Button { conf: ButtonBuilder { icon_layout: layout, ..self.conf }, ..self }
     }
 
     /// Button label
@@ -364,15 +253,16 @@ impl Button {
         let skin = Skin { button_style, label_style, ..ui.default_skin() };
 
         // Calculate and cache button component sizes to reduce compute time
-        self.layout.reset();
+        self.conf.layout.reset();
+        self.conf.icon_layout.reset();
+        self.conf.label_layout.reset();
         let label_size = text_size(ui, &skin, Some(&self.label));
-        if let Some(icon) = &self.conf.icon {
-            let icon_size = vec2(icon.width(), icon.height());
-            //icon_size.x += self.conf.icon_margin.left + self.conf.icon_margin.right;
-            //icon_size.y += self.conf.icon_margin.top + self.conf.icon_margin.bottom;
-            self.layout.alloc(ICON_ID, icon_size);
+        if let Some(_) = &self.conf.icon {
+            self.conf.icon_layout.alloc(ICON_ID, vec2(label_size.y, label_size.y));
+            self.conf.layout.alloc(ICON_ID, self.conf.icon_layout.get_size());
         }
-        self.layout.alloc(LABEL_ID, label_size);
+        self.conf.label_layout.alloc(LABEL_ID, label_size);
+        self.conf.layout.alloc(LABEL_ID, self.conf.label_layout.get_size());
 
         self.skin = Some(skin);
         self.dirty = false;
@@ -387,30 +277,25 @@ impl Button {
         self.clicked = false; // reset clicked
 
         // Draw button
-        let (btn_pos, btn_size) = layout.alloc(&self.label, self.layout.size());
-        self.layout.set_pos(btn_pos.x, btn_pos.y);
-        if widgets::Button::new("").size(btn_size).position(btn_pos).ui(ui) {
+        let (pos, size) = layout.alloc(&self.label, self.conf.layout.get_size());
+        self.conf.layout.set_pos(pos.x, pos.y);
+        if widgets::Button::new("").size(size).position(pos).ui(ui) {
             self.activated = !self.activated;
             self.clicked = true;
         }
 
         // Draw icon
         if let Some(icon) = &self.conf.icon {
-            let rect = self.layout.widget_alloc(ICON_ID).unwrap();
-            let icon_size = vec2(rect.w, rect.h);
-            let icon_pos = vec2(rect.x, rect.y);
-            //let icon_size = self.layout.size_of(ICON_ID);
+            self.conf.icon_layout.set_pos(pos.x, pos.y);
+            let (icon_pos, icon_size) = self.conf.icon_layout.pos_size_of(ICON_ID).unwrap();
             //let icon_pos = self.conf.icon_position.relative(icon_size, btn_size, Some(btn_pos));
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
-
-            // Update label position to start after icon margin
         }
 
-        // // Calculate label position
-        // let mut label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));
-
-        // // Draw label
-        // widgets::Label::new(self.label.as_str()).size(self.label_size_calc).position(label_pos).ui(ui);
+        // Draw label
+        //let mut label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));
+        let (label_pos, label_size) = self.conf.layout.pos_size_of(LABEL_ID).unwrap();
+        widgets::Label::new(self.label.as_str()).size(label_size).position(label_pos).ui(ui);
 
         ui.pop_skin();
 

@@ -1,24 +1,56 @@
+//! Layout describes a region of space in which widgets should be drawn and provides mechanisms for
+//! calculating and tracking where and how they should be drawn.
+//!
+//! ## Defaults
+//! * horizontal layout
+//! * expansion enabled
+//!
+//! ## Expanding layout
+//! Layout expansion is the default mode. In this mode the layout will expand its size to account
+//! for all content allocations. This is very useful for cases where you want to include margins
+//! or alignment preferences for one or more widgts. For example Button is composed of an Icon,
+//! Label and a Frame each of which require layout mangement.
 use crate::prelude::*;
 
 /// Layout describes a region of space and provides mechanisms for calculating where and how a
 /// widget should draw itself inside that region of space. Layout region space allocated to widgets
 /// is then tracked.
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Layout {
-    x: f32,                       // marks start of free horizontal space in the region
-    y: f32,                       // marks start of free vertical space in the rgion
-    fill_w: bool,                 // fill width of layout
-    fill_h: bool,                 // fill height of layout
-    expand: bool,                 // layout expands to track all content allocated
-    mode: LayoutMode,             // layout mode directive
-    size: Vec2,                   // size of the layout region
-    pos: Vec2,                    // position of the layout region
-    spacing: f32,                 // space to include between widgets
-    margin: RectOffset,           // push content in from layout edges this amount
-    widgets: Vec<(String, Rect)>, // cache sizing and positioning allocations
+    x: f32,                     // marks start of free horizontal space in the region
+    y: f32,                     // marks start of free vertical space in the rgion
+    fill_w: bool,               // fill width of layout
+    fill_h: bool,               // fill height of layout
+    expand: bool,               // layout expands to track all content allocated
+    mode: LayoutMode,           // layout mode directive
+    size: Vec2,                 // size of the layout region
+    pos: Vec2,                  // position of the layout region
+    spacing: f32,               // space to include between widgets
+    margin: RectOffset,         // space outside the frame edge
+    cache: Vec<(String, Rect)>, // cache sizing and positioning allocations
 
     // Parent layout properties
+    //align: Align // guidance on how to position inside the parent
     parent: Option<Rect>, // parent layout to position inside of
+}
+
+impl Default for Layout {
+    fn default() -> Self {
+        Self {
+            x: 0.,
+            y: 0.,
+            fill_w: false,
+            fill_h: false,
+            expand: true, // enable expansion by default
+            mode: LayoutMode::default(),
+            size: Vec2::default(),
+            pos: Vec2::default(),
+            spacing: 0.,
+            margin: RectOffset::default(),
+            cache: Vec::<(String, Rect)>::default(),
+            parent: Option::<Rect>::default(),
+        }
+    }
 }
 
 impl Layout {
@@ -58,21 +90,24 @@ impl Layout {
     }
 
     /// Set the layout size to full screen
+    /// * disables layout expansion
     pub fn with_size_f(self) -> Self {
-        Self { size: screen(), ..self }
+        Self { expand: false, size: screen(), ..self }
     }
 
     /// Set the layout size to a percentage
+    /// * disables layout expansion
     /// * `width` is a percentage of the screen/parent width range of (0.01 - 1.0)
     /// * `height` is a percentage of the screen/parent height range of (0.01 - 1.0)
     pub fn with_size_p(self, width: f32, height: f32) -> Self {
         let parent = if let Some(parent) = self.parent { vec2(parent.w, parent.h) } else { screen() };
-        Self { size: vec2(parent.x * width, parent.y * height), ..self }
+        Self { expand: false, size: vec2(parent.x * width, parent.y * height), ..self }
     }
 
     /// Set the layout size to a static size
+    /// * disables layout expansion
     pub fn with_size_s(self, width: f32, height: f32) -> Self {
-        Self { size: vec2(width, height), ..self }
+        Self { expand: false, size: vec2(width, height), ..self }
     }
 
     /// Fill the entire layout
@@ -90,7 +125,8 @@ impl Layout {
         Self { fill_h: true, ..self }
     }
 
-    /// Configure layout expansion. When enabled disables fill properties
+    /// Configure layout expansion
+    /// * When enabled disables fill properties
     pub fn with_expand(self) -> Self {
         Self { expand: true, fill_h: false, fill_w: false, ..self }
     }
@@ -112,10 +148,28 @@ impl Layout {
         Self { margin: padding, ..self }
     }
 
+    /// Get the layout's current margin
+    pub fn get_margin(&self) -> &RectOffset {
+        &self.margin
+    }
+
+    /// Get the layout's size taking into account margin
+    pub fn get_size(&self) -> Vec2 {
+        // When in expand mode the margin should be included in the size
+        if self.expand {
+            vec2(
+                self.size.x + self.margin.left + self.margin.right,
+                self.size.y + self.margin.top + self.margin.bottom,
+            )
+        } else {
+            self.size
+        }
+    }
+
     /// Override the layout's position. This will cause a recalculation of all cached widget
     /// positions.
     pub fn set_pos(&mut self, x: f32, y: f32) {
-        let widgets = self.widgets.clone();
+        let widgets = self.cache.clone();
         self.reset();
         self.pos = vec2(x, y);
 
@@ -124,22 +178,9 @@ impl Layout {
         }
     }
 
-    /// Size of the layout
-    pub fn size(&self) -> Vec2 {
-        self.size
-    }
-
-    /// Get cached size of the given widget
-    pub fn size_of(&self, id: &str) -> Vec2 {
-        match self.widgets.iter().find(|x| x.0 == id).map(|x| vec2(x.1.w, x.1.h)) {
-            Some(x) => x,
-            _ => Vec2::default(),
-        }
-    }
-
     /// Get cached size and position of the given widget
-    pub fn widget_alloc(&self, id: &str) -> Option<&Rect> {
-        self.widgets.iter().find(|x| x.0 == id).map(|x| &x.1)
+    pub fn pos_size_of(&self, id: &str) -> Option<(Vec2, Vec2)> {
+        self.cache.iter().find(|x| x.0 == id).map(|x| (vec2(x.1.x, x.1.y), vec2(x.1.w, x.1.h)))
     }
 
     /// Create a new layout inside the given layout
@@ -166,7 +207,7 @@ impl Layout {
         self.y = 0.;
         self.size = Vec2::default();
         self.pos = Vec2::default();
-        self.widgets.clear();
+        self.cache.clear();
     }
 
     /// Allocate space for the given widget.
@@ -201,7 +242,7 @@ impl Layout {
                 }
 
                 // Allocate spacing if not the first widget
-                if !self.widgets.is_empty() {
+                if !self.cache.is_empty() {
                     rect.x += self.spacing;
                     self.x += self.spacing;
                     if self.expand {
@@ -216,7 +257,7 @@ impl Layout {
                 }
 
                 // Allocate spacing if not the first widget
-                if !self.widgets.is_empty() {
+                if !self.cache.is_empty() {
                     rect.y += self.spacing;
                     self.y += self.spacing;
                     if self.expand {
@@ -227,7 +268,7 @@ impl Layout {
         }
 
         // Track the widget space allocation
-        self.widgets.push((id.to_string(), rect));
+        self.cache.push((id.to_string(), rect));
 
         (vec2(rect.x, rect.y), vec2(rect.w, rect.h))
     }
