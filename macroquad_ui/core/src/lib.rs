@@ -33,7 +33,7 @@ pub mod prelude {
     };
 
     // Export macros by name
-    pub use crate::gid;
+    pub use crate::id;
 
     // Export internal types
     pub use crate::button::*;

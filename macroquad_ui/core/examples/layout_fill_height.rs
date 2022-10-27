@@ -18,7 +18,7 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let mut base_layout = Layout::root().with_fill_h().with_spacing(10.).with_margin(10., 10., 60., 10.);
+        let mut base_layout = Layout::root().with_fill_h().with_spacing(10.).with_margins(10., 10., 60., 10.);
 
         Panel::new(RED).show(&mut *root_ui(), &mut base_layout, |_, _| {});
         Panel::new(BLUE).show(&mut *root_ui(), &mut base_layout, |_, _| {});

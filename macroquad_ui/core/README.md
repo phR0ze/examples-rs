@@ -7,6 +7,9 @@ Utility functions and helpers
 Group is the fundamental container object from which all others are derived
 
 ## Backlog
+* Layout tracks child layouts and updates them with positioning when parent changes
+
+* Layout align value
 * Layout inside button
   * Layout to return size for parent layout
   * Calculate icon size, spacing, padding, margin and label for total size

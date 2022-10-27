@@ -20,8 +20,8 @@ impl Panel {
     /// Draw the widget on the screen
     /// * `layout` provides layout directive support for
     pub fn show<F: FnOnce(&mut Ui, &mut Layout)>(&mut self, ui: &mut Ui, layout: &mut Layout, f: F) {
-        let (pos, size) = layout.alloc(&self.id, self.size);
-        draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
-        f(ui, layout)
+        // let (pos, size) = layout.alloc(&self.id, self.size);
+        // draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
+        // f(ui, layout)
     }
 }

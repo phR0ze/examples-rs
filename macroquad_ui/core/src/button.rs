@@ -15,7 +15,7 @@ const LABEL_ID: &'static str = "label";
 /// individual widget instance.
 #[derive(Debug, Clone)]
 pub struct ButtonBuilder {
-    layout: Layout, // layout for the button overall
+    layout: Layout, // layout for the button
 
     // Background properties
     background: Option<Image>,           // background image to use
@@ -31,18 +31,16 @@ pub struct ButtonBuilder {
     label_font_color: Color,             // font color to use for label
     label_font_color_clk: Option<Color>, // font color to use for label when clicked
     label_font_color_hov: Option<Color>, // font color to use for label when hovered
-    label_layout: Layout,                // layout for the label
 
     // Icon properties
     icon: Option<Texture2D>, // optional icon to display
-    icon_layout: Layout,     // layout for the icon
 }
 
 impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
-        Self {
-            layout: Layout::default(),
+        let mut button = Self {
+            layout: Layout::new(""),
             background: None,
             background_clk: None,
             background_hov: None,
@@ -54,10 +52,13 @@ impl ButtonBuilder {
             label_font_color: colors::BLACK,
             label_font_color_clk: None,
             label_font_color_hov: None,
-            label_layout: Layout::default(),
             icon: None,
-            icon_layout: Layout::default(),
-        }
+        };
+
+        // Add the label layout by default
+        button.layout.alloc(LABEL_ID, None);
+
+        button
     }
 
     /// Set background image to use
@@ -97,16 +98,18 @@ impl ButtonBuilder {
     }
 
     /// Set icon to use
-    pub fn icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
+    pub fn icon<T: Into<Option<Texture2D>>>(mut self, icon: T) -> Self {
+        self.layout.alloc(ICON_ID, None);
         Self { icon: icon.into(), ..self }
     }
 
     /// Create a new widget instance from this builder
     pub fn build<T: AsRef<str>>(&self, label: T) -> Button {
+        let conf = self.clone();
         Button {
             dirty: true,
             skin: None,
-            conf: self.clone(),
+            conf: Self { layout: conf.layout.with_id(label.as_ref()), ..conf },
             label: label.as_ref().to_string(),
             clicked: false,
             activated: false,
@@ -132,63 +135,68 @@ impl Button {
     }
 
     /// Create a new button instance with an icon
+    /// * the icon will be scaled to match the font size
+    /// * `label` is the text to display as the button label
+    /// * `icon` is a texture to be displayed as the button icon
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
-        Button::new(label)
-            .with_icon(icon)
-            .with_icon_layout(Layout::new().with_margin(20., 10., 10., 10.))
-            .with_label_layout(Layout::new().with_margin(10., 20., 10., 10.))
+        Button::new(label).with_icon(icon)
+        // .with_icon_layout(|x| x.with_margins(20., 10., 10., 10.))
+        // .with_label_layout(|x| x.with_margins(10., 20., 10., 10.))
     }
 
     /// Set background image to use
     pub fn with_background<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { background: image.into(), ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.background(image), ..self }
     }
 
     /// Set background image to use
     pub fn with_background_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { background_clk: image.into(), ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.background_clk(image), ..self }
     }
 
     /// Set background image to use
     pub fn with_background_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { background_hov: image.into(), ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.background_hov(image), ..self }
     }
 
     /// Set the background color used for the button
     pub fn with_background_color(self, color: Color) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { background_color: color, ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.background_color(color), ..self }
     }
 
     /// Set font to use
     pub fn with_label_font(self, font: Option<&'static [u8]>) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { label_font: font, ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.label_font(font), ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn with_label_font_size(self, size: f32) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { label_font_size: scale(size), ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.label_font_size(size), ..self }
     }
 
     /// Set font color to use
     pub fn with_label_font_color(self, color: Color) -> Self {
-        Button { dirty: true, conf: ButtonBuilder { label_font_color: color, ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.label_font_color(color), ..self }
     }
 
-    /// Set label layout to use
-    pub fn with_label_layout(self, layout: Layout) -> Self {
-        Button { conf: ButtonBuilder { label_layout: layout, ..self.conf }, ..self }
-    }
+    // /// Set label layout to use
+    // pub fn with_label_layout<F: FnOnce(&Layout) -> Layout>(mut self, f: F) -> Self {
+    //     self.conf.layout.set_layout(f(self.conf.layout.get_layout(LABEL_ID).unwrap()));
+    //     self
+    // }
 
     /// Set icon to use
     pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
-        Button { conf: ButtonBuilder { icon: icon.into(), ..self.conf }, ..self }
+        Button { dirty: true, conf: self.conf.icon(icon), ..self }
     }
 
-    /// Set icon layout to use
-    pub fn with_icon_layout(self, layout: Layout) -> Self {
-        Button { conf: ButtonBuilder { icon_layout: layout, ..self.conf }, ..self }
-    }
+    // /// Set icon layout to use
+    // pub fn with_icon_layout<F: FnOnce(&Layout) -> Layout>(self, f: F) -> Self {
+    //     let mut layout = self.clone();
+    //     self.conf.layout.set_layout(f(self.conf.layout.get_layout(ICON_ID).unwrap()));
+    //     self
+    // }
 
     /// Button label
     pub fn label(&self) -> &str {
@@ -253,16 +261,16 @@ impl Button {
         let skin = Skin { button_style, label_style, ..ui.default_skin() };
 
         // Calculate and cache button component sizes to reduce compute time
-        self.conf.layout.reset();
-        self.conf.icon_layout.reset();
-        self.conf.label_layout.reset();
         let label_size = text_size(ui, &skin, Some(&self.label));
         if let Some(_) = &self.conf.icon {
-            self.conf.icon_layout.alloc(ICON_ID, vec2(label_size.y, label_size.y));
-            self.conf.layout.alloc(ICON_ID, self.conf.icon_layout.get_size());
+            self.conf
+                .layout
+                .get_layout_mut(ICON_ID)
+                .unwrap()
+                .set_size_s(vec2(label_size.y + 5.0, label_size.y + 5.0));
         }
-        self.conf.label_layout.alloc(LABEL_ID, label_size);
-        self.conf.layout.alloc(LABEL_ID, self.conf.label_layout.get_size());
+        self.conf.layout.get_layout_mut(LABEL_ID).unwrap().set_size_s(label_size);
+        self.conf.layout.calc_size();
 
         self.skin = Some(skin);
         self.dirty = false;
@@ -271,14 +279,14 @@ impl Button {
     /// Draw the widget on the screen
     /// * `layout` provides assistance and directives for sizing and positioning the widget
     /// * returns true when clicked in the current frame
-    pub fn show(&mut self, ui: &mut Ui, layout: &mut Layout) -> bool {
+    pub fn show(&mut self, ui: &mut Ui, layout: Option<&mut Layout>) -> bool {
         self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
         self.clicked = false; // reset clicked
 
         // Draw button
-        let (pos, size) = layout.alloc(&self.label, self.conf.layout.get_size());
-        self.conf.layout.set_pos(pos.x, pos.y);
+        //self.conf.layout.set_pos(pos.x, pos.y);
+        let (pos, size) = self.conf.layout.get_shape();
         if widgets::Button::new("").size(size).position(pos).ui(ui) {
             self.activated = !self.activated;
             self.clicked = true;
@@ -286,15 +294,12 @@ impl Button {
 
         // Draw icon
         if let Some(icon) = &self.conf.icon {
-            self.conf.icon_layout.set_pos(pos.x, pos.y);
-            let (icon_pos, icon_size) = self.conf.icon_layout.pos_size_of(ICON_ID).unwrap();
-            //let icon_pos = self.conf.icon_position.relative(icon_size, btn_size, Some(btn_pos));
+            let (icon_pos, icon_size) = self.conf.layout.get_shape_of(ICON_ID).unwrap();
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
         }
 
         // Draw label
-        //let mut label_pos = self.conf.label_position.relative(self.label_size_calc, btn_size, Some(btn_pos));
-        let (label_pos, label_size) = self.conf.layout.pos_size_of(LABEL_ID).unwrap();
+        let (label_pos, label_size) = self.conf.layout.get_shape_of(LABEL_ID).unwrap();
         widgets::Label::new(self.label.as_str()).size(label_size).position(label_pos).ui(ui);
 
         ui.pop_skin();
