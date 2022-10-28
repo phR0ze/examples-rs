@@ -1,7 +1,9 @@
 //! Position provides functionality for positioning widgets on the screen
+//! Horizontal
+//!
 use crate::prelude::*;
 
-/// Position is a directive used to guide the calculation of the actual position
+/// Align is a directive used to guide the calculation of the widgets position in its parent layout
 #[derive(Debug, Copy, Clone)]
 pub enum Position {
     /// Position in the center horizontally and in the top vertically

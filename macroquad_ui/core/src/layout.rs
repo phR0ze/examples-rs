@@ -10,6 +10,10 @@
 //! defined region of space. The default horizontal layout will add widgets by default from left to
 //! right while the vertical layout will add widgets by default from top to bottom.
 //!
+//! ## Align directive
+//! The alignment directive as modified by the various align functions is used to guide the
+//! calculation of the widgets position in its parent layout.
+//!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
 //! for all content allocations. This is very useful for cases where you don't know the size of the
@@ -27,7 +31,6 @@
 //! When updating a layout's position the layouts within that layout will have their positions
 //! updated to match their parent's relative position.
 use crate::prelude::*;
-use std::{cell::RefCell, rc::Rc};
 
 /// Layout describes a region of space and provides mechanisms for calculating where and how a
 /// widget should draw itself inside that region of space. Layout region space allocated to widgets
@@ -37,12 +40,13 @@ pub struct Layout {
     id: String,           // layout identifier
     x: f32,               // marks start of free horizontal space in the region
     y: f32,               // marks start of free vertical space in the rgion
+    pos: Vec2,            // position of the layout region excluding margins
+    size: Vec2,           // size of the layout region excluding margins
     fill_w: bool,         // fill width of layout
     fill_h: bool,         // fill height of layout
     expand: bool,         // layout expands to track all content allocated
+    align: Align,         // alignment in the parent layout
     mode: LayoutMode,     // layout mode directive
-    size: Vec2,           // size of the layout region excluding margins
-    pos: Vec2,            // position of the layout region excluding margins
     spacing: f32,         // space to include between widgets
     margins: RectOffset,  // space outside the frame edge
     layouts: Vec<Layout>, // child layouts to track
@@ -55,15 +59,16 @@ impl Layout {
             id: id.as_ref().to_string(),
             x: 0.,
             y: 0.,
+            pos: Vec2::default(),
+            size: Vec2::default(),
             fill_w: false,
             fill_h: false,
             expand: true, // enable expansion by default
             mode: LayoutMode::default(),
-            size: Vec2::default(),
-            pos: Vec2::default(),
+            align: Align::default(),
             spacing: 0.,
             margins: RectOffset::default(),
-            layouts: Vec::<Layout>::default(),
+            layouts: vec![],
         }
     }
 
@@ -233,7 +238,7 @@ impl Layout {
     /// Set sub-layout by id
     pub fn set_layout(&mut self, layout: Layout) {
         if let Some(i) = self.layouts.iter().position(|x| x.id == layout.id) {
-            std::mem::replace(&mut self.layouts[i], layout);
+            self.layouts[i] = layout;
         } else {
             self.layouts.push(layout);
         }
@@ -329,14 +334,54 @@ impl Layout {
         self.layouts.push(layout);
         self.get_layout(id.as_ref()).unwrap()
     }
+}
 
-    /// Reset the layout's tracking
-    pub fn reset(&mut self) {
-        self.x = 0.;
-        self.y = 0.;
-        self.size = Vec2::default();
-        self.pos = Vec2::default();
-        self.layouts.clear();
+/// Align is a directive used to guide the calculation of the widgets position in its parent layout
+#[derive(Clone, Debug, PartialEq)]
+pub enum Align {
+    /// Align widget in the center horizontally and in the top vertically
+    /// * accepts an optional offset value
+    CenterTop(Option<RectOffset>),
+
+    /// Align in the center horizontally and in the center vertically
+    /// * accepts an optional offset value
+    Center(Option<RectOffset>),
+
+    /// Align in the center horizontally and in the bottom vertically
+    /// * accepts an optional offset value
+    CenterBottom(Option<RectOffset>),
+
+    /// Align in the right horizontally and in the top vertically
+    /// * accepts an optional offset value
+    RightTop(Option<RectOffset>),
+
+    /// Align in the right horizontally and in the center vertically
+    /// * accepts an optional offset value
+    RightCenter(Option<RectOffset>),
+
+    /// Align in the right horizontally and in the bottom vertically
+    /// * accepts an optional offset value
+    RightBottom(Option<RectOffset>),
+
+    /// Align in the left horizontally and in the top vertically
+    /// * accepts an optional offset value
+    LeftTop(Option<RectOffset>),
+
+    /// Align in the left horizontally and in the center vertically
+    /// * accepts an optional offset value
+    LeftCenter(Option<RectOffset>),
+
+    /// Align in the left horizontally and in the bottom vertically
+    /// * accepts an optional offset value
+    LeftBottom(Option<RectOffset>),
+
+    /// Align horizontally with the given value and vertically with the given value
+    Static(f32, f32),
+}
+
+impl Default for Align {
+    fn default() -> Self {
+        Align::Center(None)
     }
 }
 

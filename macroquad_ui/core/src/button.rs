@@ -97,10 +97,22 @@ impl ButtonBuilder {
         Self { label_font_color: color, ..self }
     }
 
+    /// Set label layout to use
+    pub fn label_layout<F: FnOnce(Layout) -> Layout>(mut self, f: F) -> Self {
+        self.layout.set_layout(f(self.layout.get_layout(LABEL_ID).unwrap().clone()));
+        self
+    }
+
     /// Set icon to use
     pub fn icon<T: Into<Option<Texture2D>>>(mut self, icon: T) -> Self {
         self.layout.alloc(ICON_ID, None);
         Self { icon: icon.into(), ..self }
+    }
+
+    /// Update icon layout properties
+    pub fn icon_layout<F: FnOnce(Layout) -> Layout>(mut self, f: F) -> Self {
+        self.layout.set_layout(f(self.layout.get_layout(ICON_ID).unwrap().clone()));
+        self
     }
 
     /// Create a new widget instance from this builder
@@ -139,9 +151,10 @@ impl Button {
     /// * `label` is the text to display as the button label
     /// * `icon` is a texture to be displayed as the button icon
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
-        Button::new(label).with_icon(icon)
-        // .with_icon_layout(|x| x.with_margins(20., 10., 10., 10.))
-        // .with_label_layout(|x| x.with_margins(10., 20., 10., 10.))
+        Button::new(label)
+            .with_icon(icon)
+            .with_icon_layout(|x| x.with_margins(20., 10., 10., 10.))
+            .with_label_layout(|x| x.with_margins(10., 20., 10., 10.))
     }
 
     /// Set background image to use
@@ -180,23 +193,20 @@ impl Button {
         Button { dirty: true, conf: self.conf.label_font_color(color), ..self }
     }
 
-    // /// Set label layout to use
-    // pub fn with_label_layout<F: FnOnce(&Layout) -> Layout>(mut self, f: F) -> Self {
-    //     self.conf.layout.set_layout(f(self.conf.layout.get_layout(LABEL_ID).unwrap()));
-    //     self
-    // }
+    /// Set label layout to use
+    pub fn with_label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        Button { dirty: true, conf: self.conf.label_layout(f), ..self }
+    }
 
     /// Set icon to use
     pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
         Button { dirty: true, conf: self.conf.icon(icon), ..self }
     }
 
-    // /// Update icon layout properties
-    // pub fn with_icon_layout<F: FnOnce(&Layout) -> Layout>(self, f: F) -> Self {
-    //     let mut layout = self.clone();
-    //     self.conf.layout.set_layout(f(self.conf.layout.get_layout(ICON_ID).unwrap()));
-    //     self
-    // }
+    /// Update icon layout properties
+    pub fn with_icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        Button { dirty: true, conf: self.conf.icon_layout(f), ..self }
+    }
 
     /// Button label
     pub fn label(&self) -> &str {
