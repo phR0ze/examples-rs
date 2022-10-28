@@ -172,14 +172,22 @@ impl Layout {
         &self.margins
     }
 
-    /// Get layout by id
+    /// Get sub-layout by id
     pub fn get_layout(&self, id: &str) -> Option<&Layout> {
         self.layouts.iter().find(|x| x.id == id)
     }
 
-    /// Get mutable layout by id
+    /// Get mutable sub-layout by id
     pub fn get_layout_mut(&mut self, id: &str) -> Option<&mut Layout> {
         self.layouts.iter_mut().find(|x| x.id == id)
+    }
+
+    /// Get the sub-layout's content position and size by id
+    /// * position accounts for margins
+    /// * size accounts for margins
+    /// * returns (pos, size)
+    pub fn get_layout_shape(&self, id: &str) -> Option<(Vec2, Vec2)> {
+        self.get_layout(id).map(|x| x.get_shape())
     }
 
     /// Get the layout's position and size
@@ -188,14 +196,6 @@ impl Layout {
     /// * returns (pos, size)
     pub fn get_shape(&self) -> (Vec2, Vec2) {
         (self.get_pos(), self.get_size())
-    }
-
-    /// Get the layout's content position and size by id
-    /// * position accounts for margins
-    /// * size accounts for margins
-    /// * returns (pos, size)
-    pub fn get_shape_of(&self, id: &str) -> Option<(Vec2, Vec2)> {
-        self.get_layout(id).map(|x| self.get_shape())
     }
 
     /// Get the layout's content size
@@ -218,7 +218,19 @@ impl Layout {
         self.size = size;
     }
 
-    /// Set layout by id
+    /// Set the sub-layout's size by id
+    /// * same as `set_layout_size_p` but takes floats params instead of Vec2
+    pub fn set_layout_size_s(&mut self, id: &str, width: f32, height: f32) {
+        self.get_layout_mut(id).map(|x| x.set_size_s(vec2(width, height)));
+    }
+
+    /// Set the sub-layout's size by id
+    /// * same as `set_layout_size_s` but takes Vec2 object instead of floats
+    pub fn set_layout_size_p(&mut self, id: &str, size: Vec2) {
+        self.get_layout_mut(id).map(|x| x.set_size_s(size));
+    }
+
+    /// Set sub-layout by id
     pub fn set_layout(&mut self, layout: Layout) {
         if let Some(i) = self.layouts.iter().position(|x| x.id == layout.id) {
             std::mem::replace(&mut self.layouts[i], layout);
@@ -226,18 +238,6 @@ impl Layout {
             self.layouts.push(layout);
         }
     }
-
-    // /// Override the layout's position
-    // /// * updates child layouts as well
-    // pub fn set_pos(&mut self, x: f32, y: f32) {
-    //     let layouts = self.layouts.clone();
-    //     self.reset();
-    //     self.pos = vec2(x, y);
-
-    //     for layout in layouts.iter() {
-    //         self.alloc(id, vec2(rect.w, rect.h));
-    //     }
-    // }
 
     /// Set the size of the layout based on a calculation of total sub-layout size
     pub fn calc_size(&mut self) {
@@ -250,12 +250,12 @@ impl Layout {
                 LayoutMode::Horizontal => {
                     self.x += layout_width;
                     if self.y < layout_height {
-                        self.y += layout_height;
+                        self.y = layout_height;
                     }
                 },
                 LayoutMode::Vertical => {
                     if self.x < layout_width {
-                        self.x += layout_width;
+                        self.x = layout_width;
                     }
                     self.y += layout_height;
                 },

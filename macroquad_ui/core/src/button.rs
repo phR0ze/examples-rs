@@ -191,7 +191,7 @@ impl Button {
         Button { dirty: true, conf: self.conf.icon(icon), ..self }
     }
 
-    // /// Set icon layout to use
+    // /// Update icon layout properties
     // pub fn with_icon_layout<F: FnOnce(&Layout) -> Layout>(self, f: F) -> Self {
     //     let mut layout = self.clone();
     //     self.conf.layout.set_layout(f(self.conf.layout.get_layout(ICON_ID).unwrap()));
@@ -263,13 +263,9 @@ impl Button {
         // Calculate and cache button component sizes to reduce compute time
         let label_size = text_size(ui, &skin, Some(&self.label));
         if let Some(_) = &self.conf.icon {
-            self.conf
-                .layout
-                .get_layout_mut(ICON_ID)
-                .unwrap()
-                .set_size_s(vec2(label_size.y + 5.0, label_size.y + 5.0));
+            self.conf.layout.set_layout_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
         }
-        self.conf.layout.get_layout_mut(LABEL_ID).unwrap().set_size_s(label_size);
+        self.conf.layout.set_layout_size_p(LABEL_ID, label_size);
         self.conf.layout.calc_size();
 
         self.skin = Some(skin);
@@ -294,12 +290,12 @@ impl Button {
 
         // Draw icon
         if let Some(icon) = &self.conf.icon {
-            let (icon_pos, icon_size) = self.conf.layout.get_shape_of(ICON_ID).unwrap();
+            let (icon_pos, icon_size) = self.conf.layout.get_layout_shape(ICON_ID).unwrap();
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
         }
 
         // Draw label
-        let (label_pos, label_size) = self.conf.layout.get_shape_of(LABEL_ID).unwrap();
+        let (label_pos, label_size) = self.conf.layout.get_layout_shape(LABEL_ID).unwrap();
         widgets::Label::new(self.label.as_str()).size(label_size).position(label_pos).ui(ui);
 
         ui.pop_skin();
