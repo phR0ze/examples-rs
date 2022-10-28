@@ -8,7 +8,7 @@ use crate::prelude::*;
 #[derive(Debug, Clone)]
 pub struct LabelBuilder {
     size: Option<Size>,          // sizing of the widget
-    position: Position,          // position of of the widget
+    position: Align,             // position of of the widget
     font: Option<&'static [u8]>, // font to use for button text
     font_color: Color,           // font color to use
     font_color_clk: Color,       // font color to use when clicked
@@ -22,7 +22,7 @@ impl LabelBuilder {
     pub fn new() -> Self {
         Self {
             size: None,
-            position: Position::Center(Some(RectOffset::default())),
+            position: Align::Center(Some(RectOffset::default())),
             font: None,
             font_size: scale(DEFAULT_FONT_SIZE) as u16,
             font_color: colors::BLACK,
@@ -39,7 +39,7 @@ impl LabelBuilder {
     }
 
     /// Set position on the screen
-    pub fn position(self, position: Position) -> Self {
+    pub fn position(self, position: Align) -> Self {
         Self { position, ..self }
     }
 
@@ -109,7 +109,7 @@ impl Label {
     }
 
     /// Set position on the screen
-    pub fn with_position(self, position: Position) -> Self {
+    pub fn with_position(self, position: Align) -> Self {
         Self { conf: LabelBuilder { position, ..self.conf }, ..self }
     }
 

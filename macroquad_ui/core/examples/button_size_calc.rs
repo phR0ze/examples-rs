@@ -15,15 +15,15 @@ async fn main() {
     let mut btn1 = Button1::new("Settings")
         .with_background_color(GRAY)
         .with_padding(0., 0., 10., 0.)
-        .with_position(Position::LeftTop(None))
+        .with_position(Align::LeftTop(None))
         .with_size(Size::three_quarter_width())
-        .with_label_position(Position::LeftCenter(rect(10.0, 0., 0., 0.)));
+        .with_label_position(Align::LeftCenter(rect(10.0, 0., 0., 0.)));
     let mut btn2 = Button1::new("Configuration")
         .with_background_color(GRAY)
         .with_padding(0., 0., 10., 0.)
-        .with_position(Position::LeftTop(None))
+        .with_position(Align::LeftTop(None))
         .with_size(Size::half_width())
-        .with_label_position(Position::LeftCenter(rect(10.0, 0., 0., 0.)));
+        .with_label_position(Align::LeftCenter(rect(10.0, 0., 0., 0.)));
     let mut fps = Fps::new().with_font_color(WHITE);
     loop {
         clear_background(BLACK);

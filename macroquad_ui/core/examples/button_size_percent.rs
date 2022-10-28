@@ -19,7 +19,7 @@ fn skin_with_color(color: Color) -> Skin {
 async fn main() {
     let gray_skin = skin_with_color(GRAY);
     let gray_bldr = ButtonBuilder1::new().background_color(GRAY).label_font_size(15.);
-    let mut fps = Fps::new().with_position(Position::LeftBottom(rect(10., 0., 0., 10.)));
+    let mut fps = Fps::new().with_position(Align::LeftBottom(rect(10., 0., 0., 10.)));
 
     loop {
         clear_background(WHITE);
@@ -31,21 +31,21 @@ async fn main() {
         gray_bldr
             .build("Width: 45%, Height: 25%")
             .with_size(Size::Calc(Width::Percent(0.45), Height::Percent(0.25)))
-            .with_position(Position::LeftTop(None))
+            .with_position(Align::LeftTop(None))
             .ui(&mut *root_ui(), screen(), offset(10., 10.));
 
         // 2nd button using size functions
         gray_bldr
             .build("Size: (45%, 25%)")
             .with_size(Size::Percent(0.45, 0.25))
-            .with_position(Position::Static(230., 10.))
+            .with_position(Align::Static(230., 10.))
             .ui(&mut *root_ui(), screen(), None);
 
         // 3rd button using size functions
         gray_bldr
             .build("Size: (95%, 50%)")
             .with_size(Size::Percent(0.95, 0.50))
-            .with_position(Position::Static(10., 250.))
+            .with_position(Align::Static(10., 250.))
             .ui(&mut *root_ui(), screen(), None);
 
         root_ui().pop_skin();

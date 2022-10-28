@@ -14,10 +14,10 @@ fn main_conf() -> Conf {
 async fn main() {
     let mut settings = Button1::new("Settings")
         .with_background_color(GRAY)
-        .with_position(Position::LeftCenter(None))
+        .with_position(Align::LeftCenter(None))
         .with_size(Size::three_quarter_width())
         .with_padding(0.0, 0.0, 10.0, 10.0)
-        .with_label_position(Position::LeftCenter(rect(40.0, 0., 0., 0.)));
+        .with_label_position(Align::LeftCenter(rect(40.0, 0., 0., 0.)));
 
     let white_border = {
         let ui = root_ui();
@@ -32,7 +32,7 @@ async fn main() {
 
         root_ui().push_skin(&white_border);
         let size = vec2(300., 300.);
-        let pos = Position::Center(None).relative(size, screen(), None);
+        let pos = Align::Center(None).relative(size, screen(), None);
         widgets::Group::new(hash!(), size).position(pos).ui(&mut *root_ui(), |ui| {
             settings.ui(ui, size, None);
             if settings.activated() {

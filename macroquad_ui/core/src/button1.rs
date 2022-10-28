@@ -13,7 +13,7 @@ use crate::prelude::*;
 #[derive(Debug, Clone)]
 pub struct ButtonBuilder1 {
     size: Size,                          // sizing of the widget
-    position: Position,                  // position of of the widget
+    position: Align,                     // position of of the widget
     padding: RectOffset,                 // spaced provided around content size
     background: Option<Image>,           // background image to use
     background_clk: Option<Image>,       // background image to use when clicked
@@ -24,7 +24,7 @@ pub struct ButtonBuilder1 {
 
     // Font properties
     label_font: Option<&'static [u8]>,   // font to use for label
-    label_position: Position,            // position of the label within the button
+    label_position: Align,               // position of the label within the button
     label_font_size: f32,                // font size to use for label
     label_font_color: Color,             // font color to use for label
     label_font_color_clk: Option<Color>, // font color to use for label when clicked
@@ -34,7 +34,7 @@ pub struct ButtonBuilder1 {
     icon: Option<Texture2D>, // optional icon to display
     icon_size: Size,         // size to use for icon when drawing
     icon_margin: RectOffset, // icon offset
-    icon_position: Position, // position of the icon within the button
+    icon_position: Align,    // position of the icon within the button
 }
 
 impl ButtonBuilder1 {
@@ -42,7 +42,7 @@ impl ButtonBuilder1 {
     pub fn new() -> Self {
         Self {
             size: Size::default(),
-            position: Position::default(),
+            position: Align::default(),
             padding: RectOffset::default(),
             background: None,
             background_clk: None,
@@ -51,7 +51,7 @@ impl ButtonBuilder1 {
             background_color_clk: None,
             background_color_hov: None,
             label_font: None,
-            label_position: Position::default(),
+            label_position: Align::default(),
             label_font_size: scale(DEFAULT_FONT_SIZE),
             label_font_color: colors::BLACK,
             label_font_color_clk: None,
@@ -59,7 +59,7 @@ impl ButtonBuilder1 {
             icon: None,
             icon_size: Size::Dynamic,
             icon_margin: RectOffset::default(),
-            icon_position: Position::LeftCenter(None),
+            icon_position: Align::LeftCenter(None),
         }
     }
 
@@ -71,7 +71,7 @@ impl ButtonBuilder1 {
 
     /// Position the button on the screen
     /// * handles scaling for mobile
-    pub fn position(self, pos: Position) -> Self {
+    pub fn position(self, pos: Align) -> Self {
         Self { position: pos.scale(), ..self }
     }
 
@@ -125,7 +125,7 @@ impl ButtonBuilder1 {
 
     /// Position the label inside the button
     /// * handles scaling for mobile
-    pub fn label_position(self, pos: Position) -> Self {
+    pub fn label_position(self, pos: Align) -> Self {
         Self { label_position: pos, ..self }
     }
 
@@ -151,7 +151,7 @@ impl ButtonBuilder1 {
 
     /// Position the icon inside the button
     /// * handles scaling for mobile
-    pub fn icon_position(self, pos: Position) -> Self {
+    pub fn icon_position(self, pos: Align) -> Self {
         Self { icon_position: pos.scale(), ..self }
     }
 
@@ -192,8 +192,8 @@ impl Button1 {
         Button1::new(label)
             .with_icon(icon)
             .with_icon_margin(20., 20., 0., 0.)
-            .with_icon_position(Position::LeftCenter(None))
-            .with_label_position(Position::LeftCenter(rect(80., 0., 3., 0.)))
+            .with_icon_position(Align::LeftCenter(None))
+            .with_label_position(Align::LeftCenter(rect(80., 0., 3., 0.)))
     }
 
     /// Set the button's size directive
@@ -204,7 +204,7 @@ impl Button1 {
 
     /// Position the button on the screen
     /// * handles scaling for mobile
-    pub fn with_position(self, pos: Position) -> Self {
+    pub fn with_position(self, pos: Align) -> Self {
         Button1 { conf: ButtonBuilder1 { position: pos.scale(), ..self.conf }, ..self }
     }
 
@@ -258,7 +258,7 @@ impl Button1 {
 
     /// Position the label inside the button
     /// * handles scaling for mobile
-    pub fn with_label_position(self, pos: Position) -> Self {
+    pub fn with_label_position(self, pos: Align) -> Self {
         Button1 { conf: ButtonBuilder1 { label_position: pos, ..self.conf }, ..self }
     }
 
@@ -287,7 +287,7 @@ impl Button1 {
 
     /// Position the icon inside the button
     /// * handles scaling for mobile
-    pub fn with_icon_position(self, pos: Position) -> Self {
+    pub fn with_icon_position(self, pos: Align) -> Self {
         Button1 { conf: ButtonBuilder1 { icon_position: pos.scale(), ..self.conf }, ..self }
     }
 

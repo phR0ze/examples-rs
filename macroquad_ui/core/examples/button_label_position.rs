@@ -21,56 +21,56 @@ async fn main() {
 
         builder
             .build("Left Top")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::LeftTop(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::LeftTop(None))
             .ui(&mut *root_ui(), screen(), offset(0., 50.));
 
         builder
             .build("Left Center")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::LeftCenter(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::LeftCenter(None))
             .ui(&mut *root_ui(), screen(), offset(0., 100.));
 
         builder
             .build("Left Bottom")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::LeftBottom(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::LeftBottom(None))
             .ui(&mut *root_ui(), screen(), offset(0., 150.));
 
         builder
             .build("Right Top")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::RightTop(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::RightTop(None))
             .ui(&mut *root_ui(), screen(), offset(0., 200.));
 
         builder
             .build("Right Center")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::RightCenter(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::RightCenter(None))
             .ui(&mut *root_ui(), screen(), offset(0., 250.));
 
         builder
             .build("Right Bottom")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::RightBottom(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::RightBottom(None))
             .ui(&mut *root_ui(), screen(), offset(0., 300.));
 
         builder
             .build("Center Top")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::CenterTop(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::CenterTop(None))
             .ui(&mut *root_ui(), screen(), offset(0., 350.));
 
-        builder
-            .build("Center")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::Center(None))
-            .ui(&mut *root_ui(), screen(), offset(0., 400.));
+        builder.build("Center").with_position(Align::CenterTop(None)).with_label_position(Align::Center(None)).ui(
+            &mut *root_ui(),
+            screen(),
+            offset(0., 400.),
+        );
 
         builder
             .build("Center Bottom")
-            .with_position(Position::CenterTop(None))
-            .with_label_position(Position::CenterBottom(None))
+            .with_position(Align::CenterTop(None))
+            .with_label_position(Align::CenterBottom(None))
             .ui(&mut *root_ui(), screen(), offset(0., 450.));
 
         next_frame().await

@@ -7,6 +7,7 @@
 #[macro_use]
 mod macros;
 
+mod align;
 mod button;
 mod button1;
 mod fps;
@@ -14,7 +15,6 @@ mod frame;
 mod label;
 mod layout;
 mod panel;
-mod position;
 mod size;
 mod utils;
 
@@ -36,6 +36,7 @@ pub mod prelude {
     pub use crate::id;
 
     // Export internal types
+    pub use crate::align::*;
     pub use crate::button::*;
     pub use crate::button1::*;
     pub use crate::fps::*;
@@ -44,7 +45,6 @@ pub mod prelude {
     pub use crate::layout::*;
     pub use crate::macros::*;
     pub use crate::panel::*;
-    pub use crate::position::*;
     pub use crate::size::*;
     pub use crate::utils::*;
 }

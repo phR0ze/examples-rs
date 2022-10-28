@@ -14,7 +14,7 @@ fn main_conf() -> Conf {
 async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut button =
-        Button1::icon("Settings", icon).with_position(Position::LeftCenter(None)).with_background_color(GRAY);
+        Button1::icon("Settings", icon).with_position(Align::LeftCenter(None)).with_background_color(GRAY);
 
     let mut fps = Fps::new().with_font_color(WHITE);
     loop {

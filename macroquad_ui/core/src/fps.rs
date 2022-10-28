@@ -1,7 +1,7 @@
 //! Fps provides a simple frames per second widget to be displayed for debug purposes.
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
 
-use crate::position::*;
+use crate::align::*;
 use crate::utils::*;
 use std::time::Instant;
 
@@ -17,7 +17,7 @@ pub struct Fps {
     frames: u64,        // count the frames until the next second
     start: Instant,     // time to start tracking from
     font_color: Color,  // font color to use
-    position: Position, // positional directive for location
+    position: Align,    // positional directive for location
 }
 
 impl Fps {
@@ -30,7 +30,7 @@ impl Fps {
             frames: 0,
             start: Instant::now(),
             font_color: BLACK,
-            position: Position::LeftTop(rect(10., 0., 10., 0.)),
+            position: Align::LeftTop(rect(10., 0., 10., 0.)),
         }
     }
 
@@ -40,7 +40,7 @@ impl Fps {
     }
 
     /// Set the position
-    pub fn with_position(self, position: Position) -> Self {
+    pub fn with_position(self, position: Align) -> Self {
         Fps { position, ..self }
     }
 
