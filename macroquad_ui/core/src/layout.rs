@@ -275,7 +275,7 @@ impl Layout {
     }
 
     /// Get mutable sub-layout by id
-    fn get_layout_mut(&mut self, id: &str) -> Option<&mut Layout> {
+    pub fn get_layout_mut(&mut self, id: &str) -> Option<&mut Layout> {
         self.layouts.iter_mut().find(|x| x.inner.borrow().id == id)
     }
 
@@ -300,27 +300,42 @@ impl Layout {
         }
     }
 
+    /// Get the parent layout's size
+    /// * assumes layout size and position are already updated
+    /// * doesn't include margins in this value
+    pub fn get_parent_size(&self) -> Vec2 {
+        match &self.parent {
+            Some(parent) => parent.borrow().size,
+            _ => screen(),
+        }
+    }
+
+    /// Get the parent layout's position and size
+    /// * position accounts for margins
+    /// * returns (pos, size)
+    pub fn get_parent_shape(&self) -> (Vec2, Vec2) {
+        (self.get_parent_pos(), self.get_parent_size())
+    }
+
     /// Get the layout's position
+    /// * assumes layout size and position are already updated
     /// * includes margins in this value
     pub fn get_pos(&self) -> Vec2 {
-        self.update();
         let inner = &self.inner.borrow();
         vec2(inner.pos.x + inner.margins.left, inner.pos.y + inner.margins.top)
     }
 
     /// Get the layout's content size
+    /// * assumes layout size and position are already updated
     /// * doesn't include margins in this value
     pub fn get_size(&self) -> Vec2 {
-        self.update();
         self.inner.borrow().size
     }
 
     /// Get the layout's position and size
     /// * position accounts for margins
-    /// * size accounts for margins
     /// * returns (pos, size)
     pub fn get_shape(&self) -> (Vec2, Vec2) {
-        self.update();
         (self.get_pos(), self.get_size())
     }
 
@@ -381,9 +396,9 @@ impl Layout {
 
     /// Calculate and set the size and position of the layout and sub-layouts
     /// * only performs calculation if needed
-    pub fn update(&self) {
+    pub fn update(&mut self) {
         if self.inner.borrow().dirty {
-            self.update_size();
+            // self.update_size(); calling update_size in update_pos
             self.update_pos();
             self.set_dirty(false);
         }
@@ -426,20 +441,25 @@ impl Layout {
     }
 
     /// Calculate and set the position of the layout and its sub-layouts.
-    /// * assumes layout size and layout's parent size and position have all been updated
+    /// * assumes layout's parent size and position have all been updated
     /// * updates position based on parent
     /// * updates sub-layout positions
-    pub fn update_pos(&self) {
-        let inner = &mut *self.inner.borrow_mut();
+    pub fn update_pos(&mut self) {
+        // Ensure the sizing value has been updated
+        if self.inner.borrow().dirty {
+            self.update_size();
+        }
 
         // Calculate and update position
-        // let parent_size = self.parent.
-        // let inner_pos = inner.align.relative(inner.size, inner.size, inner.pos)
+        let (parent_pos, parent_size) = self.get_parent_shape();
+        let inner_size = self.get_size();
+        let inner_pos = self.inner.borrow().align.relative(inner_size, parent_size, Some(parent_pos));
+        self.inner.borrow_mut().pos = inner_pos;
 
-        for x in self.layouts.iter() {
-            let layout = &mut *x.inner.borrow_mut();
-
-            //let pos = layout.align.relative(layout.size, inner.size, inner.pos)
+        for x in self.layouts.iter_mut() {
+            x.update_pos();
+            let sub = &mut *x.inner.borrow_mut();
+            sub.pos = sub.align.relative(sub.size, inner_size, Some(inner_pos));
         }
         //inner.pos = vec2(inner.x, inner.y);
 
