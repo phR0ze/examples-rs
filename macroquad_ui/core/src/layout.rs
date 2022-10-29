@@ -123,6 +123,7 @@ pub struct Layout {
     layouts: Vec<Layout>, // child layouts
 }
 
+// Layout constructors and builder functions
 impl Layout {
     /// Create the default layout
     pub fn new<T: AsRef<str>>(id: T) -> Self {
@@ -305,42 +306,45 @@ impl Layout {
         }
         self
     }
+}
 
-    /// Get the layout's current margins
-    pub fn get_margins(&self) -> RectOffset {
+// Layout getters and helper functions
+impl Layout {
+    /// Get the layout's margins
+    pub fn margins(&self) -> RectOffset {
         self.inner.borrow().margins
     }
 
-    /// get sub-layout by id
-    pub fn get_layout(&self, id: &str) -> Option<&Layout> {
+    /// Get parent layout's position and size
+    /// * position accounts for margins
+    /// * returns (pos, size)
+    pub fn parent_shape(&self) -> (Vec2, Vec2) {
+        self.inner.borrow().get_parent_shape()
+    }
+
+    /// Get layout's position and size
+    /// * position accounts for margins
+    /// * returns (pos, size)
+    pub fn shape(&self) -> (Vec2, Vec2) {
+        self.inner.borrow().get_shape()
+    }
+
+    /// Get sub-layout by id
+    pub fn sub(&self, id: &str) -> Option<&Layout> {
         self.layouts.iter().find(|x| x.inner.borrow().id == id)
     }
 
     /// Get mutable sub-layout by id
-    pub fn get_layout_mut(&mut self, id: &str) -> Option<&mut Layout> {
+    pub fn sub_mut(&mut self, id: &str) -> Option<&mut Layout> {
         self.layouts.iter_mut().find(|x| x.inner.borrow().id == id)
     }
 
-    /// Get the sub-layout's content position and size by id
+    /// Get sub-layout's position and size by id
     /// * position accounts for margins
     /// * size accounts for margins
     /// * returns (pos, size)
-    pub fn get_layout_shape(&self, id: &str) -> Option<(Vec2, Vec2)> {
-        self.get_layout(id).map(|x| x.get_shape())
-    }
-
-    /// Get the parent layout's position and size
-    /// * position accounts for margins
-    /// * returns (pos, size)
-    pub fn get_parent_shape(&self) -> (Vec2, Vec2) {
-        self.inner.borrow().get_parent_shape()
-    }
-
-    /// Get the layout's position and size
-    /// * position accounts for margins
-    /// * returns (pos, size)
-    pub fn get_shape(&self) -> (Vec2, Vec2) {
-        self.inner.borrow().get_shape()
+    pub fn sub_shape(&self, id: &str) -> Option<(Vec2, Vec2)> {
+        self.sub(id).map(|x| x.shape())
     }
 
     /// Set flag value for triggering a size and position update on next run
@@ -361,20 +365,20 @@ impl Layout {
         inner.size = size;
     }
 
-    /// Set the sub-layout's size by id
+    /// Set sub-layout's size by id
     /// * same as `set_layout_size_p` but takes float params instead of Vec2
-    pub fn set_layout_size_s(&mut self, id: &str, width: f32, height: f32) {
-        self.get_layout_mut(id).map(|x| x.set_size_s(vec2(width, height)));
+    pub fn set_sub_size_s(&mut self, id: &str, width: f32, height: f32) {
+        self.sub_mut(id).map(|x| x.set_size_s(vec2(width, height)));
     }
 
     /// Set the sub-layout's size by id
     /// * same as `set_layout_size_s` but takes Vec2 object instead of floats
-    pub fn set_layout_size_p(&mut self, id: &str, size: Vec2) {
-        self.get_layout_mut(id).map(|x| x.set_size_s(size));
+    pub fn set_sub_size_p(&mut self, id: &str, size: Vec2) {
+        self.sub_mut(id).map(|x| x.set_size_s(size));
     }
 
     /// Set sub-layout by id
-    pub fn set_layout(&mut self, layout: Layout) {
+    pub fn set_sub(&mut self, layout: Layout) {
         layout.set_dirty(true);
         if let Some(i) = self.layouts.iter().position(|x| x.inner.borrow().id == layout.inner.borrow().id) {
             self.layouts[i] = layout;
@@ -384,7 +388,7 @@ impl Layout {
     }
 
     // Create a new layout inside this layout
-    fn alloc<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> Layout {
+    fn alloc_sub<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> Layout {
         let mut layout = Layout::new(id.as_ref().to_string()).with_parent(self.inner.clone());
 
         // If size is given set the size then re-set expand
@@ -394,20 +398,22 @@ impl Layout {
         layout
     }
 
-    /// Create a new layout inside this layout and append it to the sub-layout list
-    pub fn append<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
-        let layout = self.alloc(id.as_ref(), size);
+    /// Create a new sub-layout inside this layout
+    /// * Adds the new sub-layout to the end of the sub-layout list
+    pub fn append_sub<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
+        let layout = self.alloc_sub(id.as_ref(), size);
         self.layouts.push(layout);
         self.set_dirty(true);
-        self.get_layout(id.as_ref()).unwrap()
+        self.sub(id.as_ref()).unwrap()
     }
 
-    /// Create a new layout inside this layout and prepent it to the sub-layout list
-    pub fn prepend<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
-        let layout = self.alloc(id.as_ref(), size);
+    /// Create a new sub-layout inside this layout
+    /// * Adds the new sub-layout to the begining of the sub-layout list
+    pub fn prepend_sub<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
+        let layout = self.alloc_sub(id.as_ref(), size);
         self.layouts.insert(0, layout);
         self.set_dirty(true);
-        self.get_layout(id.as_ref()).unwrap()
+        self.sub(id.as_ref()).unwrap()
     }
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts

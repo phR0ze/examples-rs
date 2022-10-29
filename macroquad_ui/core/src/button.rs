@@ -56,7 +56,7 @@ impl ButtonBuilder {
         };
 
         // Add the label layout by default
-        button.layout.append(LABEL_ID, None);
+        button.layout.append_sub(LABEL_ID, None);
 
         button
     }
@@ -99,19 +99,19 @@ impl ButtonBuilder {
 
     /// Set label layout to use
     pub fn label_layout<F: FnOnce(Layout) -> Layout>(mut self, f: F) -> Self {
-        self.layout.set_layout(f(self.layout.get_layout(LABEL_ID).unwrap().clone()));
+        self.layout.set_sub(f(self.layout.sub(LABEL_ID).unwrap().clone()));
         self
     }
 
     /// Set icon to use
     pub fn icon<T: Into<Option<Texture2D>>>(mut self, icon: T) -> Self {
-        self.layout.prepend(ICON_ID, None);
+        self.layout.prepend_sub(ICON_ID, None);
         Self { icon: icon.into(), ..self }
     }
 
     /// Update icon layout properties
     pub fn icon_layout<F: FnOnce(Layout) -> Layout>(mut self, f: F) -> Self {
-        self.layout.set_layout(f(self.layout.get_layout(ICON_ID).unwrap().clone()));
+        self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
         self
     }
 
@@ -273,9 +273,9 @@ impl Button {
         // Calculate and cache button component sizes to reduce compute time
         let label_size = text_size(ui, &skin, Some(&self.label));
         if let Some(_) = &self.conf.icon {
-            self.conf.layout.set_layout_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
+            self.conf.layout.set_sub_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
         }
-        self.conf.layout.set_layout_size_p(LABEL_ID, label_size);
+        self.conf.layout.set_sub_size_p(LABEL_ID, label_size);
         self.conf.layout.update();
 
         self.skin = Some(skin);
@@ -292,7 +292,7 @@ impl Button {
 
         // Draw button
         //self.conf.layout.set_pos(pos.x, pos.y);
-        let (pos, size) = self.conf.layout.get_shape();
+        let (pos, size) = self.conf.layout.shape();
         if widgets::Button::new("").size(size).position(pos).ui(ui) {
             self.activated = !self.activated;
             self.clicked = true;
@@ -300,12 +300,12 @@ impl Button {
 
         // Draw icon
         if let Some(icon) = &self.conf.icon {
-            let (icon_pos, icon_size) = self.conf.layout.get_layout_shape(ICON_ID).unwrap();
+            let (icon_pos, icon_size) = self.conf.layout.sub_shape(ICON_ID).unwrap();
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
         }
 
         // Draw label
-        let (label_pos, label_size) = self.conf.layout.get_layout_shape(LABEL_ID).unwrap();
+        let (label_pos, label_size) = self.conf.layout.sub_shape(LABEL_ID).unwrap();
         widgets::Label::new(self.label.as_str()).size(label_size).position(label_pos).ui(ui);
 
         ui.pop_skin();
