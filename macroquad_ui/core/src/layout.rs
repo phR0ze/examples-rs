@@ -40,17 +40,18 @@ pub type SharedLayout = Rc<RefCell<LayoutInner>>;
 // Internal implemenation detail for sharing ownership of layouts
 #[derive(Clone, Debug, PartialEq)]
 pub struct LayoutInner {
-    id: String,           // layout identifier
-    pos: Vec2,            // positional offset inside parent i.e. not absolute coordinates
-    size: Vec2,           // size of the layout region excluding margins
-    dirty: bool,          // track if the layout's size or position need recalculated
-    fill_w: bool,         // fill width of layout
-    fill_h: bool,         // fill height of layout
-    expand: bool,         // layout expands to track all content allocated
-    align: Option<Align>, // alignment in the parent layout
-    mode: LayoutMode,     // layout mode directive
-    spacing: f32,         // space to include between widgets
-    margins: RectOffset,  // space outside the frame edge
+    id: String,                   // layout identifier
+    pos: Vec2,                    // positional offset inside parent i.e. not absolute coordinates
+    size: Vec2,                   // size of the layout region excluding margins
+    dirty: bool,                  // track if the layout's size or position need recalculated
+    fill_w: bool,                 // fill width of layout
+    fill_h: bool,                 // fill height of layout
+    expand: bool,                 // layout expands to track all content allocated
+    align: Option<Align>,         // alignment in the parent layout
+    mode: LayoutMode,             // layout mode directive
+    spacing: f32,                 // space to include between widgets
+    margins: RectOffset,          // space outside the frame edge
+    parent: Option<SharedLayout>, // parent layout
 }
 
 impl LayoutInner {
@@ -67,7 +68,49 @@ impl LayoutInner {
             align: Option::<Align>::default(),
             spacing: 0.,
             margins: RectOffset::default(),
+            parent: Option::<SharedLayout>::default(),
         }))
+    }
+
+    // Get the parent layout's position and size
+    // * assumes parent's parent size and position are already updated
+    // * position includes margins
+    // * returns (pos, size)
+    fn get_parent_shape(&self) -> (Vec2, Vec2) {
+        let size = match &self.parent {
+            Some(parent) => parent.borrow().size,
+            _ => screen(), // default parent to full screen
+        };
+
+        let pos = match &self.parent {
+            Some(parent) => {
+                let (parent_pos, parent_size) = parent.borrow().get_parent_shape();
+                let inner = parent.borrow();
+                match &inner.align {
+                    Some(align) => align.relative(inner.size, parent_size, Some(parent_pos)),
+                    _ => vec2(
+                        parent_pos.x + inner.pos.x + inner.margins.left,
+                        parent_pos.y + inner.pos.y + inner.margins.top,
+                    ),
+                }
+            },
+            _ => Vec2::default(),
+        };
+
+        (pos, size)
+    }
+
+    // Get the layout's position and size
+    // * assumes layout size and position and parent size and positon are already updated
+    // * position includes margins
+    // * returns (pos, size)
+    fn get_shape(&self) -> (Vec2, Vec2) {
+        let (parent_pos, parent_size) = self.get_parent_shape();
+        let pos = match &self.align {
+            Some(align) => align.relative(self.size, parent_size, Some(parent_pos)),
+            _ => vec2(parent_pos.x + self.pos.x + self.margins.left, parent_pos.y + self.pos.y + self.margins.top),
+        };
+        (pos, self.size)
     }
 }
 
@@ -76,15 +119,14 @@ impl LayoutInner {
 /// is then tracked.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Layout {
-    inner: SharedLayout,          // layout
-    layouts: Vec<Layout>,         // child layouts
-    parent: Option<SharedLayout>, // parent layout
+    inner: SharedLayout,  // layout
+    layouts: Vec<Layout>, // child layouts
 }
 
 impl Layout {
     /// Create the default layout
     pub fn new<T: AsRef<str>>(id: T) -> Self {
-        Self { inner: LayoutInner::new(id), layouts: vec![], parent: Option::<SharedLayout>::default() }
+        Self { inner: LayoutInner::new(id), layouts: vec![] }
     }
 
     /// Create the default root layout filling the entire screen
@@ -157,7 +199,8 @@ impl Layout {
     /// * `height` is a percentage of the screen/parent height range of (0.01 - 1.0)
     pub fn with_size_p(self, width: f32, height: f32) -> Self {
         {
-            let size = if let Some(parent) = &self.parent { parent.borrow().size } else { screen() };
+            let size =
+                if let Some(parent) = &self.inner.borrow().parent { parent.borrow().size } else { screen() };
             let inner = &mut *self.inner.borrow_mut();
             inner.dirty = true;
             inner.expand = false;
@@ -258,8 +301,9 @@ impl Layout {
         {
             let inner = &mut *self.inner.borrow_mut();
             inner.dirty = true;
+            inner.parent = Some(parent);
         }
-        Self { parent: Some(parent), ..self }
+        self
     }
 
     /// Get the layout's current margins
@@ -285,64 +329,18 @@ impl Layout {
         self.get_layout(id).map(|x| x.get_shape())
     }
 
-    /// Get the parent layout's position
-    /// * assumes parent's parent size and position are already updated
-    /// * includes margins in this value
-    pub fn get_parent_pos(&self) -> Vec2 {
-        match &self.parent {
-            Some(parent) => {
-                let parent = parent.borrow();
-                vec2(parent.margins.left, parent.margins.top)
-            },
-            _ => Vec2::default(),
-        }
-    }
-
-    /// Get the parent layout's size
-    /// * assumes parent layout size and position are already updated
-    /// * doesn't include margins in this value
-    pub fn get_parent_size(&self) -> Vec2 {
-        match &self.parent {
-            Some(parent) => parent.borrow().size,
-            _ => screen(),
-        }
-    }
-
     /// Get the parent layout's position and size
     /// * position accounts for margins
     /// * returns (pos, size)
     pub fn get_parent_shape(&self) -> (Vec2, Vec2) {
-        (self.get_parent_pos(), self.get_parent_size())
-    }
-
-    /// Get the layout's position
-    /// * assumes layout size and position and parent size and positon are already updated
-    /// * includes margins in this value
-    /// * accounts for parent
-    pub fn get_pos(&self) -> Vec2 {
-        let (parent_pos, parent_size) = self.get_parent_shape();
-        let inner = &self.inner.borrow();
-        match &inner.align {
-            Some(align) => align.relative(inner.size, parent_size, Some(parent_pos)),
-            _ => vec2(
-                parent_pos.x + inner.pos.x + inner.margins.left,
-                parent_pos.y + inner.pos.y + inner.margins.top,
-            ),
-        }
-    }
-
-    /// Get the layout's content size
-    /// * assumes layout size and position are already updated
-    /// * doesn't include margins in this value
-    pub fn get_size(&self) -> Vec2 {
-        self.inner.borrow().size
+        self.inner.borrow().get_parent_shape()
     }
 
     /// Get the layout's position and size
     /// * position accounts for margins
     /// * returns (pos, size)
     pub fn get_shape(&self) -> (Vec2, Vec2) {
-        (self.get_pos(), self.get_size())
+        self.inner.borrow().get_shape()
     }
 
     /// Set flag value for triggering a size and position update on next run
@@ -385,17 +383,29 @@ impl Layout {
         }
     }
 
-    /// Create a new layout inside this layout
-    pub fn alloc<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
+    // Create a new layout inside this layout
+    fn alloc<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> Layout {
         let mut layout = Layout::new(id.as_ref().to_string()).with_parent(self.inner.clone());
 
         // If size is given set the size then re-set expand
         if let Some(size) = size {
             layout = layout.with_size_s(size.x, size.y).with_expand();
         }
+        layout
+    }
 
-        // Track the layout allocation
+    /// Create a new layout inside this layout and append it to the sub-layout list
+    pub fn append<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
+        let layout = self.alloc(id.as_ref(), size);
         self.layouts.push(layout);
+        self.set_dirty(true);
+        self.get_layout(id.as_ref()).unwrap()
+    }
+
+    /// Create a new layout inside this layout and prepent it to the sub-layout list
+    pub fn prepend<T: AsRef<str>>(&mut self, id: T, size: Option<Vec2>) -> &Layout {
+        let layout = self.alloc(id.as_ref(), size);
+        self.layouts.insert(0, layout);
         self.set_dirty(true);
         self.get_layout(id.as_ref()).unwrap()
     }

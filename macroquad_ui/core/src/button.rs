@@ -56,7 +56,7 @@ impl ButtonBuilder {
         };
 
         // Add the label layout by default
-        button.layout.alloc(LABEL_ID, None);
+        button.layout.append(LABEL_ID, None);
 
         button
     }
@@ -105,7 +105,7 @@ impl ButtonBuilder {
 
     /// Set icon to use
     pub fn icon<T: Into<Option<Texture2D>>>(mut self, icon: T) -> Self {
-        self.layout.alloc(ICON_ID, None);
+        self.layout.prepend(ICON_ID, None);
         Self { icon: icon.into(), ..self }
     }
 
@@ -153,8 +153,8 @@ impl Button {
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
         Button::new(label)
             .with_icon(icon)
-            .with_icon_layout(|x| x.with_margins(20., 10., 0., 0.))
-            .with_label_layout(|x| x.with_margins(10., 20., 0., 0.))
+            .with_icon_layout(|x| x.with_margins(10., 0., 0., 0.))
+            .with_label_layout(|x| x.with_margins(10., 0., 0., 0.))
     }
 
     /// Set background image to use
