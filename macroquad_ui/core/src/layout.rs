@@ -44,7 +44,6 @@ pub struct LayoutInner {
     pos: Vec2,            // positional offset inside parent i.e. not absolute coordinates
     size: Vec2,           // size of the layout region excluding margins
     dirty: bool,          // track if the layout's size or position need recalculated
-    size_calc: bool,      // track if the size was calculated or set
     fill_w: bool,         // fill width of layout
     fill_h: bool,         // fill height of layout
     expand: bool,         // layout expands to track all content allocated
@@ -52,6 +51,24 @@ pub struct LayoutInner {
     mode: LayoutMode,     // layout mode directive
     spacing: f32,         // space to include between widgets
     margins: RectOffset,  // space outside the frame edge
+}
+
+impl LayoutInner {
+    fn new<T: AsRef<str>>(id: T) -> SharedLayout {
+        Rc::new(RefCell::new(Self {
+            id: id.as_ref().to_string(),
+            pos: Vec2::default(),
+            size: Vec2::default(),
+            dirty: true, // always dirty by default
+            fill_w: false,
+            fill_h: false,
+            expand: true, // enable expansion by default
+            mode: LayoutMode::default(),
+            align: Option::<Align>::default(),
+            spacing: 0.,
+            margins: RectOffset::default(),
+        }))
+    }
 }
 
 /// Layout describes a region of space and provides mechanisms for calculating where and how a
@@ -67,24 +84,7 @@ pub struct Layout {
 impl Layout {
     /// Create the default layout
     pub fn new<T: AsRef<str>>(id: T) -> Self {
-        Self {
-            inner: Rc::new(RefCell::new(LayoutInner {
-                id: id.as_ref().to_string(),
-                pos: Vec2::default(),
-                size: Vec2::default(),
-                dirty: true, // always dirty by default
-                size_calc: false,
-                fill_w: false,
-                fill_h: false,
-                expand: true, // enable expansion by default
-                mode: LayoutMode::default(),
-                align: Option::<Align>::default(),
-                spacing: 0.,
-                margins: RectOffset::default(),
-            })),
-            layouts: vec![],
-            parent: Option::<SharedLayout>::default(),
-        }
+        Self { inner: LayoutInner::new(id), layouts: vec![], parent: Option::<SharedLayout>::default() }
     }
 
     /// Create the default root layout filling the entire screen
@@ -438,66 +438,7 @@ impl Layout {
             }
         }
         inner.size = vec2(w, h);
-        inner.size_calc = true;
     }
-
-    // // Calculate and update position
-    // let (parent_pos, parent_size) = self.get_parent_shape();
-    // let inner_size = self.get_size();
-    // let inner_pos = match &self.inner.borrow().align {
-    //     Some(align) => align.relative(inner_size, parent_size, Some(parent_pos)),
-    //     _ => vec2(0., 0.),
-    // };
-
-    // // Calculate sub layout positions
-    // for layout in self.layouts.iter_mut() {
-    //layout.update_pos();
-    //let sub = &mut *x.inner.borrow_mut();
-    //sub.pos = sub.align.relative(sub.size, inner_size, Some(inner_pos));
-
-    // // Handle fill width and height
-    // if self.fill_w {
-    //     rect.w = self.size.x - self.margin.left - self.margin.right;
-    // }
-    // if self.fill_h {
-    //     rect.h = self.size.y - self.margin.top - self.margin.bottom;
-    // }
-
-    // match self.mode {
-    //     LayoutMode::Horizontal => {
-    //         self.x += rect.w;
-    //         if self.expand {
-    //             self.size.x += rect.w;
-    //             // Take the largest y value
-    //             if self.size.y < rect.h {
-    //                 self.size.y = rect.h;
-    //             }
-    //         }
-
-    //         // Allocate spacing if not the first widget
-    //         if !self.layouts.is_empty() {
-    //             rect.x += self.spacing;
-    //             self.x += self.spacing;
-    //             if self.expand {
-    //                 self.size.x += self.spacing;
-    //             }
-    //         }
-    //     },
-    //     LayoutMode::Vertical => {
-    //         self.y += rect.h;
-    //         if self.expand {
-    //             self.size.y += rect.h;
-    //         }
-
-    //         // Allocate spacing if not the first widget
-    //         if !self.layouts.is_empty() {
-    //             rect.y += self.spacing;
-    //             self.y += self.spacing;
-    //             if self.expand {
-    //                 self.size.y += self.spacing;
-    //             }
-    //         }
-    //     },
 }
 
 /// Define different layout modes
