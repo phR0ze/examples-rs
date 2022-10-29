@@ -153,8 +153,8 @@ impl Button {
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
         Button::new(label)
             .with_icon(icon)
-            .with_icon_layout(|x| x.with_margins(20., 10., 10., 10.))
-            .with_label_layout(|x| x.with_margins(10., 20., 10., 10.))
+            .with_icon_layout(|x| x.with_margins(20., 10., 0., 0.))
+            .with_label_layout(|x| x.with_margins(10., 20., 0., 0.))
     }
 
     /// Set background image to use
