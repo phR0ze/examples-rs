@@ -72,11 +72,11 @@ impl LayoutInner {
         }))
     }
 
-    // Get the parent layout's position and size
-    // * assumes parent's parent size and position are already updated
+    // Get parent layout's position and size
+    // * assumes parent's parent size and positional offset are already updated
     // * position includes margins
     // * returns (pos, size)
-    fn get_parent_shape(&self) -> (Vec2, Vec2) {
+    fn parent_shape(&self) -> (Vec2, Vec2) {
         let size = match &self.parent {
             Some(parent) => parent.borrow().size,
             _ => screen(), // default parent to full screen
@@ -84,7 +84,7 @@ impl LayoutInner {
 
         let pos = match &self.parent {
             Some(parent) => {
-                let (parent_pos, parent_size) = parent.borrow().get_parent_shape();
+                let (parent_pos, parent_size) = parent.borrow().parent_shape();
                 let inner = parent.borrow();
                 match &inner.align {
                     Some(align) => align.relative(inner.size, parent_size, Some(parent_pos)),
@@ -105,7 +105,7 @@ impl LayoutInner {
     // * position includes margins
     // * returns (pos, size)
     fn get_shape(&self) -> (Vec2, Vec2) {
-        let (parent_pos, parent_size) = self.get_parent_shape();
+        let (parent_pos, parent_size) = self.parent_shape();
         let pos = match &self.align {
             Some(align) => align.relative(self.size, parent_size, Some(parent_pos)),
             _ => vec2(parent_pos.x + self.pos.x + self.margins.left, parent_pos.y + self.pos.y + self.margins.top),
@@ -319,7 +319,7 @@ impl Layout {
     /// * position accounts for margins
     /// * returns (pos, size)
     pub fn parent_shape(&self) -> (Vec2, Vec2) {
-        self.inner.borrow().get_parent_shape()
+        self.inner.borrow().parent_shape()
     }
 
     /// Get layout's position and size
