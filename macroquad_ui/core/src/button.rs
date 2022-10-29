@@ -38,7 +38,7 @@ pub struct Button {
 impl Button {
     /// Create a new standard button instance
     pub fn new<T: AsRef<str>>(label: T) -> Self {
-        let mut button = Self {
+        let button = Self {
             dirty: true,
             skin: None,
             label: label.as_ref().to_string(),
@@ -113,7 +113,7 @@ impl Button {
 
     /// Set label layout to use
     pub fn with_label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        //self.layout.set_sub(f(self.layout.sub(LABEL_ID).unwrap().clone()));
+        self.layout.set_sub(f(self.layout.sub(LABEL_ID).unwrap().clone()));
         Button { dirty: true, ..self }
     }
 
@@ -125,7 +125,7 @@ impl Button {
 
     /// Update icon layout properties
     pub fn with_icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        //self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
+        self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
         Button { dirty: true, ..self }
     }
 

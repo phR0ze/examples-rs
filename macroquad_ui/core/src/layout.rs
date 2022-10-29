@@ -144,12 +144,6 @@ impl Layout {
         Self::new(id).with_vert()
     }
 
-    /// Set the layout's id
-    pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
-        self.0.borrow_mut().id = id.as_ref().to_string();
-        self
-    }
-
     /// Set layout alignment
     pub fn with_align(self, align: Align) -> Self {
         {
@@ -308,6 +302,11 @@ impl Layout {
 
 // Layout getters and helper functions
 impl Layout {
+    /// Get layout id
+    pub fn id(&self) -> String {
+        self.0.borrow().id.clone()
+    }
+
     /// Get the layout's margins
     pub fn margins(&self) -> RectOffset {
         self.0.borrow().margins
@@ -332,10 +331,10 @@ impl Layout {
         self.0.borrow().layouts.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
     }
 
-    // /// Get mutable sub-layout by id
-    // pub fn sub_mut(self, id: &str) -> Option<Layout> {
-    //     self.0.borrow().layouts.iter().find(|x| x.borrow().id == id)
-    // }
+    /// Get sub-layout's index in this layout
+    pub fn sub_idx(&self, id: &str) -> Option<usize> {
+        self.0.borrow().layouts.iter().position(|x| x.borrow().id == id)
+    }
 
     /// Get sub-layout's position and size by id
     /// * position accounts for margins
@@ -348,11 +347,6 @@ impl Layout {
     /// Set flag value for triggering a size and position update on next run
     pub fn set_dirty(&self, dirty: bool) {
         self.0.borrow_mut().dirty = dirty;
-    }
-
-    /// Set the layout's id
-    pub fn set_id<T: AsRef<str>>(&self, id: T) {
-        self.0.borrow_mut().id = id.as_ref().to_string();
     }
 
     /// Set the layout's size
@@ -378,7 +372,7 @@ impl Layout {
     /// Set sub-layout by id
     pub fn set_sub(&self, layout: Layout) {
         layout.set_dirty(true);
-        if let Some(i) = self.0.borrow().layouts.iter().position(|x| x.borrow().id == layout.0.borrow().id) {
+        if let Some(i) = self.sub_idx(&layout.id()) {
             self.0.borrow_mut().layouts[i] = layout.0.clone();
         } else {
             self.0.borrow_mut().layouts.push(layout.0.clone());
@@ -388,8 +382,6 @@ impl Layout {
     // Create a new layout inside this layout
     fn alloc_sub<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
         let mut layout = Layout::new(id.as_ref().to_string()).with_parent(self.0.clone());
-
-        // If size is given set the size then re-set expand
         if let Some(size) = size {
             layout = layout.with_size_s(size.x, size.y).with_expand();
         }
