@@ -5,15 +5,16 @@
 //! * horizontal layout
 //! * expansion enabled
 //!
-//! ## Layout mode
-//! Layout modes provide different terpretations of how widgets should be packed into the layout's
-//! defined region of space. The default horizontal layout will add widgets by default from left to
-//! right while the vertical layout will add widgets by default from top to bottom.
+//! ## Pack mode
+//! Pack modes provide different interpretations of how widgets should be packed into the layout's
+//! defined region of space. The default LeftToRight mode will add widgets horizontally from left to
+//! right while the TopToBottom layout will add widgets vertically from top to bottom. The alignment
+//! directive can be combined with the pack mode to provide centering for the uncontrolled
+//! direction. For example a
 //!
 //! ## Align directive
 //! The alignment directive as modified by the various align functions is used to guide the
-//! calculation of the widgets position in its parent layout. When align is set the LayoutMode won't
-//! apply.
+//! calculation of the widgets position in its parent layout.
 //!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
@@ -35,11 +36,11 @@ use crate::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
 /// SharedLayout defines a sharable interior mutable Layout object
-pub type SharedLayout = Rc<RefCell<LayoutInner>>;
+type SharedLayout = Rc<RefCell<LayoutInner>>;
 
 // Internal implemenation detail for sharing ownership of layouts
 #[derive(Clone, Debug, PartialEq)]
-pub struct LayoutInner {
+struct LayoutInner {
     id: String,                   // layout identifier
     pos: Vec2,                    // positional offset inside parent i.e. not absolute coordinates
     size: Vec2,                   // size of the layout region excluding margins
@@ -47,8 +48,8 @@ pub struct LayoutInner {
     fill_w: bool,                 // fill width of layout
     fill_h: bool,                 // fill height of layout
     expand: bool,                 // layout expands to track all content allocated
-    align: Option<Align>,         // alignment in the parent layout
-    mode: LayoutMode,             // layout mode directive
+    align: Align,                 // alignment in the parent layout
+    mode: PackMode,               // layout mode directive
     spacing: f32,                 // space to include between widgets
     margins: RectOffset,          // space outside the frame edge
     layouts: Vec<SharedLayout>,   // sub-layouts
@@ -65,13 +66,31 @@ impl LayoutInner {
             fill_w: false,
             fill_h: false,
             expand: true, // enable expansion by default
-            mode: LayoutMode::default(),
-            align: Option::<Align>::default(),
+            mode: PackMode::default(),
+            align: Align::default(),
             spacing: 0.,
             margins: RectOffset::default(),
             layouts: vec![],
             parent: Option::<SharedLayout>::default(),
         }))
+    }
+
+    // Calculate the widgets alignment based on its
+    // * size, positional offset, margins and mode
+    // * parent's size and positional offset
+    fn align(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
+        let mut pos = self.align.relative(self.size, parent_size, parent_pos);
+        pos = match self.mode {
+            PackMode::LeftToRight => vec2(parent_pos.x + self.pos.x, pos.y),
+            PackMode::TopToBottom => vec2(pos.x, parent_pos.y + self.pos.y),
+            PackMode::Align => pos,
+        };
+
+        // Handle margins
+        pos.x += self.margins.left;
+        pos.y += self.margins.top;
+
+        pos
     }
 
     // Get parent layout's position and size
@@ -88,13 +107,7 @@ impl LayoutInner {
             Some(parent) => {
                 let (parent_pos, parent_size) = parent.borrow().parent_shape();
                 let inner = parent.borrow();
-                match &inner.align {
-                    Some(align) => align.relative(inner.size, parent_size, Some(parent_pos)),
-                    _ => vec2(
-                        parent_pos.x + inner.pos.x + inner.margins.left,
-                        parent_pos.y + inner.pos.y + inner.margins.top,
-                    ),
-                }
+                inner.align(parent_pos, parent_size)
             },
             _ => Vec2::default(),
         };
@@ -106,13 +119,9 @@ impl LayoutInner {
     // * assumes layout size and position and parent size and positon are already updated
     // * position includes margins
     // * returns (pos, size)
-    fn get_shape(&self) -> (Vec2, Vec2) {
+    fn shape(&self) -> (Vec2, Vec2) {
         let (parent_pos, parent_size) = self.parent_shape();
-        let pos = match &self.align {
-            Some(align) => align.relative(self.size, parent_size, Some(parent_pos)),
-            _ => vec2(parent_pos.x + self.pos.x + self.margins.left, parent_pos.y + self.pos.y + self.margins.top),
-        };
-        (pos, self.size)
+        (self.align(parent_pos, parent_size), self.size)
     }
 }
 
@@ -149,7 +158,7 @@ impl Layout {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
-            inner.align = Some(align);
+            inner.align = align;
         }
         self
     }
@@ -159,7 +168,7 @@ impl Layout {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
-            inner.mode = LayoutMode::Horizontal;
+            inner.mode = PackMode::LeftToRight;
         }
         self
     }
@@ -169,7 +178,7 @@ impl Layout {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
-            inner.mode = LayoutMode::Vertical;
+            inner.mode = PackMode::TopToBottom;
         }
         self
     }
@@ -290,11 +299,11 @@ impl Layout {
 
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
-    pub fn with_parent(self, parent: SharedLayout) -> Self {
+    pub fn with_parent(self, parent: Layout) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
-            inner.parent = Some(parent);
+            inner.parent = Some(parent.0.clone());
         }
         self
     }
@@ -323,7 +332,7 @@ impl Layout {
     /// * position accounts for margins
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
-        self.0.borrow().get_shape()
+        self.0.borrow().shape()
     }
 
     /// Get sub-layout by id
@@ -381,7 +390,7 @@ impl Layout {
 
     // Create a new layout inside this layout
     fn alloc_sub<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let mut layout = Layout::new(id.as_ref().to_string()).with_parent(self.0.clone());
+        let mut layout = Layout::new(id.as_ref().to_string()).with_parent(Layout(self.0.clone()));
         if let Some(size) = size {
             layout = layout.with_size_s(size.x, size.y).with_expand();
         }
@@ -427,14 +436,14 @@ impl Layout {
             let sub_width = sub.size.x + sub.margins.left + sub.margins.right;
             let sub_height = sub.size.y + sub.margins.top + sub.margins.bottom;
             match inner.mode {
-                LayoutMode::Horizontal => {
+                PackMode::LeftToRight | PackMode::Align => {
                     size.x += sub_width;
                     if size.y < sub_height {
                         size.y = sub_height;
                     }
                     cursor.x = size.x;
                 },
-                LayoutMode::Vertical => {
+                PackMode::TopToBottom => {
                     if size.x < sub_width {
                         size.x = sub_width;
                     }
@@ -448,17 +457,20 @@ impl Layout {
 }
 
 /// Define different layout modes
-#[derive(Clone, Debug, PartialEq)]
-pub enum LayoutMode {
-    /// Stack widgets and containers horizontally
-    Horizontal,
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum PackMode {
+    /// Pack widgets and containers horizontally
+    LeftToRight,
 
-    /// Stack widgets and containers vertically
-    Vertical,
+    /// Pack widgets and containers vertically
+    TopToBottom,
+
+    /// Purely dependent on alignment for positioning
+    Align,
 }
 
-impl Default for LayoutMode {
+impl Default for PackMode {
     fn default() -> Self {
-        LayoutMode::Horizontal
+        PackMode::LeftToRight
     }
 }

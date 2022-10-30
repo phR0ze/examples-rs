@@ -2,13 +2,13 @@
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
 
 use crate::align::*;
+use crate::layout::PackMode;
 use crate::utils::*;
-use std::time::Instant;
-
 use macroquad::{
     prelude::*,
     ui::{widgets, Skin, Ui},
 };
+use std::time::Instant;
 
 pub struct Fps {
     fps: u16,           // last calculated frames per second
@@ -30,7 +30,7 @@ impl Fps {
             frames: 0,
             start: Instant::now(),
             font_color: BLACK,
-            position: Align::LeftTop(rect(10., 0., 10., 0.)),
+            position: Align::LeftTop,
         }
     }
 
@@ -92,7 +92,7 @@ impl Fps {
         ui.push_skin(self.skin.as_ref().unwrap());
         let fps = format!("FPS: {}", self.fps);
         let size = ui.calc_size(&fps);
-        let pos = self.position.vec2(size);
+        let pos = self.position.relative(size, screen(), vec2(0., 0.));
         widgets::Label::new(fps).position(pos).ui(ui);
         ui.pop_skin();
     }

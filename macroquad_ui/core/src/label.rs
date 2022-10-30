@@ -22,7 +22,7 @@ impl LabelBuilder {
     pub fn new() -> Self {
         Self {
             size: None,
-            position: Align::Center(Some(RectOffset::default())),
+            position: Align::default(),
             font: None,
             font_size: scale(DEFAULT_FONT_SIZE) as u16,
             font_color: colors::BLACK,
@@ -175,7 +175,7 @@ impl Label {
         self.update_skin(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
-        let pos = self.conf.position.relative(self.calc_size, cont_size, offset);
+        let pos = self.conf.position.relative(self.calc_size, cont_size, offset.unwrap());
         widgets::Label::new(self.text.as_str()).size(self.calc_size).position(pos).ui(ui);
 
         ui.pop_skin();

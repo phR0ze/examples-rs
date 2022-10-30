@@ -10,6 +10,7 @@ use crate::prelude::*;
 const ICON_ID: &'static str = "icon";
 const LABEL_ID: &'static str = "label";
 
+/// Button encapsulates and extends Macroquad's button
 #[derive(Debug, Clone)]
 pub struct Button {
     dirty: bool,        // track if a skin update is needed
@@ -34,7 +35,7 @@ pub struct Button {
     icon: Option<Texture2D>,             // optional icon to display
 }
 
-/// Button encapsulates and extends Macroquad's button
+// Constructors and builder functions
 impl Button {
     /// Create a new standard button instance
     pub fn new<T: AsRef<str>>(label: T) -> Self {
@@ -71,8 +72,8 @@ impl Button {
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
         Button::new(label)
             .with_icon(icon)
-            .with_icon_layout(|x| x.with_margins(10., 0., 0., 0.))
-            .with_label_layout(|x| x.with_margins(10., 0., 0., 0.))
+            .with_icon_layout(|x| x.with_align(Align::Center).with_margins(10., 0., 0., 0.))
+            .with_label_layout(|x| x.with_align(Align::Center).with_margins(10., 10., 2., 0.))
     }
 
     /// Set background image to use
@@ -93,6 +94,18 @@ impl Button {
     /// Set the background color used for the button
     pub fn with_background_color(self, color: Color) -> Self {
         Button { dirty: true, background_color: color, ..self }
+    }
+
+    /// Set icon to use
+    pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
+        self.layout.prepend_sub(ICON_ID, None);
+        Button { dirty: true, icon: icon.into(), ..self }
+    }
+
+    /// Update icon layout properties
+    pub fn with_icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
+        Button { dirty: true, ..self }
     }
 
     /// Set font to use
@@ -117,18 +130,15 @@ impl Button {
         Button { dirty: true, ..self }
     }
 
-    /// Set icon to use
-    pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
-        self.layout.prepend_sub(ICON_ID, None);
-        Button { dirty: true, icon: icon.into(), ..self }
-    }
-
-    /// Update icon layout properties
-    pub fn with_icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
+    /// Set layout to use
+    pub fn with_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        self.layout.set_sub(f(self.layout.clone()));
         Button { dirty: true, ..self }
     }
+}
 
+// Helper functions
+impl Button {
     /// Button label
     pub fn label(&self) -> &str {
         &self.label
