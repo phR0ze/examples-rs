@@ -420,7 +420,7 @@ impl Layout {
 
         // Calculate layout size and set positional offsets along the way
         let mut cursor = Vec2::default(); // track where to start drawing widget inside parent
-        let (mut w, mut h) = (0., 0.);
+        let mut size = Vec2::default();
         for x in inner.layouts.iter_mut() {
             let sub = &mut *x.borrow_mut();
             sub.pos = cursor; // update positional offset
@@ -428,22 +428,22 @@ impl Layout {
             let sub_height = sub.size.y + sub.margins.top + sub.margins.bottom;
             match inner.mode {
                 LayoutMode::Horizontal => {
-                    w += sub_width;
-                    if h < sub_height {
-                        h = sub_height;
+                    size.x += sub_width;
+                    if size.y < sub_height {
+                        size.y = sub_height;
                     }
-                    cursor.x = w;
+                    cursor.x = size.x;
                 },
                 LayoutMode::Vertical => {
-                    if w < sub_width {
-                        w = sub_width;
+                    if size.x < sub_width {
+                        size.x = sub_width;
                     }
-                    h += sub_height;
-                    cursor.y = h;
+                    size.y += sub_height;
+                    cursor.y = size.y;
                 },
             }
         }
-        inner.size = vec2(w, h);
+        inner.size = size;
     }
 }
 
