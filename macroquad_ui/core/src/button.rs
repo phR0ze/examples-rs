@@ -132,8 +132,7 @@ impl Button {
 
     /// Set layout to use
     pub fn with_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        self.layout.set_sub(f(self.layout.clone()));
-        Button { dirty: true, ..self }
+        Button { dirty: true, layout: f(self.layout), ..self }
     }
 }
 
@@ -214,15 +213,19 @@ impl Button {
     }
 
     /// Draw the widget on the screen
-    /// * `layout` provides assistance and directives for sizing and positioning the widget
+    /// * `layout` parent layout to draw button within
     /// * returns true when clicked in the current frame
-    pub fn show(&mut self, ui: &mut Ui, layout: Option<&mut Layout>) -> bool {
+    pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>) -> bool {
         self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
         self.clicked = false; // reset clicked
 
+        // Set parent if given
+        if let Some(layout) = layout {
+            self.layout.set_parent(layout)
+        }
+
         // Draw button
-        //self.layout.set_pos(pos.x, pos.y);
         let (pos, size) = self.layout.shape();
         if widgets::Button::new("").size(size).position(pos).ui(ui) {
             self.activated = !self.activated;

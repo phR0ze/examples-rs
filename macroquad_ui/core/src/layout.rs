@@ -143,6 +143,11 @@ impl Layout {
         Self::new(id).with_size_f()
     }
 
+    /// Create a new layout as percentage of the screen
+    pub fn percent<T: AsRef<str>>(id: T, width: f32, height: f32) -> Self {
+        Self::new(id).with_size_p(width, height)
+    }
+
     /// Create a horizontal layout
     pub fn horz<T: AsRef<str>>(id: T) -> Self {
         Self::new(id).with_horz()
@@ -366,6 +371,13 @@ impl Layout {
         inner.size = size;
     }
 
+    /// Set parent layout
+    pub fn set_parent(&self, layout: &Layout) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.parent = Some(layout.0.clone());
+    }
+
     /// Set sub-layout's size by id
     /// * same as `set_layout_size_p` but takes float params instead of Vec2
     pub fn set_sub_size_s(&self, id: &str, width: f32, height: f32) {
@@ -432,9 +444,22 @@ impl Layout {
         let mut size = Vec2::default();
         for x in inner.layouts.iter_mut() {
             let sub = &mut *x.borrow_mut();
-            sub.pos = cursor; // update positional offset
-            let sub_width = sub.size.x + sub.margins.left + sub.margins.right;
-            let sub_height = sub.size.y + sub.margins.top + sub.margins.bottom;
+
+            // Update the sub-layout's positional offset
+            sub.pos = cursor;
+
+            // Caculate the sub-layout's size
+            let mut sub_width = sub.size.x + sub.margins.left + sub.margins.right;
+            let mut sub_height = sub.size.y + sub.margins.top + sub.margins.bottom;
+
+            // Take fill directives into account
+            if inner.fill_w && !inner.expand {
+                sub_width = inner.size.x;
+            }
+            if inner.fill_h && !inner.expand {
+                sub_height = inner.size.y;
+            }
+
             match inner.mode {
                 PackMode::LeftToRight | PackMode::Align => {
                     size.x += sub_width;
@@ -452,7 +477,11 @@ impl Layout {
                 },
             }
         }
-        inner.size = size;
+
+        // Only update layout size based on sub-layout sums if in expand mode
+        if !inner.expand {
+            inner.size = size;
+        }
     }
 }
 

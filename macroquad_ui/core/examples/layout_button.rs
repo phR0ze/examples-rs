@@ -13,7 +13,9 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut button = Button::icon("Settings", icon).with_background_color(GRAY); //.with_layout(|x| x.with_align(Align::Center));
+    let mut button = Button::icon("Settings", icon)
+        .with_background_color(GRAY)
+        .with_layout(|x| x.with_margins(0., 0., 50., 0.));
 
     let mut fps = Fps::new().with_font_color(WHITE);
     loop {
