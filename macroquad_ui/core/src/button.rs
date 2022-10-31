@@ -45,7 +45,7 @@ impl Button {
             label: label.as_ref().to_string(),
             clicked: false,
             activated: false,
-            layout: Layout::new(""),
+            layout: Layout::new(label),
             background: None,
             background_clk: None,
             background_hov: None,
@@ -61,7 +61,7 @@ impl Button {
         };
 
         // Add the label layout by default
-        button.layout.append_sub(LABEL_ID, None);
+        button.layout.alloc_append(LABEL_ID, None);
         button
     }
 
@@ -98,7 +98,7 @@ impl Button {
 
     /// Set icon to use
     pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
-        self.layout.prepend_sub(ICON_ID, None);
+        self.layout.alloc_prepend(ICON_ID, None);
         Button { dirty: true, icon: icon.into(), ..self }
     }
 
@@ -221,8 +221,8 @@ impl Button {
         self.clicked = false; // reset clicked
 
         // Set parent if given
-        if let Some(layout) = layout {
-            self.layout.set_parent(layout)
+        if let Some(parent) = layout {
+            parent.append(&self.layout);
         }
 
         // Draw button
