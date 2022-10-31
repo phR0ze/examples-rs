@@ -29,9 +29,9 @@
 //! to be used as a menu with a fixed size and then have buttons of unknown size fill the width of
 //! the menu with margins taken into acocunt.
 //!
-//! ## Position updates
-//! When updating a layout's position the layouts within that layout will have their positions
-//! updated to match their parent's relative position.
+//! ## Spacing
+//! When packing widgets in a layout consecutively spacing can be applied to provide a consistent
+//! space between widgets
 use crate::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
@@ -79,12 +79,27 @@ impl LayoutInner {
     // * size, positional offset, margins and mode
     // * parent's size and positional offset
     fn align(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
+        debug!("align: {}", &self.id);
+        let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(PackMode::default());
+        let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
+        let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
+        let parent_len = self.parent.as_ref().and_then(|x| Some(x.borrow().layouts.len())).unwrap_or(0) as i32;
+
         let mut pos = self.align.relative(self.size, parent_size, parent_pos);
-        pos = match self.mode {
+        pos = match parent_mode {
             PackMode::LeftToRight => vec2(parent_pos.x + self.offset.x, pos.y),
             PackMode::TopToBottom => vec2(pos.x, parent_pos.y + self.offset.y),
             PackMode::Align => pos,
         };
+
+        // Handle spacing
+        if parent_idx != parent_len - 1 {
+            if let PackMode::LeftToRight = parent_mode {
+                pos.x += parent_spacing * parent_idx as f32;
+            } else if let PackMode::TopToBottom = parent_mode {
+                pos.y += parent_spacing * parent_idx as f32;
+            }
+        }
 
         // Handle margins
         pos.x += self.margins.left;
@@ -143,28 +158,30 @@ impl Layout {
         Self(LayoutInner::new(id))
     }
 
-    /// Create the default root layout filling the entire screen
-    pub fn root<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).with_size_f()
-    }
-
-    /// Create a new layout as percentage of the screen
-    pub fn percent<T: AsRef<str>>(id: T, width: f32, height: f32) -> Self {
-        Self::new(id).with_size_p(width, height)
-    }
-
     /// Create a horizontal layout
     pub fn horz<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).with_horz()
+        let layout = Self::new(id);
+        {
+            let inner = &mut *layout.0.borrow_mut();
+            inner.dirty = true;
+            inner.mode = PackMode::LeftToRight;
+        }
+        layout
     }
 
     /// Create a vertical layout
     pub fn vert<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).with_vert()
+        let layout = Self::new(id);
+        {
+            let inner = &mut *layout.0.borrow_mut();
+            inner.dirty = true;
+            inner.mode = PackMode::TopToBottom;
+        }
+        layout
     }
 
     /// Set layout alignment
-    pub fn with_align(self, align: Align) -> Self {
+    pub fn align(self, align: Align) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -173,29 +190,9 @@ impl Layout {
         self
     }
 
-    /// Set horizontal layout mode
-    pub fn with_horz(self) -> Self {
-        {
-            let layout = &mut *self.0.borrow_mut();
-            layout.dirty = true;
-            layout.mode = PackMode::LeftToRight;
-        }
-        self
-    }
-
-    /// Set vertical layout mode
-    pub fn with_vert(self) -> Self {
-        {
-            let layout = &mut *self.0.borrow_mut();
-            layout.dirty = true;
-            layout.mode = PackMode::TopToBottom;
-        }
-        self
-    }
-
     /// Set the layout size to full screen
     /// * disables layout expansion
-    pub fn with_size_f(self) -> Self {
+    pub fn size_f(self) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -210,7 +207,7 @@ impl Layout {
     /// * parent defaults to full screen if not set
     /// * `width` is a percentage of the screen/parent width range of (0.01 - 1.0)
     /// * `height` is a percentage of the screen/parent height range of (0.01 - 1.0)
-    pub fn with_size_p(self, width: f32, height: f32) -> Self {
+    pub fn size_p(self, width: f32, height: f32) -> Self {
         {
             let size = if let Some(parent) = &self.0.borrow().parent { parent.borrow().size } else { screen() };
             let layout = &mut *self.0.borrow_mut();
@@ -223,7 +220,7 @@ impl Layout {
 
     /// Set the layout size to a static size
     /// * disables layout expansion
-    pub fn with_size_s(self, width: f32, height: f32) -> Self {
+    pub fn size_s(self, width: f32, height: f32) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -234,7 +231,7 @@ impl Layout {
     }
 
     /// Fill the entire layout
-    pub fn with_fill(self) -> Self {
+    pub fn fill(self) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -245,7 +242,7 @@ impl Layout {
     }
 
     /// Fill the entire width of the layout
-    pub fn with_fill_w(self) -> Self {
+    pub fn fill_w(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -255,7 +252,7 @@ impl Layout {
     }
 
     /// Fill the entire height of the layout
-    pub fn with_fill_h(self) -> Self {
+    pub fn fill_h(self) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -266,7 +263,7 @@ impl Layout {
 
     /// Configure layout expansion
     /// * When enabled disables fill properties
-    pub fn with_expand(self) -> Self {
+    pub fn expand(self) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -278,7 +275,7 @@ impl Layout {
     }
 
     /// Space to allocate between widgets
-    pub fn with_spacing(self, spacing: f32) -> Self {
+    pub fn spacing(self, spacing: f32) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -288,7 +285,7 @@ impl Layout {
     }
 
     /// Space reserved outside the boundaries of the layout
-    pub fn with_margins(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    pub fn margins(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -298,7 +295,7 @@ impl Layout {
     }
 
     /// Space reserved outside the boundaries of the layout
-    pub fn with_margins_p(self, margins: RectOffset) -> Self {
+    pub fn margins_p(self, margins: RectOffset) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -309,7 +306,7 @@ impl Layout {
 
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
-    pub fn with_parent(self, parent: Layout) -> Self {
+    pub fn parent(self, parent: Layout) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
@@ -324,11 +321,6 @@ impl Layout {
     /// Get layout id
     pub fn id(&self) -> String {
         self.0.borrow().id.clone()
-    }
-
-    /// Get the layout's margins
-    pub fn margins(&self) -> RectOffset {
-        self.0.borrow().margins
     }
 
     /// Get parent layout's position and size
@@ -396,11 +388,11 @@ impl Layout {
 
     // Create a new layout inside this layout
     fn alloc<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let mut sub_layout = Layout::new(id.as_ref().to_string()).with_parent(Layout(self.0.clone()));
+        let mut sub_layout = Layout::new(id.as_ref().to_string()).parent(Layout(self.0.clone()));
         if let Some(size) = size {
-            sub_layout = sub_layout.with_size_s(size.x, size.y).with_expand();
+            sub_layout = sub_layout.size_s(size.x, size.y).expand();
         } else {
-            sub_layout = sub_layout.with_expand();
+            sub_layout = sub_layout.expand();
         }
         sub_layout
     }
@@ -514,6 +506,6 @@ pub enum PackMode {
 
 impl Default for PackMode {
     fn default() -> Self {
-        PackMode::LeftToRight
+        PackMode::Align
     }
 }

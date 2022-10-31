@@ -1,9 +1,8 @@
 //! Button encapsulates and extends Macroquad's button supporting:
-//! * Border color for regular, clicked and hovered
+//! * Border color for regular, clicked and hovered states
+//! * Label positioning and sizing inside the button
 //! * Icon support with positioning and sizing inside button
-//!
 //! * Button activated toggle
-//! * Label positioning inside the button
 //! * Calculated sizing and positioning relative to containing widget
 use crate::prelude::*;
 
@@ -45,7 +44,7 @@ impl Button {
             label: label.as_ref().to_string(),
             clicked: false,
             activated: false,
-            layout: Layout::new(label),
+            layout: Layout::horz(label),
             background: None,
             background_clk: None,
             background_hov: None,
@@ -71,67 +70,67 @@ impl Button {
     /// * `icon` is a texture to be displayed as the button icon
     pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
         Button::new(label)
-            .with_icon(icon)
-            .with_icon_layout(|x| x.with_align(Align::Center).with_margins(10., 0., 0., 0.))
-            .with_label_layout(|x| x.with_align(Align::Center).with_margins(10., 10., 2., 0.))
+            .icon_tex(icon)
+            .icon_layout(|x| x.align(Align::Center).margins(10., 0., 0., 0.))
+            .label_layout(|x| x.align(Align::Center).margins(10., 10., 2., 0.))
     }
 
     /// Set background image to use
-    pub fn with_background<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
         Button { dirty: true, background: image.into(), ..self }
     }
 
     /// Set background image to use
-    pub fn with_background_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
         Button { dirty: true, background_clk: image.into(), ..self }
     }
 
     /// Set background image to use
-    pub fn with_background_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
         Button { dirty: true, background_hov: image.into(), ..self }
     }
 
     /// Set the background color used for the button
-    pub fn with_background_color(self, color: Color) -> Self {
+    pub fn color(self, color: Color) -> Self {
         Button { dirty: true, background_color: color, ..self }
     }
 
     /// Set icon to use
-    pub fn with_icon<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
+    pub fn icon_tex<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
         self.layout.alloc_prepend(ICON_ID, None);
         Button { dirty: true, icon: icon.into(), ..self }
     }
 
     /// Update icon layout properties
-    pub fn with_icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+    pub fn icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
         Button { dirty: true, ..self }
     }
 
     /// Set font to use
-    pub fn with_label_font(self, font: Option<&'static [u8]>) -> Self {
+    pub fn label_font(self, font: Option<&'static [u8]>) -> Self {
         Button { dirty: true, label_font: font, ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
-    pub fn with_label_font_size(self, size: f32) -> Self {
+    pub fn label_size(self, size: f32) -> Self {
         Button { dirty: true, label_font_size: size, ..self }
     }
 
     /// Set font color to use
-    pub fn with_label_font_color(self, color: Color) -> Self {
+    pub fn label_color(self, color: Color) -> Self {
         Button { dirty: true, label_font_color: color, ..self }
     }
 
     /// Set label layout to use
-    pub fn with_label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+    pub fn label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         self.layout.set_sub(f(self.layout.sub(LABEL_ID).unwrap().clone()));
         Button { dirty: true, ..self }
     }
 
     /// Set layout to use
-    pub fn with_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Button { dirty: true, layout: f(self.layout), ..self }
     }
 }
