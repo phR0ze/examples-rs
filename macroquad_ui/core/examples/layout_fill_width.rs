@@ -13,7 +13,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut fps = Fps::new().with_font_color(WHITE);
+    let mut fps = Fps::new().color(WHITE);
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut btn1 = Button::icon("Button1", icon).color(GRAY);
     let mut btn2 = Button::icon("Button2", icon).color(RED);
@@ -28,7 +28,9 @@ async fn main() {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());
 
-        let layout = Layout::vert("side_menu").size_p(0.75, 1.0).fill_w().spacing(10.).margins(0., 0., 50., 0.);
+        let spacing = 10.;
+        let layout =
+            Layout::vert("side_menu").size_p(0.75, 1.0).fill_w().spacing(spacing).margins(0., 0., 50., 0.);
         btn1.show(&mut *root_ui(), Some(&layout));
         btn2.show(&mut *root_ui(), Some(&layout));
         btn3.show(&mut *root_ui(), Some(&layout));
@@ -43,35 +45,35 @@ async fn main() {
         if btn1.activated() {
             draw_text("button1", 300., pos, 30., GRAY)
         }
-        pos += 34.;
+        pos += 31. + spacing;
         if btn2.activated() {
             draw_text("button2", 300., pos, 30., RED)
         }
-        pos += 34.;
+        pos += 32. + spacing;
         if btn3.activated() {
             draw_text("button3", 300., pos, 30., BLUE)
         }
-        pos += 34.;
+        pos += 33. + spacing;
         if btn4.activated() {
             draw_text("button4", 300., pos, 30., GREEN)
         }
-        pos += 34.;
+        pos += 33. + spacing;
         if btn5.activated() {
             draw_text("button5", 300., pos, 30., ORANGE)
         }
-        pos += 34.;
+        pos += 35. + spacing;
         if btn6.activated() {
             draw_text("button6", 300., pos, 30., YELLOW)
         }
-        pos += 34.;
+        pos += 35. + spacing;
         if btn7.activated() {
             draw_text("button7", 300., pos, 30., BROWN)
         }
-        pos += 34.;
+        pos += 35. + spacing;
         if btn8.activated() {
             draw_text("button8", 300., pos, 30., PURPLE)
         }
-        pos += 34.;
+        pos += 35. + spacing;
         if btn9.activated() {
             draw_text("button9", 300., pos, 30., PINK)
         }

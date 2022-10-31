@@ -22,7 +22,7 @@ async fn main() {
     let green_skin = skin_with_color(GREEN);
     let red_skin = skin_with_color(RED);
 
-    let mut fps = Fps::new().with_position(Align::Center(None));
+    let mut fps = Fps::new().align(Align::Center(None));
 
     loop {
         clear_background(WHITE);

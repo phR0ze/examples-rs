@@ -83,7 +83,6 @@ impl LayoutInner {
         let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(PackMode::default());
         let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
         let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
-        let parent_len = self.parent.as_ref().and_then(|x| Some(x.borrow().layouts.len())).unwrap_or(0) as i32;
 
         let mut pos = self.align.relative(self.size, parent_size, parent_pos);
         pos = match parent_mode {
@@ -93,12 +92,10 @@ impl LayoutInner {
         };
 
         // Handle spacing
-        if parent_idx != parent_len - 1 {
-            if let PackMode::LeftToRight = parent_mode {
-                pos.x += parent_spacing * parent_idx as f32;
-            } else if let PackMode::TopToBottom = parent_mode {
-                pos.y += parent_spacing * parent_idx as f32;
-            }
+        if let PackMode::LeftToRight = parent_mode {
+            pos.x += parent_spacing * parent_idx as f32;
+        } else if let PackMode::TopToBottom = parent_mode {
+            pos.y += parent_spacing * parent_idx as f32;
         }
 
         // Handle margins
@@ -448,7 +445,6 @@ impl Layout {
         let mut size = Vec2::default();
         for x in layout.layouts.iter_mut() {
             let sub = &mut *x.borrow_mut();
-            debug!("Processing: {}", &sub.id);
 
             // Update the sub-layout's positional offset
             sub.offset = cursor;

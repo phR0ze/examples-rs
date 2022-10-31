@@ -12,7 +12,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut fps = Fps::new().with_position(Align::LeftBottom(rect(10., 0., 0., 10.)));
+    let mut fps = Fps::new().align(Align::LeftBottom(rect(10., 0., 0., 10.)));
 
     loop {
         clear_background(WHITE);

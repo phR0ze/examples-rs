@@ -2,7 +2,6 @@
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
 
 use crate::align::*;
-use crate::layout::PackMode;
 use crate::utils::*;
 use macroquad::{
     prelude::*,
@@ -17,7 +16,7 @@ pub struct Fps {
     frames: u64,        // count the frames until the next second
     start: Instant,     // time to start tracking from
     font_color: Color,  // font color to use
-    position: Align,    // positional directive for location
+    align: Align,       // positional directive for location
 }
 
 impl Fps {
@@ -30,22 +29,22 @@ impl Fps {
             frames: 0,
             start: Instant::now(),
             font_color: BLACK,
-            position: Align::LeftTop,
+            align: Align::LeftTop,
         }
     }
 
     /// Create a new Fps dark instance
     pub fn dark() -> Fps {
-        Fps::new().with_font_color(WHITE)
+        Fps::new().color(WHITE)
     }
 
     /// Set the position
-    pub fn with_position(self, position: Align) -> Self {
-        Fps { position, ..self }
+    pub fn align(self, align: Align) -> Self {
+        Fps { align, ..self }
     }
 
     /// Set the font color to use
-    pub fn with_font_color(self, color: Color) -> Self {
+    pub fn color(self, color: Color) -> Self {
         Fps { dirty: true, font_color: color, ..self }
     }
 
@@ -92,7 +91,7 @@ impl Fps {
         ui.push_skin(self.skin.as_ref().unwrap());
         let fps = format!("FPS: {}", self.fps);
         let size = ui.calc_size(&fps);
-        let pos = self.position.relative(size, screen(), vec2(0., 0.));
+        let pos = self.align.relative(size, screen(), vec2(0., 0.));
         widgets::Label::new(fps).position(pos).ui(ui);
         ui.pop_skin();
     }

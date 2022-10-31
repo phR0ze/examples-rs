@@ -19,7 +19,7 @@ fn skin_with_color(color: Color) -> Skin {
 async fn main() {
     let gray_skin = skin_with_color(GRAY);
     let gray_bldr = ButtonBuilder1::new().background_color(GRAY).label_font_size(15.);
-    let mut fps = Fps::new().with_position(Align::LeftBottom(rect(10., 0., 0., 10.)));
+    let mut fps = Fps::new().align(Align::LeftBottom(rect(10., 0., 0., 10.)));
 
     loop {
         clear_background(WHITE);

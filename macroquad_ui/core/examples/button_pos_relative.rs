@@ -25,7 +25,7 @@ async fn main() {
         Skin { group_style, ..ui.default_skin() }
     };
 
-    let mut fps = Fps::new().with_font_color(WHITE);
+    let mut fps = Fps::new().color(WHITE);
     loop {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());

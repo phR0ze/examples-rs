@@ -24,7 +24,7 @@ async fn main() {
         .with_position(Align::LeftTop(None))
         .with_size(Size::half_width())
         .with_label_position(Align::LeftCenter(rect(10.0, 0., 0., 0.)));
-    let mut fps = Fps::new().with_font_color(WHITE);
+    let mut fps = Fps::new().color(WHITE);
     loop {
         clear_background(BLACK);
         fps.ui(&mut *root_ui());

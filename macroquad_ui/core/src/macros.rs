@@ -3,6 +3,6 @@
 #[macro_export]
 macro_rules! id {
     () => {{
-        concat!(file!(), line!(), column!())
+        concat!(file!(), ":", line!(), ":", column!())
     }};
 }
