@@ -13,7 +13,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut fps = Fps::new().color(WHITE);
+    let mut fps = Fps::dark();
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut btn1 = Button::icon("Button1", icon).color(GRAY);
     let mut btn2 = Button::icon("Button2", icon).color(RED);

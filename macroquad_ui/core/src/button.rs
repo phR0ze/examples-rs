@@ -59,8 +59,8 @@ impl ButtonBuilder {
     pub fn icon(icon: Texture2D) -> Self {
         ButtonBuilder::new()
             .icon_texture(icon)
-            .icon_layout(|x| x.align(Align::Center).margins(10., 0., 0., 0.))
-            .label_layout(|x| x.align(Align::Center).margins(10., 10., 2., 0.))
+            .icon_layout(|x| x.align(Align::Center).margins(10., 5., 5., 5.))
+            .label_layout(|x| x.align(Align::Center).margins(10., 10., 0., 0.))
     }
 
     /// Set background image to use

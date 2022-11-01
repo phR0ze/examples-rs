@@ -14,7 +14,8 @@
 //!
 //! ## Align directive
 //! The alignment directive as modified by the various align functions is used to guide the
-//! calculation of the widgets position in its parent layout.
+//! calculation of the widgets position in its parent layout. Margins will still affect the position
+//! even when an alignment directive existe.
 //!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
@@ -32,6 +33,15 @@
 //! ## Spacing
 //! When packing widgets in a layout consecutively spacing can be applied to provide a consistent
 //! space between widgets
+//!
+//! ## Margins
+//! Margins are defined as additional space outside the widgets content area. Margins will affect
+//! how the widget is drawn in two ways. The first way is that margins are included in the size of
+//! the widget when considering how much space a widget will require inside a parent widget. However
+//! margins don't affect the content area of the wiget. The second way margins affect the widget is
+//! in its position. A left margin of 5.0 pts will positionally offset the widget to the right by
+//! 5.0 pts. This means that having equal and opposite margins will cancel out the margin's
+//! positional affect.
 use crate::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
@@ -99,34 +109,8 @@ impl LayoutInner {
         }
 
         // Handle margins according to alignment
-        match self.align {
-            // Left and Top are the margins to consider for
-            Align::LeftTop | Align::LeftCenter | Align::CenterTop | Align::Center => {
-                pos.x += self.margins.left;
-                pos.y += self.margins.top;
-            },
-
-            // Left and Bottom are the margins to consider for
-            Align::LeftBottom | Align::CenterBottom => {
-                pos.x += self.margins.left;
-                pos.y -= self.margins.bottom;
-            },
-
-            // Right and Top are the margins to consider for
-            Align::RightTop | Align::RightCenter => {
-                pos.x -= self.margins.right;
-                pos.y += self.margins.top;
-            },
-
-            // Right and Bottom are the margins to consider for
-            Align::RightBottom => {
-                pos.x -= self.margins.right;
-                pos.y -= self.margins.bottom;
-            },
-
-            // No margins are taken into account for
-            Align::Static(_, _) => {},
-        }
+        pos.x += self.margins.left - self.margins.right;
+        pos.y += self.margins.top - self.margins.bottom;
 
         pos
     }
@@ -233,10 +217,8 @@ impl Layout {
             let inner = &mut *layout.0.borrow_mut();
             inner.layouts.clear();
             for x in self.0.borrow().layouts.iter() {
-                let id = &(*x.borrow()).id;
-                debug!("copy: {}", id);
                 let sub_layout = x.borrow().copy();
-                sub_layout.borrow_mut().parent = None;
+                sub_layout.borrow_mut().parent = Some(layout.0.clone());
                 inner.layouts.push(sub_layout);
             }
         }
@@ -555,10 +537,22 @@ impl Layout {
             }
         }
 
-        // Only update layout size based on sub-layout sums if in expand mode
+        // Update layout size based on sub-layout sums if in expand mode
         if layout.expand {
             layout.size = size;
         }
+
+        // Fill directive takes precedence over expand
+        if let Some(parent) = &layout.parent {
+            let parent = parent.borrow();
+            if parent.fill_w && !parent.expand {
+                layout.size.x = parent.size.x;
+            }
+            if parent.fill_h && !parent.expand {
+                layout.size.y = parent.size.y;
+            }
+        }
+
         layout.dirty = false;
     }
 }
