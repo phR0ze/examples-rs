@@ -49,7 +49,7 @@ struct LayoutInner {
     fill_h: bool,                 // fill height of layout
     expand: bool,                 // layout expands to track all content allocated
     align: Align,                 // alignment in the parent layout
-    mode: PackMode,               // layout mode directive
+    mode: Mode,                   // layout mode directive
     spacing: f32,                 // space to include between widgets
     margins: RectOffset,          // space outside the frame edge
     layouts: Vec<SharedLayout>,   // sub-layouts
@@ -66,7 +66,7 @@ impl LayoutInner {
             fill_w: false,
             fill_h: false,
             expand: true, // enable expansion by default
-            mode: PackMode::default(),
+            mode: Mode::default(),
             align: Align::default(),
             spacing: 0.,
             margins: RectOffset::default(),
@@ -80,21 +80,21 @@ impl LayoutInner {
     // * parent's size and positional offset
     fn align(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
         debug!("align: {}", &self.id);
-        let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(PackMode::default());
+        let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(Mode::default());
         let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
         let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
 
         let mut pos = self.align.relative(self.size, parent_size, parent_pos);
         pos = match parent_mode {
-            PackMode::LeftToRight => vec2(parent_pos.x + self.offset.x, pos.y),
-            PackMode::TopToBottom => vec2(pos.x, parent_pos.y + self.offset.y),
-            PackMode::Align => pos,
+            Mode::LeftToRight => vec2(parent_pos.x + self.offset.x, pos.y),
+            Mode::TopToBottom => vec2(pos.x, parent_pos.y + self.offset.y),
+            Mode::Align => pos,
         };
 
         // Handle spacing
-        if let PackMode::LeftToRight = parent_mode {
+        if let Mode::LeftToRight = parent_mode {
             pos.x += parent_spacing * parent_idx as f32;
-        } else if let PackMode::TopToBottom = parent_mode {
+        } else if let Mode::TopToBottom = parent_mode {
             pos.y += parent_spacing * parent_idx as f32;
         }
 
@@ -156,33 +156,47 @@ impl Layout {
     }
 
     /// Create a horizontal layout
+    /// * lays out sub-layouts using the left to right packing mode
     pub fn horz<T: AsRef<str>>(id: T) -> Self {
         let layout = Self::new(id);
         {
             let inner = &mut *layout.0.borrow_mut();
             inner.dirty = true;
-            inner.mode = PackMode::LeftToRight;
+            inner.mode = Mode::LeftToRight;
         }
         layout
     }
 
     /// Create a vertical layout
+    /// * lays out sub-layouts using the top to bottom packing mode
     pub fn vert<T: AsRef<str>>(id: T) -> Self {
         let layout = Self::new(id);
         {
             let inner = &mut *layout.0.borrow_mut();
             inner.dirty = true;
-            inner.mode = PackMode::TopToBottom;
+            inner.mode = Mode::TopToBottom;
         }
         layout
     }
 
     /// Set layout alignment
+    /// * controls this widgets alignment in its parent layout
     pub fn align(self, align: Align) -> Self {
         {
             let layout = &mut *self.0.borrow_mut();
             layout.dirty = true;
             layout.align = align;
+        }
+        self
+    }
+
+    /// Set layout packing mode
+    /// * lays out sub-layouts using the given mode
+    pub fn mode(self, mode: Mode) -> Self {
+        {
+            let layout = &mut *self.0.borrow_mut();
+            layout.dirty = true;
+            layout.mode = mode;
         }
         self
     }
@@ -462,14 +476,14 @@ impl Layout {
             }
 
             match layout.mode {
-                PackMode::LeftToRight | PackMode::Align => {
+                Mode::LeftToRight | Mode::Align => {
                     size.x += sub_width;
                     if size.y < sub_height {
                         size.y = sub_height;
                     }
                     cursor.x = size.x;
                 },
-                PackMode::TopToBottom => {
+                Mode::TopToBottom => {
                     if size.x < sub_width {
                         size.x = sub_width;
                     }
@@ -489,7 +503,7 @@ impl Layout {
 
 /// Define different layout modes
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum PackMode {
+pub enum Mode {
     /// Pack widgets and containers horizontally
     LeftToRight,
 
@@ -500,8 +514,8 @@ pub enum PackMode {
     Align,
 }
 
-impl Default for PackMode {
+impl Default for Mode {
     fn default() -> Self {
-        PackMode::Align
+        Mode::Align
     }
 }

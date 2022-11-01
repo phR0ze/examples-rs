@@ -20,20 +20,20 @@ async fn main() {
         Button::new("Left Top")
             .color(GRAY)
             .label_size(20.)
-            .layout(|x| x.align(Align::LeftTop).size_s(120., 50.))
-            .label_layout(|x| x.align(Align::LeftTop).margins(10., 10., 10., 10.))
+            .layout(|x| x.mode(Mode::Align).align(Align::LeftTop).size_s(120., 50.))
+            .label_layout(|x| x.align(Align::LeftTop))
             .show(&mut *root_ui(), Some(&layout));
         Button::new("Center Top")
             .color(GRAY)
             .label_size(20.)
-            .layout(|x| x.align(Align::CenterTop).size_s(120., 50.))
-            .label_layout(|x| x.align(Align::CenterTop).margins(10., 10., 10., 10.))
+            .layout(|x| x.mode(Mode::Align).align(Align::CenterTop).size_s(120., 50.))
+            .label_layout(|x| x.align(Align::CenterTop))
             .show(&mut *root_ui(), Some(&layout));
         Button::new("Right Top")
             .color(GRAY)
             .label_size(20.)
-            .layout(|x| x.align(Align::RightTop).size_s(120., 50.))
-            .label_layout(|x| x.align(Align::RightTop).margins(10., 10., 10., 10.))
+            .layout(|x| x.mode(Mode::Align).align(Align::RightTop).size_s(120., 50.))
+            .label_layout(|x| x.align(Align::RightTop))
             .show(&mut *root_ui(), Some(&layout));
 
         next_frame().await
