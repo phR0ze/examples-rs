@@ -1,4 +1,5 @@
-//! Demonstrating sub component alignment with labels in a button
+//! Demonstrating widget alignment to parent and sub-layout alignment with labels in a button
+//! * Also includes the usage of margins with alignment for relative adjustments
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -13,87 +14,58 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
+    let builder =
+        ButtonBuilder::new().color(GRAY).label_size(20.).layout(|x| x.mode(Mode::Align).size_s(130., 50.));
+
     loop {
         clear_background(BLACK);
 
-        let layout = Layout::new(id!()).size_f();
-        Button::new("Left Top")
-            .color(GRAY)
-            .label_size(20.)
-            .layout(|x| x.mode(Mode::Align).align(Align::LeftTop).size_s(120., 50.))
+        builder
+            .build("Left Top")
+            .layout(|x| x.align(Align::LeftTop).margins(5.0, 0., 5., 0.))
             .label_layout(|x| x.align(Align::LeftTop))
-            .show(&mut *root_ui(), Some(&layout));
-        Button::new("Center Top")
-            .color(GRAY)
-            .label_size(20.)
-            .layout(|x| x.mode(Mode::Align).align(Align::CenterTop).size_s(120., 50.))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Center Top")
+            .layout(|x| x.align(Align::CenterTop).margins(5.0, 0., 25., 0.))
             .label_layout(|x| x.align(Align::CenterTop))
-            .show(&mut *root_ui(), Some(&layout));
-        Button::new("Right Top")
-            .color(GRAY)
-            .label_size(20.)
-            .layout(|x| x.mode(Mode::Align).align(Align::RightTop).size_s(120., 50.))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Right Top")
+            .layout(|x| x.align(Align::RightTop))
             .label_layout(|x| x.align(Align::RightTop))
-            .show(&mut *root_ui(), Some(&layout));
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Left Center")
+            .layout(|x| x.align(Align::LeftCenter))
+            .label_layout(|x| x.align(Align::LeftCenter))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Center")
+            .layout(|x| x.align(Align::Center))
+            .label_layout(|x| x.align(Align::Center))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Right Center")
+            .layout(|x| x.align(Align::RightCenter))
+            .label_layout(|x| x.align(Align::RightCenter))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Left Bottom")
+            .layout(|x| x.align(Align::LeftBottom))
+            .label_layout(|x| x.align(Align::LeftBottom))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Bottom Center")
+            .layout(|x| x.align(Align::CenterBottom))
+            .label_layout(|x| x.align(Align::CenterBottom))
+            .show(&mut *root_ui(), None);
+        builder
+            .build("Right Bottom")
+            .layout(|x| x.align(Align::RightBottom))
+            .label_layout(|x| x.align(Align::RightBottom))
+            .show(&mut *root_ui(), None);
 
         next_frame().await
     }
 }
-
-//         builder
-//             .build("Left Top")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::LeftTop(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 50.));
-
-//         builder
-//             .build("Left Center")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::LeftCenter(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 100.));
-
-//         builder
-//             .build("Left Bottom")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::LeftBottom(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 150.));
-
-//         builder
-//             .build("Right Top")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::RightTop(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 200.));
-
-//         builder
-//             .build("Right Center")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::RightCenter(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 250.));
-
-//         builder
-//             .build("Right Bottom")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::RightBottom(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 300.));
-
-//         builder
-//             .build("Center Top")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::CenterTop(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 350.));
-
-//         builder.build("Center").with_position(Align::CenterTop(None)).with_label_position(Align::Center(None)).ui(
-//             &mut *root_ui(),
-//             screen(),
-//             offset(0., 400.),
-//         );
-
-//         builder
-//             .build("Center Bottom")
-//             .with_position(Align::CenterTop(None))
-//             .with_label_position(Align::CenterBottom(None))
-//             .ui(&mut *root_ui(), screen(), offset(0., 450.));
-
-//         next_frame().await
-//     }
-// }

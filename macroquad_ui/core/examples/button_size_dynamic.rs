@@ -16,7 +16,7 @@ async fn main() {
 
     loop {
         clear_background(WHITE);
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         let mut btn1 = Button1::new("Dynamic Sizing")
             .with_background_color(BLUE)

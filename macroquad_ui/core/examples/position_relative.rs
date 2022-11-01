@@ -26,7 +26,7 @@ async fn main() {
 
     loop {
         clear_background(WHITE);
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         // Handle positional offset of containing widget for inner widget
         root_ui().push_skin(&gray_skin);

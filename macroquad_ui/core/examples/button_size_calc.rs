@@ -27,7 +27,7 @@ async fn main() {
     let mut fps = Fps::new().color(WHITE);
     loop {
         clear_background(BLACK);
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         btn1.ui(&mut *root_ui(), screen(), offset(0., 50.));
         if btn1.activated() {

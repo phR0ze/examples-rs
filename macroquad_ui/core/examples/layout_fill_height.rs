@@ -16,7 +16,7 @@ async fn main() {
     let mut fps = Fps::new().color(WHITE);
     loop {
         clear_background(BLACK);
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         let mut base_layout = Layout::root().with_fill_h().with_spacing(10.).with_margins(10., 10., 60., 10.);
 

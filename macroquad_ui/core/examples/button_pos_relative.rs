@@ -28,7 +28,7 @@ async fn main() {
     let mut fps = Fps::new().color(WHITE);
     loop {
         clear_background(BLACK);
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         root_ui().push_skin(&white_border);
         let size = vec2(300., 300.);

@@ -1,3 +1,4 @@
+//! Demonstrate FPS in top left of the screen
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -17,7 +18,7 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         next_frame().await
     }

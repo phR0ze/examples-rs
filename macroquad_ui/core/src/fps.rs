@@ -1,13 +1,15 @@
 //! Fps provides a simple frames per second widget to be displayed for debug purposes.
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
 
-use crate::align::*;
+use crate::layout::Layout;
 use crate::utils::*;
 use macroquad::{
     prelude::*,
     ui::{widgets, Skin, Ui},
 };
 use std::time::Instant;
+
+const FPS_ID: &'static str = "fps";
 
 pub struct Fps {
     fps: u16,           // last calculated frames per second
@@ -16,7 +18,7 @@ pub struct Fps {
     frames: u64,        // count the frames until the next second
     start: Instant,     // time to start tracking from
     font_color: Color,  // font color to use
-    align: Align,       // positional directive for location
+    layout: Layout,     // layout for the widget
 }
 
 impl Fps {
@@ -29,18 +31,13 @@ impl Fps {
             frames: 0,
             start: Instant::now(),
             font_color: BLACK,
-            align: Align::LeftTop,
+            layout: Layout::new(FPS_ID),
         }
     }
 
     /// Create a new Fps dark instance
     pub fn dark() -> Fps {
         Fps::new().color(WHITE)
-    }
-
-    /// Set the position
-    pub fn align(self, align: Align) -> Self {
-        Fps { align, ..self }
     }
 
     /// Set the font color to use
@@ -53,8 +50,13 @@ impl Fps {
         self.fps
     }
 
+    /// Set layout to use
+    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        Self { layout: f(self.layout), ..self }
+    }
+
     // Update the skin
-    fn update_skin(&mut self, ui: &mut Ui) {
+    fn ui(&mut self, ui: &mut Ui) {
         if !self.dirty {
             return;
         }
@@ -70,8 +72,8 @@ impl Fps {
     }
 
     /// Draw the frames per second as directed
-    pub fn ui(&mut self, ui: &mut Ui) {
-        self.update_skin(ui);
+    pub fn show(&mut self, ui: &mut Ui) {
+        self.ui(ui);
 
         // Calculate fps averaging over last 10sec
         self.frames += 1;
@@ -90,8 +92,8 @@ impl Fps {
 
         ui.push_skin(self.skin.as_ref().unwrap());
         let fps = format!("FPS: {}", self.fps);
-        let size = ui.calc_size(&fps);
-        let pos = self.align.relative(size, screen(), vec2(0., 0.));
+        self.layout.set_size_s(ui.calc_size(&fps));
+        let (pos, _) = self.layout.shape();
         widgets::Label::new(fps).position(pos).ui(ui);
         ui.pop_skin();
     }

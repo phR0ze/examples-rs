@@ -4,22 +4,17 @@
 //! * Icon support with positioning and sizing inside button
 //! * Button activated toggle
 //! * Calculated sizing and positioning relative to containing widget
+//! * Builder for reusable layout but also direct modification
 use crate::prelude::*;
 
 const ICON_ID: &'static str = "icon";
 const LABEL_ID: &'static str = "label";
 
-/// Button encapsulates and extends Macroquad's button
+/// Button builder provides a template for building new buttons with a persisted reusable
+/// configuration
 #[derive(Debug, Clone)]
-pub struct Button {
-    dirty: bool,        // track if a skin update is needed
-    skin: Option<Skin>, // skin to use for the entry titles
-    label: String,      // button label text value
-    clicked: bool,      // track button clicked state
-    activated: bool,    // track button activation i.e. odd clicks
-
-    // Configuration
-    layout: Layout,
+pub struct ButtonBuilder {
+    layout: Layout,                      // button layout
     background: Option<Image>,           // background image to use
     background_clk: Option<Image>,       // background image to use when clicked
     background_hov: Option<Image>,       // background image to use when hovered
@@ -34,17 +29,11 @@ pub struct Button {
     icon: Option<Texture2D>,             // optional icon to display
 }
 
-// Constructors and builder functions
-impl Button {
-    /// Create a new standard button instance
-    pub fn new<T: AsRef<str>>(label: T) -> Self {
+impl ButtonBuilder {
+    /// Create a new button builder instance
+    pub fn new() -> Self {
         let button = Self {
-            dirty: true,
-            skin: None,
-            label: label.as_ref().to_string(),
-            clicked: false,
-            activated: false,
-            layout: Layout::horz(label),
+            layout: Layout::horz(""),
             background: None,
             background_clk: None,
             background_hov: None,
@@ -66,72 +55,165 @@ impl Button {
 
     /// Create a new button instance with an icon
     /// * the icon will be scaled to match the font size
-    /// * `label` is the text to display as the button label
     /// * `icon` is a texture to be displayed as the button icon
-    pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
-        Button::new(label)
-            .icon_tex(icon)
+    pub fn icon(icon: Texture2D) -> Self {
+        ButtonBuilder::new()
+            .icon_texture(icon)
             .icon_layout(|x| x.align(Align::Center).margins(10., 0., 0., 0.))
             .label_layout(|x| x.align(Align::Center).margins(10., 10., 2., 0.))
     }
 
     /// Set background image to use
     pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Button { dirty: true, background: image.into(), ..self }
+        Self { background: image.into(), ..self }
     }
 
     /// Set background image to use
     pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Button { dirty: true, background_clk: image.into(), ..self }
+        Self { background_clk: image.into(), ..self }
     }
 
     /// Set background image to use
     pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Button { dirty: true, background_hov: image.into(), ..self }
+        Self { background_hov: image.into(), ..self }
     }
 
     /// Set the background color used for the button
     pub fn color(self, color: Color) -> Self {
-        Button { dirty: true, background_color: color, ..self }
+        Self { background_color: color, ..self }
     }
 
     /// Set icon to use
-    pub fn icon_tex<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
+    pub fn icon_texture<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
         self.layout.alloc_prepend(ICON_ID, None);
-        Button { dirty: true, icon: icon.into(), ..self }
+        Self { icon: icon.into(), ..self }
     }
 
     /// Update icon layout properties
     pub fn icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
-        Button { dirty: true, ..self }
+        self
     }
 
     /// Set font to use
     pub fn label_font(self, font: Option<&'static [u8]>) -> Self {
-        Button { dirty: true, label_font: font, ..self }
+        Self { label_font: font, ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn label_size(self, size: f32) -> Self {
-        Button { dirty: true, label_font_size: size, ..self }
+        Self { label_font_size: size, ..self }
     }
 
     /// Set font color to use
     pub fn label_color(self, color: Color) -> Self {
-        Button { dirty: true, label_font_color: color, ..self }
+        Self { label_font_color: color, ..self }
     }
 
     /// Set label layout to use
     pub fn label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         self.layout.set_sub(f(self.layout.sub(LABEL_ID).unwrap().clone()));
-        Button { dirty: true, ..self }
+        self
     }
 
     /// Set layout to use
     pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        Button { dirty: true, layout: f(self.layout), ..self }
+        Self { layout: f(self.layout), ..self }
+    }
+
+    /// Create a new button instance
+    pub fn build<T: AsRef<str>>(&self, label: T) -> Button {
+        let conf = self.clone().layout(|x| x.copy().id(label.as_ref()));
+        Button {
+            conf,
+            dirty: true,
+            skin: None,
+            label: label.as_ref().to_string(),
+            clicked: false,
+            activated: false,
+        }
+    }
+}
+
+/// Button encapsulates and extends Macroquad's button
+#[derive(Debug, Clone)]
+pub struct Button {
+    conf: ButtonBuilder, // button configuration
+    dirty: bool,         // track if a skin update is needed
+    skin: Option<Skin>,  // skin to use for the entry titles
+    label: String,       // button label text value
+    clicked: bool,       // track button clicked state
+    activated: bool,     // track button activation i.e. odd clicks
+}
+
+// Constructors and builder functions
+impl Button {
+    /// Create a new button instance with an icon
+    /// * the icon will be scaled to match the font size
+    /// * `label` is the text to display as the button label
+    /// * `icon` is a texture to be displayed as the button icon
+    pub fn icon<T: AsRef<str>>(label: T, icon: Texture2D) -> Self {
+        ButtonBuilder::icon(icon).build(label)
+    }
+
+    /// Set background image to use
+    pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { background: image.into(), ..self.conf }, ..self }
+    }
+
+    /// Set background image to use
+    pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { background_clk: image.into(), ..self.conf }, ..self }
+    }
+
+    /// Set background image to use
+    pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { background_hov: image.into(), ..self.conf }, ..self }
+    }
+
+    /// Set the background color used for the button
+    pub fn color(self, color: Color) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { background_color: color, ..self.conf }, ..self }
+    }
+
+    /// Set icon to use
+    pub fn icon_texture<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
+        self.conf.layout.alloc_prepend(ICON_ID, None);
+        Self { dirty: true, conf: ButtonBuilder { icon: icon.into(), ..self.conf }, ..self }
+    }
+
+    /// Update icon layout properties
+    pub fn icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        self.conf.layout.set_sub(f(self.conf.layout.sub(ICON_ID).unwrap().clone()));
+        Self { dirty: true, ..self }
+    }
+
+    /// Set font to use
+    pub fn label_font(self, font: Option<&'static [u8]>) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { label_font: font, ..self.conf }, ..self }
+    }
+
+    /// Set font size to use for the button label
+    /// * handles scaling for mobile
+    pub fn label_size(self, size: f32) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { label_font_size: size, ..self.conf }, ..self }
+    }
+
+    /// Set font color to use
+    pub fn label_color(self, color: Color) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { label_font_color: color, ..self.conf }, ..self }
+    }
+
+    /// Set label layout to use
+    pub fn label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        self.conf.layout.set_sub(f(self.conf.layout.sub(LABEL_ID).unwrap().clone()));
+        Self { dirty: true, ..self }
+    }
+
+    /// Set layout to use
+    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        Self { dirty: true, conf: ButtonBuilder { layout: f(self.conf.layout), ..self.conf }, ..self }
     }
 }
 
@@ -161,14 +243,14 @@ impl Button {
         }
         // Create the label style
         let mut style =
-            ui.style_builder().text_color(self.label_font_color).font_size(self.label_font_size as u16);
-        if let Some(color) = self.label_font_color_clk {
+            ui.style_builder().text_color(self.conf.label_font_color).font_size(self.conf.label_font_size as u16);
+        if let Some(color) = self.conf.label_font_color_clk {
             style = style.text_color_clicked(color);
         }
-        if let Some(color) = self.label_font_color_hov {
+        if let Some(color) = self.conf.label_font_color_hov {
             style = style.text_color_hovered(color);
         }
-        if let Some(font) = self.label_font {
+        if let Some(font) = self.conf.label_font {
             style = style.font(font).unwrap();
         }
         let label_style = style.build();
@@ -176,22 +258,22 @@ impl Button {
         // Create the button style
         style = ui
             .style_builder()
-            .color(self.background_color)
-            .color_clicked(self.background_color)
-            .color_hovered(self.background_color);
-        if let Some(background) = &self.background {
+            .color(self.conf.background_color)
+            .color_clicked(self.conf.background_color)
+            .color_hovered(self.conf.background_color);
+        if let Some(background) = &self.conf.background {
             style = style.background(background.clone());
         }
-        if let Some(background) = &self.background_clk {
+        if let Some(background) = &self.conf.background_clk {
             style = style.background_clicked(background.clone());
         }
-        if let Some(background) = &self.background_hov {
+        if let Some(background) = &self.conf.background_hov {
             style = style.background_hovered(background.clone());
         }
-        if let Some(color) = &self.background_color_clk {
+        if let Some(color) = &self.conf.background_color_clk {
             style = style.color_clicked(*color);
         }
-        if let Some(color) = &self.background_color_hov {
+        if let Some(color) = &self.conf.background_color_hov {
             style = style.color_hovered(*color);
         }
         let button_style = style.build();
@@ -201,11 +283,11 @@ impl Button {
 
         // Calculate and cache button component sizes to reduce compute time
         let label_size = text_size(ui, &skin, Some(&self.label));
-        if let Some(_) = &self.icon {
-            self.layout.set_sub_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
+        if let Some(_) = &self.conf.icon {
+            self.conf.layout.set_sub_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
         }
-        self.layout.set_sub_size_p(LABEL_ID, label_size);
-        self.layout.update();
+        self.conf.layout.set_sub_size_p(LABEL_ID, label_size);
+        self.conf.layout.update();
 
         self.skin = Some(skin);
         self.dirty = false;
@@ -221,24 +303,24 @@ impl Button {
 
         // Set parent if given
         if let Some(parent) = layout {
-            parent.append(&self.layout);
+            parent.append(&self.conf.layout);
         }
 
         // Draw button
-        let (pos, size) = self.layout.shape();
+        let (pos, size) = self.conf.layout.shape();
         if widgets::Button::new("").size(size).position(pos).ui(ui) {
             self.activated = !self.activated;
             self.clicked = true;
         }
 
         // Draw icon
-        if let Some(icon) = &self.icon {
-            let (icon_pos, icon_size) = self.layout.sub_shape(ICON_ID).unwrap();
+        if let Some(icon) = &self.conf.icon {
+            let (icon_pos, icon_size) = self.conf.layout.sub_shape(ICON_ID).unwrap();
             widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
         }
 
         // Draw label
-        let (label_pos, label_size) = self.layout.sub_shape(LABEL_ID).unwrap();
+        let (label_pos, label_size) = self.conf.layout.sub_shape(LABEL_ID).unwrap();
         widgets::Label::new(self.label.as_str()).size(label_size).position(label_pos).ui(ui);
 
         ui.pop_skin();

@@ -21,7 +21,7 @@ async fn main() {
 
     loop {
         clear_background(BLACK);
-        fps.ui(&mut *root_ui());
+        fps.show(&mut *root_ui());
 
         let layout = Layout::horz("menu").size_f().spacing(10.).margins(0., 0., 50., 0.);
         btn1.show(&mut *root_ui(), Some(&layout));
