@@ -493,80 +493,71 @@ impl Layout {
     }
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts
-    /// * returns the size calculation
     /// * only performs calculation if needed
-    /// * calculation exluding margins is persisted
-    /// * calculation excludes margins unless parent is set to expand
+    /// * returns the size calculation including margins
     pub fn update(&self) -> Vec2 {
-        let inner_mode = {
+        let (expand, mode, mut size) = {
             let inner = &mut *self.0.borrow_mut();
+
+            // Calculate total layout size based on static size and margins
+            let inner_size = vec2(
+                inner.size.x + inner.margins.left + inner.margins.right,
+                inner.size.y + inner.margins.top + inner.margins.bottom,
+            );
+
+            // Return persisted value including margins if not dirty
             if !inner.dirty {
-                return inner.size;
+                return inner_size;
             }
+
             inner.dirty = false;
-            inner.mode
+            (inner.expand, inner.mode, inner_size)
         };
 
-        // Calculate layout size and set positional offsets along the way
-        let mut size = Vec2::default();
-        let mut cursor = Vec2::default();
+        // Calculate total layout size based on sub-layouts size and margins
+        if !self.0.borrow().layouts.is_empty() {
+            size = Vec2::default();
+            let mut offset = Vec2::default();
+            for x in self.0.borrow().layouts.iter() {
+                x.borrow_mut().offset = offset; // Set positional offsets along the way.
+                let sub_size = Layout(x.clone()).update();
 
-        for x in self.0.borrow().layouts.iter() {
-            let sub_size = Layout(x.clone()).update();
-            let sub = &mut *x.borrow_mut();
-            sub.offset = cursor;
-            debug!("update: {}, {}", &sub.id, sub_size);
+                match mode {
+                    Mode::LeftToRight | Mode::Align => {
+                        size.x += sub_size.x;
+                        if size.y < sub_size.y {
+                            size.y = sub_size.y;
+                        }
+                        offset.x = size.x;
+                    },
+                    Mode::TopToBottom => {
+                        if size.x < sub_size.x {
+                            size.x = sub_size.x;
+                        }
+                        size.y += sub_size.y;
+                        offset.y = size.y;
+                    },
+                }
+            }
 
-            // Caculate the sub-layout's size
-            let mut sub_size = Vec2::default();
-            sub_size.x = sub.size.x + sub.margins.left + sub.margins.right;
-            sub_size.y = sub.size.y + sub.margins.top + sub.margins.bottom;
-            debug!("update: {}, {}", &sub.id, sub_size);
-
-            match inner_mode {
-                Mode::LeftToRight | Mode::Align => {
-                    size.x += sub_size.x;
-                    if size.y < sub_size.y {
-                        size.y = sub_size.y;
-                    }
-                    cursor.x = size.x;
-                },
-                Mode::TopToBottom => {
-                    if size.x < sub_size.x {
-                        size.x = sub_size.x;
-                    }
-                    size.y += sub_size.y;
-                    cursor.y = size.y;
-                },
+            // Persist the calculated size if set to expand
+            if expand && size != Vec2::default() {
+                self.0.borrow_mut().size = size;
             }
         }
 
-        // Update size based on sub-layout sums if set to expand
-        {
-            let inner = &mut *self.0.borrow_mut();
-            if inner.expand {
-                inner.size = size;
+        // Handle fill directives
+        let inner = &mut *self.0.borrow_mut();
+        if let Some(parent) = &inner.parent {
+            let parent = parent.borrow();
+
+            if parent.fill_w {
+                inner.size.x = parent.size.x;
+                size.x = parent.size.x;
             }
-
-            // Handle parent directives
-            if let Some(parent) = &inner.parent {
-                let parent = parent.borrow();
-
-                // Parent expand should include margins but not persisted
-                if parent.expand {
-                    size.x = inner.size.x + inner.margins.left + inner.margins.right;
-                    size.y = inner.size.y + inner.margins.top + inner.margins.bottom;
-                }
-
-                // Parent fill and persist
-                if parent.fill_w {
-                    inner.size.x = parent.size.x;
-                    size.x = parent.size.x;
-                }
-                if parent.fill_h {
-                    inner.size.y = parent.size.y;
-                    size.y = parent.size.x;
-                }
+            if parent.fill_h {
+                inner.size.y = parent.size.y;
+                size.y = parent.size.x;
             }
         }
 
@@ -590,5 +581,16 @@ pub enum Mode {
 impl Default for Mode {
     fn default() -> Self {
         Mode::Align
+    }
+}
+
+// Unit tests
+// -------------------------------------------------------------------------------------------------
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_layout() {
+        assert_eq!("foo1", "foo2")
     }
 }
