@@ -482,6 +482,7 @@ impl Layout {
                 inner.layouts.push(layout.0.clone());
                 inner.dirty = true;
             }
+            // layout.update();
             self.update();
         }
     }
@@ -545,10 +546,10 @@ impl Layout {
         // Fill directive takes precedence over expand
         if let Some(parent) = &layout.parent {
             let parent = parent.borrow();
-            if parent.fill_w && !parent.expand {
+            if parent.fill_w {
                 layout.size.x = parent.size.x;
             }
-            if parent.fill_h && !parent.expand {
+            if parent.fill_h {
                 layout.size.y = parent.size.y;
             }
         }

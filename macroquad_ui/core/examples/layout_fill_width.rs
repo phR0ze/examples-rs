@@ -41,41 +41,41 @@ async fn main() {
         btn8.show(&mut *root_ui(), Some(&layout));
         btn9.show(&mut *root_ui(), Some(&layout));
 
-        let mut pos = 78.;
         if btn1.activated() {
-            draw_text("button1", 300., pos, 30., GRAY)
+            let (pos, _) = btn1.shape();
+            draw_text("button1", pos.x + 300., pos.y + 25., 30., GRAY)
         }
-        pos += 31. + spacing;
         if btn2.activated() {
-            draw_text("button2", 300., pos, 30., RED)
+            let (pos, _) = btn2.shape();
+            draw_text("button2", pos.x + 300., pos.y + 25., 30., RED)
         }
-        pos += 32. + spacing;
         if btn3.activated() {
-            draw_text("button3", 300., pos, 30., BLUE)
+            let (pos, _) = btn3.shape();
+            draw_text("button3", pos.x + 300., pos.y + 25., 30., BLUE)
         }
-        pos += 33. + spacing;
         if btn4.activated() {
-            draw_text("button4", 300., pos, 30., GREEN)
+            let (pos, _) = btn4.shape();
+            draw_text("button4", pos.x + 300., pos.y + 25., 30., GREEN)
         }
-        pos += 33. + spacing;
         if btn5.activated() {
-            draw_text("button5", 300., pos, 30., ORANGE)
+            let (pos, _) = btn5.shape();
+            draw_text("button5", pos.x + 300., pos.y + 25., 30., ORANGE)
         }
-        pos += 35. + spacing;
         if btn6.activated() {
-            draw_text("button6", 300., pos, 30., YELLOW)
+            let (pos, _) = btn6.shape();
+            draw_text("button6", pos.x + 300., pos.y + 25., 30., YELLOW)
         }
-        pos += 35. + spacing;
         if btn7.activated() {
-            draw_text("button7", 300., pos, 30., BROWN)
+            let (pos, _) = btn7.shape();
+            draw_text("button7", pos.x + 300., pos.y + 25., 30., BROWN)
         }
-        pos += 35. + spacing;
         if btn8.activated() {
-            draw_text("button8", 300., pos, 30., PURPLE)
+            let (pos, _) = btn8.shape();
+            draw_text("button8", pos.x + 300., pos.y + 25., 30., PURPLE)
         }
-        pos += 35. + spacing;
         if btn9.activated() {
-            draw_text("button9", 300., pos, 30., PINK)
+            let (pos, _) = btn9.shape();
+            draw_text("button9", pos.x + 300., pos.y + 25., 30., PINK)
         }
         next_frame().await
     }

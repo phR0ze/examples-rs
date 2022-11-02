@@ -159,61 +159,58 @@ impl Button {
 
     /// Set background image to use
     pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { background: image.into(), ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.image(image), ..self }
     }
 
     /// Set background image to use
     pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { background_clk: image.into(), ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.image_clk(image), ..self }
     }
 
     /// Set background image to use
     pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { background_hov: image.into(), ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.image_hov(image), ..self }
     }
 
     /// Set the background color used for the button
     pub fn color(self, color: Color) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { background_color: color, ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.color(color), ..self }
     }
 
     /// Set icon to use
     pub fn icon_texture<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
-        self.conf.layout.alloc_prepend(ICON_ID, None);
-        Self { dirty: true, conf: ButtonBuilder { icon: icon.into(), ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.icon_texture(icon), ..self }
     }
 
     /// Update icon layout properties
     pub fn icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        self.conf.layout.set_sub(f(self.conf.layout.sub(ICON_ID).unwrap().clone()));
-        Self { dirty: true, ..self }
+        Self { dirty: true, conf: self.conf.icon_layout(f), ..self }
     }
 
     /// Set font to use
     pub fn label_font(self, font: Option<&'static [u8]>) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { label_font: font, ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.label_font(font), ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn label_size(self, size: f32) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { label_font_size: size, ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.label_size(size), ..self }
     }
 
     /// Set font color to use
     pub fn label_color(self, color: Color) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { label_font_color: color, ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.label_color(color), ..self }
     }
 
     /// Set label layout to use
     pub fn label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        self.conf.layout.set_sub(f(self.conf.layout.sub(LABEL_ID).unwrap().clone()));
-        Self { dirty: true, ..self }
+        Self { dirty: true, conf: self.conf.label_layout(f), ..self }
     }
 
     /// Set layout to use
     pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        Self { dirty: true, conf: ButtonBuilder { layout: f(self.conf.layout), ..self.conf }, ..self }
+        Self { dirty: true, conf: self.conf.layout(f), ..self }
     }
 }
 
@@ -234,6 +231,11 @@ impl Button {
     /// Returns true if the button was clicked
     pub fn clicked(&self) -> bool {
         self.clicked
+    }
+
+    /// Returns the widgets current shape (pos, size)
+    pub fn shape(&self) -> (Vec2, Vec2) {
+        self.conf.layout.shape()
     }
 
     /// Prepare to draw the widgets such as skin updates and sizing calculations
