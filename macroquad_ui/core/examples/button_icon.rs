@@ -16,7 +16,7 @@ async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut button = Button::icon("Settings", icon).color(GRAY).layout(|x| x.margins(0., 0., 50., 0.));
 
-    let mut fps = Fps::new().color(WHITE);
+    let mut fps = Fps::dark();
     loop {
         clear_background(BLACK);
         fps.show(&mut *root_ui());

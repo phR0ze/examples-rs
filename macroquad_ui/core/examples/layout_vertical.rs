@@ -29,8 +29,7 @@ async fn main() {
         fps.show(&mut *root_ui());
 
         let spacing = 10.;
-        let layout =
-            Layout::vert("side_menu").size_p(0.75, 1.0).fill_w().spacing(spacing).margins(0., 0., 50., 0.);
+        let layout = Layout::vert("side_menu").size_p(0.75, 1.0).spacing(spacing).margins(0., 0., 50., 0.);
         btn1.show(&mut *root_ui(), Some(&layout));
         btn2.show(&mut *root_ui(), Some(&layout));
         btn3.show(&mut *root_ui(), Some(&layout));

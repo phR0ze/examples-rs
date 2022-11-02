@@ -1,4 +1,4 @@
-//! Demonstrating full screen horiztonal layout filling the height of the layout
+//! Demonstrating full screen horizontal layout filling the height of the layout
 use core::prelude::*;
 
 fn main_conf() -> Conf {
@@ -13,23 +13,29 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut fps = Fps::new().color(WHITE);
+    let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
+    let mut btn1 = Button::icon("B1", icon).color(GRAY);
+    let mut btn2 = Button::icon("B2", icon).color(RED);
+    let mut btn3 = Button::icon("B3", icon).color(BLUE);
     loop {
         clear_background(BLACK);
-        fps.show(&mut *root_ui());
 
-        let mut base_layout = Layout::root().with_fill_h().with_spacing(10.).with_margins(10., 10., 60., 10.);
+        let spacing = 10.;
+        let layout = Layout::horz("side_menu").size_f().fill_h().spacing(spacing);
+        btn1.show(&mut *root_ui(), Some(&layout));
+        btn2.show(&mut *root_ui(), Some(&layout));
+        btn3.show(&mut *root_ui(), Some(&layout));
 
-        Panel::new(RED).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(BLUE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(GREEN).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(ORANGE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(YELLOW).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(BROWN).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(BEIGE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(PURPLE).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-        Panel::new(PINK).show(&mut *root_ui(), &mut base_layout, |_, _| {});
-
+        let (pos, _) = btn1.shape();
+        if btn1.activated() {
+            draw_text("button1", pos.x + 350., pos.y + 30., 30., GRAY)
+        }
+        if btn2.activated() {
+            draw_text("button2", pos.x + 350., pos.y + 60., 30., RED)
+        }
+        if btn3.activated() {
+            draw_text("button3", pos.x + 350., pos.y + 90., 30., BLUE)
+        }
         next_frame().await
     }
 }

@@ -2,19 +2,16 @@
 Prototyping intermediate Ui widget set
 
 ## Backlog
-* Layout fill [examples/layout_fill_width.rs](examples/layout_fill_width.rs)
-
-* Layout size [examples/layout_percentage.rs](examples/layout_percentage.rs)
-* Layout horizontal [examples/layout_horizontal.rs](examples/layout_horizontal.rs)
-* Layout vertical [examples/layout_vertical.rs](examples/layout_vertical.rs)
+* Layout inline nesting
 * Layout tracks child layouts and updates them with positioning when parent changes
 * Button support for label to have clicked and hovered color changes
-* Sizing directives to: [examples/sized.rs](exmamples/sized.rs)
-  * Size button 1/2 of relative container
-  * Size button 3/4 of relative container
-  * Size button full size of relative container
 
 ## Completed
+* Layout percentage [examples/layout_fill_width.rs](examples/layout_fill_width.rs)
+* Layout fill height [examples/layout_fill_height.rs](examples/layout_fill_height.rs)
+* Layout fill width [examples/layout_fill_width.rs](examples/layout_fill_width.rs)
+* Layout horizontal [examples/layout_vertical.rs](examples/layout_horizontal.rs)
+* Layout vertical [examples/layout_vertical.rs](examples/layout_vertical.rs)
 * Layout margins affect alignment [examples/button_align.rs](examples/button_align.rs)
 * FPS widget with dark theme [examples/fps_dark.rs](examples/fps_dark.rs)
 * FPS widget with smoothing affect [examples/fps_light.rs](examples/fps_light.rs)
