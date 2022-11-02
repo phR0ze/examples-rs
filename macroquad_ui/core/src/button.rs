@@ -289,7 +289,6 @@ impl Button {
             self.conf.layout.set_sub_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
         }
         self.conf.layout.set_sub_size_p(LABEL_ID, label_size);
-        self.conf.layout.update();
 
         self.skin = Some(skin);
         self.dirty = false;

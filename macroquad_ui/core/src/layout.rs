@@ -54,7 +54,7 @@ struct LayoutInner {
     id: String,                   // layout identifier
     dirty: bool,                  // track if the layout's size or position need recalculated
     size: Vec2,                   // size of the layout region excluding margins
-    offset: Vec2,                 // positional offset inside parent i.e. not absolute coordinates
+    offset: Vec2,                 // positional offset including margins
     fill_w: bool,                 // fill width of layout
     fill_h: bool,                 // fill height of layout
     expand: bool,                 // layout expands to track all content allocated
@@ -150,7 +150,7 @@ impl LayoutInner {
 
     // Get the layout's position and size
     // * assumes layout size and position and parent size and positon are already updated
-    // * position includes margins
+    // * position includes margins, size excludes margins
     // * returns (pos, size)
     fn shape(&self) -> (Vec2, Vec2) {
         let (parent_pos, parent_size) = self.parent_shape();
@@ -477,84 +477,100 @@ impl Layout {
     pub fn append(&self, layout: &Layout) {
         if self.sub_idx(&layout.get_id()).is_none() {
             {
-                layout.0.borrow_mut().parent = Some(self.0.clone());
+                // Set parent on layout
+                let sub = &mut *layout.0.borrow_mut();
+                sub.parent = Some(self.0.clone());
+                sub.dirty = true;
+
+                // Update parent
                 let inner = &mut *self.0.borrow_mut();
                 inner.layouts.push(layout.0.clone());
                 inner.dirty = true;
             }
-            // layout.update();
+            layout.update();
             self.update();
         }
     }
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts
+    /// * returns the size calculation
     /// * only performs calculation if needed
-    /// * takes into account margins
-    /// * size update has no effect unless expansion is set
-    pub fn update(&self) {
-        let layout = &mut *self.0.borrow_mut();
-
-        // Bail if no update is needed
-        if !layout.dirty {
-            return;
-        }
+    /// * calculation exluding margins is persisted
+    /// * calculation excludes margins unless parent is set to expand
+    pub fn update(&self) -> Vec2 {
+        let inner_mode = {
+            let inner = &mut *self.0.borrow_mut();
+            if !inner.dirty {
+                return inner.size;
+            }
+            inner.dirty = false;
+            inner.mode
+        };
 
         // Calculate layout size and set positional offsets along the way
-        let mut cursor = Vec2::default(); // track where to start drawing widget inside parent
         let mut size = Vec2::default();
-        for x in layout.layouts.iter_mut() {
-            let sub = &mut *x.borrow_mut();
+        let mut cursor = Vec2::default();
 
-            // Update the sub-layout's positional offset
+        for x in self.0.borrow().layouts.iter() {
+            let sub_size = Layout(x.clone()).update();
+            let sub = &mut *x.borrow_mut();
             sub.offset = cursor;
+            debug!("update: {}, {}", &sub.id, sub_size);
 
             // Caculate the sub-layout's size
-            let mut sub_width = sub.size.x + sub.margins.left + sub.margins.right;
-            let mut sub_height = sub.size.y + sub.margins.top + sub.margins.bottom;
+            let mut sub_size = Vec2::default();
+            sub_size.x = sub.size.x + sub.margins.left + sub.margins.right;
+            sub_size.y = sub.size.y + sub.margins.top + sub.margins.bottom;
+            debug!("update: {}, {}", &sub.id, sub_size);
 
-            // Take fill directives into account
-            if layout.fill_w && !layout.expand {
-                sub_width = layout.size.x;
-            }
-            if layout.fill_h && !layout.expand {
-                sub_height = layout.size.y;
-            }
-
-            match layout.mode {
+            match inner_mode {
                 Mode::LeftToRight | Mode::Align => {
-                    size.x += sub_width;
-                    if size.y < sub_height {
-                        size.y = sub_height;
+                    size.x += sub_size.x;
+                    if size.y < sub_size.y {
+                        size.y = sub_size.y;
                     }
                     cursor.x = size.x;
                 },
                 Mode::TopToBottom => {
-                    if size.x < sub_width {
-                        size.x = sub_width;
+                    if size.x < sub_size.x {
+                        size.x = sub_size.x;
                     }
-                    size.y += sub_height;
+                    size.y += sub_size.y;
                     cursor.y = size.y;
                 },
             }
         }
 
-        // Update layout size based on sub-layout sums if in expand mode
-        if layout.expand {
-            layout.size = size;
+        // Update size based on sub-layout sums if set to expand
+        {
+            let inner = &mut *self.0.borrow_mut();
+            if inner.expand {
+                inner.size = size;
+            }
+
+            // Handle parent directives
+            if let Some(parent) = &inner.parent {
+                let parent = parent.borrow();
+
+                // Parent expand should include margins but not persisted
+                if parent.expand {
+                    size.x = inner.size.x + inner.margins.left + inner.margins.right;
+                    size.y = inner.size.y + inner.margins.top + inner.margins.bottom;
+                }
+
+                // Parent fill and persist
+                if parent.fill_w {
+                    inner.size.x = parent.size.x;
+                    size.x = parent.size.x;
+                }
+                if parent.fill_h {
+                    inner.size.y = parent.size.y;
+                    size.y = parent.size.x;
+                }
+            }
         }
 
-        // Fill directive takes precedence over expand
-        if let Some(parent) = &layout.parent {
-            let parent = parent.borrow();
-            if parent.fill_w {
-                layout.size.x = parent.size.x;
-            }
-            if parent.fill_h {
-                layout.size.y = parent.size.y;
-            }
-        }
-
-        layout.dirty = false;
+        size
     }
 }
 
