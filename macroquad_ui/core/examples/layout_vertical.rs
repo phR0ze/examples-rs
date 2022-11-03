@@ -13,17 +13,17 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut fps = Fps::new().color(WHITE);
+    let mut fps = Fps::dark();
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut btn1 = Button::icon("Button1", icon).color(GRAY);
-    let mut btn2 = Button::icon("Button2", icon).color(RED);
-    let mut btn3 = Button::icon("Button3", icon).color(BLUE);
-    let mut btn4 = Button::icon("Button4", icon).color(GREEN);
-    let mut btn5 = Button::icon("Button5", icon).color(ORANGE);
-    let mut btn6 = Button::icon("Button6", icon).color(YELLOW);
-    let mut btn7 = Button::icon("Button7", icon).color(BROWN);
-    let mut btn8 = Button::icon("Button8", icon).color(PURPLE);
-    let mut btn9 = Button::icon("Button9", icon).color(PINK);
+    let mut btn1 = Button::icon("Button1", icon).fill(GRAY);
+    let mut btn2 = Button::icon("Button2", icon).fill(RED);
+    let mut btn3 = Button::icon("Button3", icon).fill(BLUE);
+    let mut btn4 = Button::icon("Button4", icon).fill(GREEN);
+    let mut btn5 = Button::icon("Button5", icon).fill(ORANGE);
+    let mut btn6 = Button::icon("Button6", icon).fill(YELLOW);
+    let mut btn7 = Button::icon("Button7", icon).fill(BROWN);
+    let mut btn8 = Button::icon("Button8", icon).fill(PURPLE);
+    let mut btn9 = Button::icon("Button9", icon).fill(PINK);
     loop {
         clear_background(BLACK);
         fps.show(&mut *root_ui());

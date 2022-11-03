@@ -14,9 +14,9 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut btn1 = Button::icon("B1", icon).color(GRAY);
-    let mut btn2 = Button::icon("B2", icon).color(RED);
-    let mut btn3 = Button::icon("B3", icon).color(BLUE);
+    let mut btn1 = Button::icon("B1", icon).fill(GRAY);
+    let mut btn2 = Button::icon("B2", icon).fill(RED);
+    let mut btn3 = Button::icon("B3", icon).fill(BLUE);
     loop {
         clear_background(BLACK);
 

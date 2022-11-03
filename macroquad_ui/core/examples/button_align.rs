@@ -15,7 +15,7 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let builder =
-        ButtonBuilder::new().color(GRAY).label_size(20.).layout(|x| x.mode(Mode::Align).size_s(130., 50.));
+        ButtonBuilder::new().fill(GRAY).label_size(20.).layout(|x| x.mode(Mode::Align).size_s(130., 50.));
 
     loop {
         clear_background(BLACK);

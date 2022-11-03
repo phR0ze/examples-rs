@@ -16,6 +16,7 @@ mod layout;
 mod panel;
 mod size;
 mod utils;
+mod widget;
 
 /// All essential symbols in a simple consumable form
 ///
@@ -45,4 +46,5 @@ pub mod prelude {
     pub use crate::panel::*;
     pub use crate::size::*;
     pub use crate::utils::*;
+    pub use crate::widget::*;
 }

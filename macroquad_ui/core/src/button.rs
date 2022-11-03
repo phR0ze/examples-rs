@@ -14,13 +14,13 @@ const LABEL_ID: &'static str = "label";
 /// configuration
 #[derive(Debug, Clone)]
 pub struct ButtonBuilder {
-    layout: Layout,                      // button layout
-    background: Option<Image>,           // background image to use
-    background_clk: Option<Image>,       // background image to use when clicked
-    background_hov: Option<Image>,       // background image to use when hovered
-    background_color: Color,             // background color
-    background_color_clk: Option<Color>, // background color when clicked
-    background_color_hov: Option<Color>, // background color when hovered
+    layout: Layout,                      // layout
+    image: Option<Image>,                // background image to use
+    image_clk: Option<Image>,            // background image to use when clicked
+    image_hov: Option<Image>,            // background image to use when hovered
+    fill: Color,                         // background color
+    fill_clk: Option<Color>,             // background color when clicked
+    fill_hov: Option<Color>,             // background color when hovered
     label_font: Option<&'static [u8]>,   // font to use for label
     label_font_size: f32,                // font size to use for label
     label_font_color: Color,             // font color to use for label
@@ -34,12 +34,12 @@ impl ButtonBuilder {
     pub fn new() -> Self {
         let button = Self {
             layout: Layout::horz(""),
-            background: None,
-            background_clk: None,
-            background_hov: None,
-            background_color: colors::BLANK,
-            background_color_clk: None,
-            background_color_hov: None,
+            image: None,
+            image_clk: None,
+            image_hov: None,
+            fill: colors::BLANK,
+            fill_clk: None,
+            fill_hov: None,
             label_font: None,
             label_font_size: scale(DEFAULT_FONT_SIZE),
             label_font_color: colors::BLACK,
@@ -65,22 +65,32 @@ impl ButtonBuilder {
 
     /// Set background image to use
     pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Self { background: image.into(), ..self }
+        Self { image: image.into(), ..self }
     }
 
     /// Set background image to use
     pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Self { background_clk: image.into(), ..self }
+        Self { image_clk: image.into(), ..self }
     }
 
     /// Set background image to use
     pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
-        Self { background_hov: image.into(), ..self }
+        Self { image_hov: image.into(), ..self }
     }
 
     /// Set the background color used for the button
-    pub fn color(self, color: Color) -> Self {
-        Self { background_color: color, ..self }
+    pub fn fill(self, color: Color) -> Self {
+        Self { fill: color, ..self }
+    }
+
+    /// Set the background color to use
+    pub fn fill_clk(self, color: Color) -> Self {
+        Self { fill_clk: Some(color), ..self }
+    }
+
+    /// Set the background color to use
+    pub fn fill_hov(self, color: Color) -> Self {
+        Self { fill_hov: Some(color), ..self }
     }
 
     /// Set icon to use
@@ -140,7 +150,7 @@ impl ButtonBuilder {
 #[derive(Debug, Clone)]
 pub struct Button {
     conf: ButtonBuilder, // button configuration
-    dirty: bool,         // track if a skin update is needed
+    dirty: bool,         // track if the widget needs styling and shape calculation updates
     skin: Option<Skin>,  // skin to use for the entry titles
     label: String,       // button label text value
     clicked: bool,       // track button clicked state
@@ -173,8 +183,8 @@ impl Button {
     }
 
     /// Set the background color used for the button
-    pub fn color(self, color: Color) -> Self {
-        Self { dirty: true, conf: self.conf.color(color), ..self }
+    pub fn fill(self, color: Color) -> Self {
+        Self { dirty: true, conf: self.conf.fill(color), ..self }
     }
 
     /// Set icon to use
@@ -238,7 +248,7 @@ impl Button {
         self.conf.layout.shape()
     }
 
-    /// Prepare to draw the widgets such as skin updates and sizing calculations
+    /// Make layout, styling and shape calculation updates in prepartion for showing
     fn ui(&mut self, ui: &mut Ui) {
         if !self.dirty {
             return;
@@ -258,24 +268,21 @@ impl Button {
         let label_style = style.build();
 
         // Create the button style
-        style = ui
-            .style_builder()
-            .color(self.conf.background_color)
-            .color_clicked(self.conf.background_color)
-            .color_hovered(self.conf.background_color);
-        if let Some(background) = &self.conf.background {
+        style =
+            ui.style_builder().color(self.conf.fill).color_clicked(self.conf.fill).color_hovered(self.conf.fill);
+        if let Some(background) = &self.conf.image {
             style = style.background(background.clone());
         }
-        if let Some(background) = &self.conf.background_clk {
+        if let Some(background) = &self.conf.image_clk {
             style = style.background_clicked(background.clone());
         }
-        if let Some(background) = &self.conf.background_hov {
+        if let Some(background) = &self.conf.image_hov {
             style = style.background_hovered(background.clone());
         }
-        if let Some(color) = &self.conf.background_color_clk {
+        if let Some(color) = &self.conf.fill_clk {
             style = style.color_clicked(*color);
         }
-        if let Some(color) = &self.conf.background_color_hov {
+        if let Some(color) = &self.conf.fill_hov {
             style = style.color_hovered(*color);
         }
         let button_style = style.build();
@@ -328,5 +335,11 @@ impl Button {
         ui.pop_skin();
 
         self.clicked
+    }
+}
+
+impl Widget for Button {
+    fn layout_ref(&self) -> Layout {
+        self.conf.layout.clone()
     }
 }

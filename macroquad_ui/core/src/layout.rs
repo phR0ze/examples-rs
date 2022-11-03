@@ -52,7 +52,7 @@ type SharedLayout = Rc<RefCell<LayoutInner>>;
 #[derive(Clone, Debug, PartialEq)]
 struct LayoutInner {
     id: String,                   // layout identifier
-    dirty: bool,                  // track if the layout's size or position need recalculated
+    dirty: bool,                  // track if the widget needs styling and shape calculation updates
     size: Vec2,                   // size of the layout region excluding margins
     offset: Vec2,                 // positional offset including margins
     fill_w: bool,                 // fill width of layout
