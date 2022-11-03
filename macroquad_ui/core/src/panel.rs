@@ -30,15 +30,10 @@ impl Panel {
         Self { layout: f(self.layout), ..self }
     }
 
-    /// Allocate space inside this widget for the given widget
-    pub fn alloc(&self, widget: &impl Widget) {
-        self.layout.append(&widget.layout_ref())
-    }
-
     /// Draw the widget on the screen
     /// * `layout` parent layout to draw button within
     /// * returns true when clicked in the current frame
-    pub fn show<F: FnOnce(&mut Ui, &Layout)>(&mut self, ui: &mut Ui, layout: Option<&Layout>, f: F) {
+    pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>, f: impl FnOnce(&mut Ui, &Layout)) {
         if let Some(parent) = layout {
             parent.append(&self.layout);
         }

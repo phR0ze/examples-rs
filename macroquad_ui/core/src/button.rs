@@ -59,7 +59,7 @@ impl ButtonBuilder {
     pub fn icon(icon: Texture2D) -> Self {
         ButtonBuilder::new()
             .icon_texture(icon)
-            .icon_layout(|x| x.align(Align::Center).margins(10., 5., 5., 5.))
+            .icon_layout(|x| x.align(Align::Center).margins(10., 10., 5., 5.))
             .label_layout(|x| x.align(Align::Center).margins(10., 10., 0., 0.))
     }
 
@@ -335,11 +335,5 @@ impl Button {
         ui.pop_skin();
 
         self.clicked
-    }
-}
-
-impl Widget for Button {
-    fn layout_ref(&self) -> Layout {
-        self.conf.layout.clone()
     }
 }

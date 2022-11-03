@@ -93,6 +93,7 @@ impl LayoutInner {
         let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(Mode::default());
         let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
         let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
+        let parent_len = self.parent.as_ref().map(|x| x.borrow().layouts.len()).unwrap_or(0) as i32;
 
         let mut pos = self.align.relative(self.size, parent_size, parent_pos);
         pos = match parent_mode {
@@ -109,8 +110,26 @@ impl LayoutInner {
         }
 
         // Handle margins according to alignment
-        pos.x += self.margins.left - self.margins.right;
-        pos.y += self.margins.top - self.margins.bottom;
+        if parent_len > 0 && parent_mode != Mode::Align {
+            // Take into account the previous widget
+            let i = (parent_idx - 1) as usize;
+            let prev = self.parent.as_ref().and_then(|x| x.borrow().layout(i));
+            match parent_mode {
+                Mode::LeftToRight => {
+                    pos.x += prev.map(|x| x.borrow().margins.right).unwrap_or(0.) + self.margins.left;
+                    pos.y += self.margins.top - self.margins.bottom;
+                },
+                Mode::TopToBottom => {
+                    pos.x += self.margins.left - self.margins.right;
+                    pos.y += prev.map(|x| x.borrow().margins.bottom).unwrap_or(0.) + self.margins.top;
+                },
+                Mode::Align => {},
+            };
+        } else {
+            // No other widgets at the same level to take into account
+            pos.x += self.margins.left - self.margins.right;
+            pos.y += self.margins.top - self.margins.bottom;
+        }
 
         pos
     }
@@ -123,6 +142,11 @@ impl LayoutInner {
     // Get sub-layout's index in this layout
     fn index(&self, id: &str) -> Option<usize> {
         self.layouts.iter().position(|x| x.borrow().id == id)
+    }
+
+    // Get sub-layout's index in this layout
+    fn layout(&self, i: usize) -> Option<SharedLayout> {
+        self.layouts.get(i).map(|x| x.clone())
     }
 
     // Get parent layout's position and size
