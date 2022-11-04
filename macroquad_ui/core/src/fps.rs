@@ -92,7 +92,7 @@ impl Fps {
 
         ui.push_skin(self.skin.as_ref().unwrap());
         let fps = format!("FPS: {}", self.fps);
-        self.layout.set_size_s(ui.calc_size(&fps));
+        self.layout.set_size(ui.calc_size(&fps));
         let (pos, _) = self.layout.shape();
         widgets::Label::new(fps).position(pos).ui(ui);
         ui.pop_skin();

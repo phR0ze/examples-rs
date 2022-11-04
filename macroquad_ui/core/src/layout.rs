@@ -95,38 +95,40 @@ impl LayoutInner {
         let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
         let parent_len = self.parent.as_ref().map(|x| x.borrow().layouts.len()).unwrap_or(0) as i32;
 
+        // Alignment against parent
         let mut pos = self.align.relative(self.size, parent_size, parent_pos);
         pos = match parent_mode {
+            // Override x coordinate using pre-calculation offset of size including margins
             Mode::LeftToRight => vec2(parent_pos.x + self.offset.x, pos.y),
+
+            // Override y coordinate using pre-calculation offset of size including margins
             Mode::TopToBottom => vec2(pos.x, parent_pos.y + self.offset.y),
+
+            // No overrides
             Mode::Align => pos,
         };
 
-        // Handle spacing
+        // Spacing
         if let Mode::LeftToRight = parent_mode {
             pos.x += parent_spacing * parent_idx as f32;
         } else if let Mode::TopToBottom = parent_mode {
             pos.y += parent_spacing * parent_idx as f32;
         }
 
-        // Handle margins according to alignment
-        if parent_len > 0 && parent_mode != Mode::Align {
-            // Take into account the previous widget
-            let i = (parent_idx - 1) as usize;
-            let prev = self.parent.as_ref().and_then(|x| x.borrow().layout(i));
+        // Margins
+        if parent_len > 0 {
             match parent_mode {
                 Mode::LeftToRight => {
-                    pos.x += prev.map(|x| x.borrow().margins.right).unwrap_or(0.) + self.margins.left;
+                    pos.x += self.margins.left;
                     pos.y += self.margins.top - self.margins.bottom;
                 },
                 Mode::TopToBottom => {
                     pos.x += self.margins.left - self.margins.right;
-                    pos.y += prev.map(|x| x.borrow().margins.bottom).unwrap_or(0.) + self.margins.top;
+                    pos.y += self.margins.top;
                 },
                 Mode::Align => {},
-            };
+            }
         } else {
-            // No other widgets at the same level to take into account
             pos.x += self.margins.left - self.margins.right;
             pos.y += self.margins.top - self.margins.bottom;
         }
@@ -144,7 +146,7 @@ impl LayoutInner {
         self.layouts.iter().position(|x| x.borrow().id == id)
     }
 
-    // Get sub-layout's index in this layout
+    // Get sub-layout by index
     fn layout(&self, i: usize) -> Option<SharedLayout> {
         self.layouts.get(i).map(|x| x.clone())
     }
@@ -435,7 +437,7 @@ impl Layout {
     }
 
     /// Set the layout's size
-    pub fn set_size_s(&self, size: Vec2) {
+    pub fn set_size(&self, size: Vec2) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.expand = false;
@@ -453,16 +455,10 @@ impl Layout {
         inner.dirty = true;
     }
 
-    /// Set sub-layout's size by id
-    /// * same as `set_layout_size_p` but takes float params instead of Vec2
-    pub fn set_sub_size_s(&self, id: &str, width: f32, height: f32) {
-        self.sub(id).map(|x| x.set_size_s(vec2(width, height)));
-    }
-
     /// Set the sub-layout's size by id
     /// * same as `set_layout_size_s` but takes Vec2 object instead of floats
-    pub fn set_sub_size_p(&self, id: &str, size: Vec2) {
-        self.sub(id).map(|x| x.set_size_s(size));
+    pub fn set_sub_size(&self, id: &str, size: Vec2) {
+        self.sub(id).map(|x| x.set_size(size));
     }
 
     // Create a new layout inside this layout

@@ -21,6 +21,7 @@ pub struct ButtonBuilder {
     fill: Color,                         // background color
     fill_clk: Option<Color>,             // background color when clicked
     fill_hov: Option<Color>,             // background color when hovered
+    label: Label,                        // label widget
     label_font: Option<&'static [u8]>,   // font to use for label
     label_font_size: f32,                // font size to use for label
     label_font_color: Color,             // font color to use for label
@@ -30,7 +31,7 @@ pub struct ButtonBuilder {
 }
 
 impl ButtonBuilder {
-    /// Create a new button builder instance
+    /// Create a new builder instance
     pub fn new() -> Self {
         let button = Self {
             layout: Layout::horz(""),
@@ -40,6 +41,7 @@ impl ButtonBuilder {
             fill: colors::BLANK,
             fill_clk: None,
             fill_hov: None,
+            label: Label::new("").layout(|x| x.id(LABEL_ID)),
             label_font: None,
             label_font_size: scale(DEFAULT_FONT_SIZE),
             label_font_color: colors::BLACK,
@@ -293,9 +295,9 @@ impl Button {
         // Calculate and cache button component sizes to reduce compute time
         let label_size = text_size(ui, &skin, Some(&self.label));
         if let Some(_) = &self.conf.icon {
-            self.conf.layout.set_sub_size_s(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
+            self.conf.layout.set_sub_size(ICON_ID, vec2(label_size.y + 5.0, label_size.y + 5.0));
         }
-        self.conf.layout.set_sub_size_p(LABEL_ID, label_size);
+        self.conf.layout.set_sub_size(LABEL_ID, label_size);
         self.conf.layout.update();
 
         self.skin = Some(skin);

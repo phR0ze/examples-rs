@@ -1,10 +1,11 @@
 # core
-Prototyping intermediate Ui widget set
+Prototyping immediate Ui widget set
 
 ## Backlog
+* Layout support for label
+
 * Layout inline nesting
 * Layout tracks child layouts and updates them with positioning when parent changes
-* Button support for label to have clicked and hovered color changes
 
 ## Completed
 * Layout percentage [examples/layout_fill_width.rs](examples/layout_fill_width.rs)

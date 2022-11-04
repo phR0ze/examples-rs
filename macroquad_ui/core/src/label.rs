@@ -1,46 +1,31 @@
-//! Label encapsulates and extends Macroquad's button supporting:
+//! Label encapsulates and extends Macroquad's label supporting:
 //! * Calculated sizing and positioning relative to containing widget
+//! * Builder for reusable layout but also direct modification
 use crate::prelude::*;
 
-/// LabelBuilder provides the ability to preserve widget configuration and be able to repeatedly
-/// create new widget instances based on this configuration rather than have to configure each
-/// individual widget instance.
+/// Label builder provides a template for building new labels with a persisted reusable
+/// configuration
 #[derive(Debug, Clone)]
 pub struct LabelBuilder {
-    size: Option<Size>,          // sizing of the widget
-    position: Align,             // position of of the widget
-    font: Option<&'static [u8]>, // font to use for button text
-    font_color: Color,           // font color to use
-    font_color_clk: Color,       // font color to use when clicked
-    font_color_hov: Color,       // font color to use when hovered
-    font_size: u16,              // font size to use for button text
-    margin: RectOffset,          // allow for this space around widget content
+    layout: Layout,                // layout
+    font: Option<&'static [u8]>,   // font to use for label
+    font_size: f32,                // font size to use for label
+    font_color: Color,             // font color to use for label
+    font_color_clk: Option<Color>, // font color to use for label when clicked
+    font_color_hov: Option<Color>, // font color to use for label when hovered
 }
 
 impl LabelBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         Self {
-            size: None,
-            position: Align::default(),
+            layout: Layout::new(""),
             font: None,
-            font_size: scale(DEFAULT_FONT_SIZE) as u16,
+            font_size: scale(DEFAULT_FONT_SIZE),
             font_color: colors::BLACK,
-            font_color_clk: colors::BLACK,
-            font_color_hov: colors::BLACK,
-            margin: RectOffset::default(),
+            font_color_clk: None,
+            font_color_hov: None,
         }
-    }
-
-    /// Set size of the group
-    /// * handles scaling for mobile
-    pub fn size<T: Into<Option<Size>>>(self, size: T) -> Self {
-        Self { size: size.into(), ..self }
-    }
-
-    /// Set position on the screen
-    pub fn position(self, position: Align) -> Self {
-        Self { position, ..self }
     }
 
     /// Set font to use
@@ -48,10 +33,10 @@ impl LabelBuilder {
         Self { font, ..self }
     }
 
-    /// Set font size to use
+    /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn font_size(self, size: f32) -> Self {
-        Self { font_size: scale(size) as u16, ..self }
+        Self { font_size: size, ..self }
     }
 
     /// Set font color to use
@@ -61,82 +46,70 @@ impl LabelBuilder {
 
     /// Set font color to use when clicked
     pub fn font_color_clk(self, color: Color) -> Self {
-        Self { font_color_clk: color, ..self }
+        Self { font_color_clk: Some(color), ..self }
     }
 
     /// Set font color to use when hovered
     pub fn font_color_hov(self, color: Color) -> Self {
-        Self { font_color_hov: color, ..self }
+        Self { font_color_hov: Some(color), ..self }
     }
 
-    /// Create a new widget instance from this builder
+    /// Set layout to use
+    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        Self { layout: f(self.layout), ..self }
+    }
+
+    /// Create a new button instance
     pub fn build<T: AsRef<str>>(&self, text: T) -> Label {
-        Label {
-            dirty: true,
-            conf: self.clone(),
-            skin: None,
-            text: text.as_ref().to_string(),
-            calc_size: vec2(0., 0.),
-        }
+        let conf = self.clone().layout(|x| x.copy().id(text.as_ref()));
+        Label { conf, dirty: true, skin: None, text: text.as_ref().to_string() }
     }
 }
 
+/// Label encapsulates and extends Macroquad's label
 #[derive(Debug, Clone)]
 pub struct Label {
+    conf: LabelBuilder, // configuration
     dirty: bool,        // track if a skin update is needed
     skin: Option<Skin>, // skin to use
-    conf: LabelBuilder, // widget configuration
     text: String,       // actual text to display
-    calc_size: Vec2,    // calculated text size
 }
 
 impl Label {
     /// Create a new widget instance
     pub fn new<T: AsRef<str>>(text: T) -> Self {
-        Self {
-            dirty: true,
-            skin: None,
-            conf: LabelBuilder::new(),
-            text: text.as_ref().to_string(),
-            calc_size: vec2(0., 0.),
-        }
-    }
-
-    /// Set size of the group
-    /// * handles scaling for mobile
-    pub fn with_size<T: Into<Option<Size>>>(self, size: T) -> Self {
-        Self { conf: LabelBuilder { size: size.into(), ..self.conf }, ..self }
-    }
-
-    /// Set position on the screen
-    pub fn with_position(self, position: Align) -> Self {
-        Self { conf: LabelBuilder { position, ..self.conf }, ..self }
+        LabelBuilder::new().build(text)
     }
 
     /// Set font to use
-    pub fn with_font(self, font: Option<&'static [u8]>) -> Self {
-        Self { dirty: true, conf: LabelBuilder { font, ..self.conf }, ..self }
+    pub fn font(self, font: Option<&'static [u8]>) -> Self {
+        Self { dirty: true, conf: self.conf.font(font), ..self }
     }
 
-    /// Set font size to use
+    /// Set font size to use for the button label
     /// * handles scaling for mobile
-    pub fn with_font_size(self, size: f32) -> Self {
-        Self { dirty: true, conf: LabelBuilder { font_size: scale(size) as u16, ..self.conf }, ..self }
+    pub fn font_size(self, size: f32) -> Self {
+        Self { dirty: true, conf: self.conf.font_size(size), ..self }
     }
 
     /// Set font color to use
-    pub fn with_font_color(self, color: Color) -> Self {
-        Self { dirty: true, conf: LabelBuilder { font_color: color, ..self.conf }, ..self }
+    pub fn font_color(self, color: Color) -> Self {
+        Self { dirty: true, conf: self.conf.font_color(color), ..self }
     }
 
     /// Set font color to use when clicked
-    pub fn with_font_color_clk(self, color: Color) -> Self {
-        Self { dirty: true, conf: LabelBuilder { font_color_clk: color, ..self.conf }, ..self }
+    pub fn font_color_clk(self, color: Color) -> Self {
+        Self { dirty: true, conf: self.conf.font_color_clk(color), ..self }
     }
 
     /// Set font color to use when hovered
-    pub fn with_font_color_hov(self, color: Color) -> Self {
-        Self { dirty: true, conf: LabelBuilder { font_color_hov: color, ..self.conf }, ..self }
+    pub fn font_color_hov(self, color: Color) -> Self {
+        Self { dirty: true, conf: self.conf.font_color_hov(color), ..self }
+    }
+
+    /// Set layout to use
+    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+        Self { dirty: true, conf: self.conf.layout(f), ..self }
     }
 
     /// Get the widget's text value
@@ -144,16 +117,18 @@ impl Label {
         &self.text
     }
 
-    /// Update the skin based on the persisted button properties
-    fn update_skin(&mut self, ui: &mut Ui) {
+    /// Make layout, styling and shape calculation updates in prepartion for showing
+    fn ui(&mut self, ui: &mut Ui) {
         if !self.dirty {
             return;
         }
-        let mut style = ui
-            .style_builder()
-            .text_color(self.conf.font_color)
-            .text_color_hovered(self.conf.font_color)
-            .text_color_clicked(self.conf.font_color);
+        let mut style = ui.style_builder().text_color(self.conf.font_color).font_size(self.conf.font_size as u16);
+        if let Some(color) = self.conf.font_color_clk {
+            style = style.text_color_clicked(color);
+        }
+        if let Some(color) = self.conf.font_color_hov {
+            style = style.text_color_hovered(color);
+        }
         if let Some(font) = self.conf.font {
             style = style.font(font).unwrap();
         }
@@ -163,20 +138,25 @@ impl Label {
         let skin = Skin { label_style, ..ui.default_skin() };
 
         // Calculate text size and include margin
-        self.calc_size = text_size(ui, &skin, Some(&self.text));
+        self.conf.layout.set_size(text_size(ui, &skin, Some(&self.text)));
         self.skin = Some(skin);
         self.dirty = false;
     }
 
     /// Draw the widget on the screen
-    /// * `cont_size` is the containing widget's size
-    /// * `offset` any positional offset to take into account
-    pub fn ui(&mut self, ui: &mut Ui, cont_size: Vec2, offset: Option<Vec2>) {
-        self.update_skin(ui);
+    /// * `layout` parent layout to draw button within
+    /// * returns true when clicked in the current frame
+    pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>) {
+        self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
 
-        let pos = self.conf.position.relative(self.calc_size, cont_size, offset.unwrap());
-        widgets::Label::new(self.text.as_str()).size(self.calc_size).position(pos).ui(ui);
+        // Set parent if given
+        if let Some(parent) = layout {
+            parent.append(&self.conf.layout);
+        }
+
+        let (pos, size) = self.conf.layout.shape();
+        widgets::Label::new(self.text.as_str()).size(size).position(pos).ui(ui);
 
         ui.pop_skin();
     }
