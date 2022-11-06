@@ -75,6 +75,7 @@ pub struct Label {
     text: String,       // actual text to display
 }
 
+// Constructors and builder functions
 impl Label {
     /// Create a new widget instance
     pub fn new<T: AsRef<str>>(text: T) -> Self {
@@ -107,9 +108,27 @@ impl Label {
         Self { dirty: true, conf: self.conf.font_color_hov(color), ..self }
     }
 
-    /// Set layout to use
+    /// Set layout properties to use
     pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self { dirty: true, conf: self.conf.layout(f), ..self }
+    }
+}
+
+// Utility functions
+impl Label {
+    /// Get a reference to the layout
+    pub fn get_layout(&self) -> &Layout {
+        &self.conf.layout
+    }
+
+    /// Set the widget's text value
+    pub fn set_text<T: AsRef<str>>(&mut self, text: T) {
+        self.text = text.as_ref().to_string();
+    }
+
+    /// Get the widget's shape from its layout
+    pub fn shape(&self) -> (Vec2, Vec2) {
+        self.conf.layout.shape()
     }
 
     /// Get the widget's text value
@@ -118,7 +137,9 @@ impl Label {
     }
 
     /// Make layout, styling and shape calculation updates in prepartion for showing
-    fn ui(&mut self, ui: &mut Ui) {
+    /// * Note: will be called automatically in most cases. Only useful to call when composing
+    /// other widgets from this widget
+    pub fn ui(&mut self, ui: &mut Ui) {
         if !self.dirty {
             return;
         }

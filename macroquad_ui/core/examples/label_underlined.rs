@@ -15,14 +15,12 @@ fn main_conf() -> Conf {
 async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
     let mut button = Button::icon("Settings", icon).fill(GRAY).layout(|x| x.margins(0., 0., 50., 0.));
-    let mut label = Label::new("Options").font_color(WHITE).layout(|x| x.margins(10., 0., 100., 0.));
 
-    let mut fps = Fps::dark();
+    let mut fps = Fps::new();
     loop {
-        clear_background(BLACK);
+        clear_background(WHITE);
         fps.show(&mut *root_ui());
 
-        label.show(&mut *root_ui(), None);
         button.show(&mut *root_ui(), None);
         if button.activated() {
             draw_rectangle(200., 300., 50., 50., RED);
