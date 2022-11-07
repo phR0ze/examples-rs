@@ -58,6 +58,8 @@ impl Align {
     /// * `size` is the size of the widget to position
     /// * `cont_size` is the containing widget's size
     /// * `cont_pos` is the containing positional to offset
+    ///
+    /// ### Examples
     /// ```
     /// use specter::prelude::*;
     ///
@@ -88,12 +90,28 @@ impl Align {
 }
 
 impl Default for Align {
+    /// Create the default Alignment directive a.k.a LeftTop
+    ///
+    /// ### Examples
+    /// ```
+    /// use specter::prelude::*;
+    ///
+    /// assert_eq!(Align::default(), Align::LeftTop);
+    /// ```
     fn default() -> Self {
         Align::LeftTop
     }
 }
 
 impl From<Vec2> for Align {
+    /// Create the default Alignment directive a.k.a LeftTop
+    ///
+    /// ### Examples
+    /// ```
+    /// use specter::prelude::*;
+    ///
+    /// assert_eq!(Align::from(vec2(1., 2.)), Align::Static(1., 2.));
+    /// ```
     fn from(val: Vec2) -> Self {
         Align::Static(val.x, val.y)
     }
