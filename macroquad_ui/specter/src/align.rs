@@ -125,7 +125,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_foo() {
+    fn test_placeholder() {
         assert_eq!(vec2(2., 2.), vec2(2., 2.));
     }
 }

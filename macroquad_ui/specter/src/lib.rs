@@ -9,12 +9,12 @@
 
 mod align;
 // mod button;
-// mod fps;
+mod fps;
 // mod frame;
-// mod label;
-// mod layout;
+mod label;
+mod layout;
 // mod panel;
-// mod utils;
+mod utils;
 
 /// All essential symbols in a simple consumable form
 ///
@@ -36,13 +36,13 @@ pub mod prelude {
     // Export internal types
     pub use crate::align::*;
     // pub use crate::button::*;
-    // pub use crate::fps::*;
+    pub use crate::fps::*;
     // pub use crate::frame::*;
-    // pub use crate::label::*;
-    // pub use crate::layout::*;
+    pub use crate::label::*;
+    pub use crate::layout::*;
     // pub use crate::macros::*;
     // pub use crate::panel::*;
-    // pub use crate::utils::*;
+    pub use crate::utils::*;
 }
 
 pub fn add(left: usize, right: usize) -> usize {
