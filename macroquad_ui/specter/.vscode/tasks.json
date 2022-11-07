@@ -5,6 +5,15 @@
             "label": "Run",
             "type": "shell",
             "command": "cargo run --example simple"
+        },
+        {
+            "label": "Test",
+            "type": "shell",
+            "command": "cargo test --all",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            }
         }
     ]
 }
