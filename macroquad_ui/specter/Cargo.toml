@@ -1,0 +1,23 @@
+[package]
+name = "specter"
+version = "0.1.0"
+edition = "2021"
+authors = ["phR0ze"]
+license = "MIT OR Apache-2.0"
+description = "Immediate mode UI toolkit"
+repository = "https://github.com/phR0ze/specter"
+exclude = [
+  "docs",
+  "config",
+  "examples",
+  ".git",
+  ".githooks",
+  ".github",
+  "tests",
+  "benches",
+  "target",
+  ".vscode"
+]
+
+[dependencies]
+macroquad = "0.3.24"
