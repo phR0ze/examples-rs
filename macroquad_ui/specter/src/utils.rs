@@ -14,8 +14,13 @@ pub const SIZE_MULTIPLIER: f32 = 4.0;
 pub const DEFAULT_FONT_SIZE: f32 = 30.0;
 
 /// Return the current screen size
+/// * tests will bypass macroquad and get (450., 800.)
 pub fn screen() -> Vec2 {
-    vec2(screen_width(), screen_height())
+    #[cfg(not(test))]
+    let size = vec2(screen_width(), screen_height());
+    #[cfg(test)]
+    let size = vec2(450., 800.);
+    size
 }
 
 /// Instantiate a RectOffset
