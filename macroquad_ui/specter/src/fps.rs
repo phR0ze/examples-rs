@@ -1,10 +1,7 @@
 //! Fps provides a simple frames per second widget to be displayed for debug purposes.
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
-use crate::{layout::Layout, prelude::Label, utils::*};
-use macroquad::{
-    prelude::*,
-    ui::{widgets, Skin, Ui},
-};
+use crate::{layout::Layout, prelude::Label};
+use macroquad::{prelude::*, ui::Ui};
 use std::time::Instant;
 
 const FPS_ID: &'static str = "fps";
@@ -23,7 +20,7 @@ impl Fps {
             fps: 0,
             frames: 0,
             start: Instant::now(),
-            label: Label::new("").id(FPS_ID).font_color(BLACK),
+            label: Label::new("").id(FPS_ID).font_color(BLACK).layout(|x| x.margins(10., 0., 0., 0.)),
         }
     }
 
@@ -77,6 +74,7 @@ impl Fps {
             self.start = Instant::now();
         }
 
+        // Update label and show
         self.label.set_text(format!("FPS: {}", self.fps));
         self.label.show(ui, layout);
     }

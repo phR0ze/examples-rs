@@ -4,16 +4,16 @@
 //! ```
 //! use core::prelude::*;
 //! ```
-// #[macro_use]
-// mod macros;
+#[macro_use]
+mod macros;
 
 mod align;
 // mod button;
 mod fps;
-// mod frame;
+mod frame;
 mod label;
 mod layout;
-// mod panel;
+mod panel;
 mod utils;
 
 /// All essential symbols in a simple consumable form
@@ -31,17 +31,17 @@ pub mod prelude {
     };
 
     // Export macros by name
-    // pub use crate::id;
+    pub use crate::id;
 
     // Export internal types
     pub use crate::align::*;
     // pub use crate::button::*;
     pub use crate::fps::*;
-    // pub use crate::frame::*;
+    pub use crate::frame::*;
     pub use crate::label::*;
     pub use crate::layout::*;
     // pub use crate::macros::*;
-    // pub use crate::panel::*;
+    pub use crate::panel::*;
     pub use crate::utils::*;
 }
 

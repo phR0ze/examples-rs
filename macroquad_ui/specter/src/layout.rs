@@ -89,7 +89,6 @@ impl LayoutInner {
     // * size, positional offset, margins and mode
     // * parent's size and positional offset
     fn align(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
-        debug!("align: {}", &self.id);
         let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(Mode::default());
         let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
         let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
@@ -116,17 +115,13 @@ impl LayoutInner {
         }
 
         // Margins
-        if parent_len > 0 {
-            match parent_mode {
-                Mode::LeftToRight => {
-                    pos.x += self.margins.left;
-                    pos.y += self.margins.top - self.margins.bottom;
-                },
-                Mode::TopToBottom => {
-                    pos.x += self.margins.left - self.margins.right;
-                    pos.y += self.margins.top;
-                },
-                Mode::Align => {},
+        if parent_len > 0 && parent_mode != Mode::Align {
+            if parent_mode == Mode::LeftToRight {
+                pos.x += self.margins.left;
+                pos.y += self.margins.top - self.margins.bottom;
+            } else if parent_mode == Mode::TopToBottom {
+                pos.x += self.margins.left - self.margins.right;
+                pos.y += self.margins.top;
             }
         } else {
             pos.x += self.margins.left - self.margins.right;
@@ -163,7 +158,6 @@ impl LayoutInner {
 
         let pos = match &self.parent {
             Some(parent) => {
-                debug!("parent_shape: {}", parent.borrow().id);
                 let (parent_pos, parent_size) = parent.borrow().parent_shape();
                 let inner = parent.borrow();
                 inner.align(parent_pos, parent_size)
