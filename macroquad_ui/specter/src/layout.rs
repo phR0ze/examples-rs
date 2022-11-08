@@ -65,7 +65,7 @@ struct LayoutInner {
     mode: Mode,                   // layout mode directive
     spacing: f32,                 // space to include between widgets
     margins: RectOffset,          // space outside the frame edge
-    layouts: Vec<SharedLayout>,   // sub-layouts
+    subs: Vec<SharedLayout>,      // sub-layouts
     parent: Option<SharedLayout>, // parent layout
 }
 
@@ -83,7 +83,7 @@ impl LayoutInner {
             align: Align::default(),
             spacing: 0.,
             margins: RectOffset::default(),
-            layouts: vec![],
+            subs: vec![],
             parent: Option::<SharedLayout>::default(),
         }))
     }
@@ -91,15 +91,18 @@ impl LayoutInner {
     // Calculate the widgets alignment based on its
     // * size, positional offset, margins and mode
     // * parent's size and positional offset
-    fn align(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
-        let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(Mode::default());
-        let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
-        let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
-        let parent_len = self.parent.as_ref().map(|x| x.borrow().layouts.len()).unwrap_or(0) as i32;
+    fn pos(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
+        let (p_mode, p_spacing, p_idx, p_len) = match &self.parent {
+            Some(parent) => {
+                let inner = parent.borrow();
+                (inner.mode, inner.spacing, inner.index(&self.id).unwrap_or(0) as f32, inner.subs.len())
+            },
+            _ => (Mode::default(), 0., 0., 0),
+        };
 
         // Alignment against parent
         let mut pos = self.align.relative(self.size, parent_size, parent_pos);
-        pos = match parent_mode {
+        pos = match p_mode {
             // Override x coordinate using pre-calculation offset of size including margins
             Mode::LeftToRight => vec2(parent_pos.x + self.offset.x, pos.y),
 
@@ -111,18 +114,18 @@ impl LayoutInner {
         };
 
         // Spacing
-        if let Mode::LeftToRight = parent_mode {
-            pos.x += parent_spacing * parent_idx as f32;
-        } else if let Mode::TopToBottom = parent_mode {
-            pos.y += parent_spacing * parent_idx as f32;
+        if let Mode::LeftToRight = p_mode {
+            pos.x += p_spacing * p_idx as f32;
+        } else if let Mode::TopToBottom = p_mode {
+            pos.y += p_spacing * p_idx as f32;
         }
 
         // Margins
-        if parent_len > 0 {
-            if parent_mode == Mode::LeftToRight {
+        if p_len > 0 {
+            if p_mode == Mode::LeftToRight {
                 pos.x += self.margins.left;
                 pos.y += self.margins.top - self.margins.bottom;
-            } else if parent_mode == Mode::TopToBottom {
+            } else if p_mode == Mode::TopToBottom {
                 pos.x += self.margins.left - self.margins.right;
                 pos.y += self.margins.top;
             }
@@ -141,7 +144,7 @@ impl LayoutInner {
 
     // Get sub-layout's index in this layout
     fn index(&self, id: &str) -> Option<usize> {
-        self.layouts.iter().position(|x| x.borrow().id == id)
+        self.subs.iter().position(|x| x.borrow().id == id)
     }
 }
 
@@ -190,11 +193,11 @@ impl Layout {
         let layout = Layout(self.0.borrow().copy());
         {
             let inner = &mut *layout.0.borrow_mut();
-            inner.layouts.clear();
-            for x in self.0.borrow().layouts.iter() {
+            inner.subs.clear();
+            for x in self.0.borrow().subs.iter() {
                 let sub_layout = x.borrow().copy();
                 sub_layout.borrow_mut().parent = Some(layout.0.clone());
-                inner.layouts.push(sub_layout);
+                inner.subs.push(sub_layout);
             }
         }
         layout
@@ -334,11 +337,7 @@ impl Layout {
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
     pub fn with_parent(self, parent: Layout) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.parent = Some(parent.0.clone());
-        }
+        parent.append(&self);
         self
     }
 
@@ -447,12 +446,21 @@ impl Layout {
         match self.parent() {
             Some(parent) => {
                 let (parent_pos, parent_size) = parent.parent_shape();
-                (self.0.borrow().align(parent_pos, parent_size), parent.size())
+                (self.0.borrow().pos(parent_pos, parent_size), parent.size())
             },
 
             // Default parent position and size
             _ => (Vec2::default(), screen()),
         }
+    }
+
+    /// Get layout's position
+    // * assumes layout size and parent size are already updated
+    /// * position accounts for margins
+    /// * returns (pos, size)
+    pub fn pos(&self) -> Vec2 {
+        let (parent_pos, parent_size) = self.parent_shape();
+        self.0.borrow().pos(parent_pos, parent_size)
     }
 
     /// Get layout's position and size
@@ -461,7 +469,7 @@ impl Layout {
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
         let (parent_pos, parent_size) = self.parent_shape();
-        let pos = self.0.borrow().align(parent_pos, parent_size);
+        let pos = self.0.borrow().pos(parent_pos, parent_size);
         (pos, self.size())
     }
 
@@ -475,14 +483,19 @@ impl Layout {
         self.0.borrow().spacing
     }
 
+    /// Get the number of sub-layouts
+    pub fn sub_len(&self) -> usize {
+        self.0.borrow().subs.len()
+    }
+
     /// Get sub-layout by id
     pub fn sub(&self, id: &str) -> Option<Layout> {
-        self.0.borrow().layouts.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
+        self.0.borrow().subs.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
     }
 
     /// Get sub-layout's index in this layout
     pub fn sub_idx(&self, id: &str) -> Option<usize> {
-        self.0.borrow().layouts.iter().position(|x| x.borrow().id == id)
+        self.0.borrow().subs.iter().position(|x| x.borrow().id == id)
     }
 
     /// Get sub-layout's position and size by id
@@ -505,9 +518,9 @@ impl Layout {
     pub fn set_sub(&self, sub_layout: Layout) {
         let inner = &mut *self.0.borrow_mut();
         if let Some(i) = inner.index(&sub_layout.id()) {
-            inner.layouts[i] = sub_layout.0.clone();
+            inner.subs[i] = sub_layout.0.clone();
         } else {
-            inner.layouts.push(sub_layout.0.clone());
+            inner.subs.push(sub_layout.0.clone());
         }
         inner.dirty = true;
     }
@@ -534,7 +547,7 @@ impl Layout {
     pub fn alloc_append<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
         let layout = self.alloc(id.as_ref(), size);
         let inner = &mut *self.0.borrow_mut();
-        inner.layouts.push(layout.0.clone());
+        inner.subs.push(layout.0.clone());
         inner.dirty = true;
         layout
     }
@@ -544,7 +557,7 @@ impl Layout {
     pub fn alloc_prepend<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
         let layout = self.alloc(id.as_ref(), size);
         let inner = &mut *self.0.borrow_mut();
-        inner.layouts.insert(0, layout.0.clone());
+        inner.subs.insert(0, layout.0.clone());
         inner.dirty = true;
         layout
     }
@@ -561,7 +574,7 @@ impl Layout {
 
                 // Update parent
                 let inner = &mut *self.0.borrow_mut();
-                inner.layouts.push(layout.0.clone());
+                inner.subs.push(layout.0.clone());
                 inner.dirty = true;
             }
             layout.update();
@@ -592,10 +605,10 @@ impl Layout {
         };
 
         // Calculate total layout size based on sub-layouts size and margins
-        if !self.0.borrow().layouts.is_empty() {
+        if !self.0.borrow().subs.is_empty() {
             size = Vec2::default();
             let mut offset = Vec2::default();
-            for x in self.0.borrow().layouts.iter() {
+            for x in self.0.borrow().subs.iter() {
                 x.borrow_mut().offset = offset; // Set positional offsets along the way.
                 let sub_size = Layout(x.clone()).update();
 
@@ -676,15 +689,6 @@ mod tests {
 
     use super::*;
 
-    // // Calculate the widgets alignment based on its
-    // // * size, positional offset, margins and mode
-    // // * parent's size and positional offset
-    // fn align(&self, parent_pos: Vec2, parent_size: Vec2) -> Vec2 {
-    //     let parent_mode = self.parent.as_ref().map(|x| x.borrow().mode).unwrap_or(Mode::default());
-    //     let parent_spacing = self.parent.as_ref().map(|x| x.borrow().spacing).unwrap_or(0.);
-    //     let parent_idx = self.parent.as_ref().and_then(|x| x.borrow().index(&self.id)).unwrap_or(0) as i32;
-    //     let parent_len = self.parent.as_ref().map(|x| x.borrow().layouts.len()).unwrap_or(0) as i32;
-
     //     // Alignment against parent
     //     let mut pos = self.align.relative(self.size, parent_size, parent_pos);
     //     pos = match parent_mode {
@@ -719,14 +723,55 @@ mod tests {
     //         pos.y += self.margins.top - self.margins.bottom;
     //     }
 
-    //     pos
-    // }
+    #[test]
+    fn append_multiple() {
+        let parent = Layout::new("parent").with_size_static(60., 60.).with_mode(Mode::LeftToRight);
+        let (parent_pos, parent_size) = parent.shape();
+        assert_eq!((parent_pos, parent_size), (vec2(0., 0.), vec2(60., 60.)));
+
+        let size = vec2(20., 20.);
+        let layout1 = Layout::new("id1").with_size_static(size.x, size.y).with_parent(parent.clone());
+        let layout2 = Layout::new("id2").with_size_static(size.x, size.y).with_parent(parent.clone());
+
+        // Check that sub-layouts are being appended to parent properly
+        assert_eq!(parent.sub_len(), 2);
+    }
 
     #[test]
-    fn pos() {
-        let layout = Layout::new("id1");
-        assert_eq!(layout.shape(), (vec2(0., 0.), vec2(0., 0.)));
-        assert_eq!(layout.parent_shape(), (vec2(0., 0.), vec2(450., 800.)));
+    fn pos_alignment_mode_align() {
+        let (w, h) = (450., 800.);
+        let size = vec2(20., 20.);
+        let layout = Layout::new("id1").with_size_static(size.x, size.y);
+        let (parent_pos, parent_size) = layout.parent_shape();
+        assert_eq!(layout.shape(), (vec2(0., 0.), size));
+        assert_eq!((parent_pos, parent_size), (vec2(0., 0.), vec2(w, h)));
+
+        let layout = layout.with_align(Align::Center);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::CenterBottom);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::CenterTop);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::LeftBottom);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::LeftCenter);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::LeftTop);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::RightBottom);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::RightCenter);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
+
+        let layout = layout.with_align(Align::RightTop);
+        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
     }
 
     #[test]

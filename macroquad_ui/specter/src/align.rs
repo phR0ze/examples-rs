@@ -69,7 +69,7 @@ impl Align {
     /// assert_eq!(Align::LeftTop.relative(size, cont_size, cont_pos), vec2(2., 2.));
     /// ```
     pub fn relative(&self, size: Vec2, cont_size: Vec2, cont_pos: Vec2) -> Vec2 {
-        let mut pos = match self {
+        let pos = match self {
             Align::CenterTop => vec2((cont_size.x - size.x) / 2.0, 0.0),
             Align::Center => vec2(cont_size.x - size.x, cont_size.y - size.y) / 2.0,
             Align::CenterBottom => vec2((cont_size.x - size.x) / 2.0, cont_size.y - size.y),
@@ -83,9 +83,7 @@ impl Align {
         };
 
         // If the containing widget's position was given offset by that amount
-        pos.x += cont_pos.x;
-        pos.y += cont_pos.y;
-        pos
+        pos + cont_pos
     }
 }
 
@@ -123,9 +121,22 @@ impl From<Vec2> for Align {
 mod tests {
 
     use super::*;
-
     #[test]
-    fn test_placeholder() {
-        assert_eq!(vec2(2., 2.), vec2(2., 2.));
+    fn relative() {
+        let (w, h) = (450., 800.);
+        let size = vec2(20., 20.);
+        let cpos = vec2(10., 10.);
+        let csize = vec2(w, h);
+
+        assert_eq!(Align::CenterTop.relative(size, csize, cpos), vec2((w - size.x) / 2., 0.) + cpos);
+        assert_eq!(Align::Center.relative(size, csize, cpos), vec2((w - size.x) / 2., (h - size.y) / 2.) + cpos);
+        assert_eq!(Align::CenterBottom.relative(size, csize, cpos), vec2((w - size.x) / 2., h - size.y) + cpos);
+        assert_eq!(Align::RightTop.relative(size, csize, cpos), vec2(w - size.x, 0.) + cpos);
+        assert_eq!(Align::RightCenter.relative(size, csize, cpos), vec2(w - size.x, (h - size.y) / 2.) + cpos);
+        assert_eq!(Align::RightBottom.relative(size, csize, cpos), vec2(w - size.x, h - size.y) + cpos);
+        assert_eq!(Align::LeftTop.relative(size, csize, cpos), vec2(0., 0.) + cpos);
+        assert_eq!(Align::LeftCenter.relative(size, csize, cpos), vec2(0., (h - size.y) / 2.) + cpos);
+        assert_eq!(Align::LeftBottom.relative(size, csize, cpos), vec2(0., h - size.y) + cpos);
+        assert_eq!(Align::Static(10., 10.).relative(size, csize, cpos), vec2(10., 10.) + cpos);
     }
 }
