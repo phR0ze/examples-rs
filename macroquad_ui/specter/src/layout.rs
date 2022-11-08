@@ -115,7 +115,7 @@ impl LayoutInner {
         }
 
         // Margins
-        if parent_len > 0 && parent_mode != Mode::Align {
+        if parent_len > 0 {
             if parent_mode == Mode::LeftToRight {
                 pos.x += self.margins.left;
                 pos.y += self.margins.top - self.margins.bottom;

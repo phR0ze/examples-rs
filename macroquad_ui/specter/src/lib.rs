@@ -2,13 +2,13 @@
 //!
 //! ### Example
 //! ```
-//! use core::prelude::*;
+//! use specter::prelude::*;
 //! ```
 #[macro_use]
 mod macros;
 
 mod align;
-// mod button;
+mod button;
 mod fps;
 mod frame;
 mod label;
@@ -20,7 +20,7 @@ mod utils;
 ///
 /// ### Examples
 /// ```
-/// use core::prelude::*;
+/// use specter::prelude::*;
 /// ```
 pub mod prelude {
     // Re-exports
@@ -35,12 +35,12 @@ pub mod prelude {
 
     // Export internal types
     pub use crate::align::*;
-    // pub use crate::button::*;
+    pub use crate::button::*;
     pub use crate::fps::*;
     pub use crate::frame::*;
     pub use crate::label::*;
     pub use crate::layout::*;
-    // pub use crate::macros::*;
+    pub use crate::macros::*;
     pub use crate::panel::*;
     pub use crate::utils::*;
 }
