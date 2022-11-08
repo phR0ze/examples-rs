@@ -185,7 +185,7 @@ impl LayoutInner {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Layout(SharedLayout);
 
-// Layout constructors and builder functions
+// Constructors and builders
 impl Layout {
     /// Create the default layout
     pub fn new<T: AsRef<str>>(id: T) -> Self {
@@ -216,17 +216,6 @@ impl Layout {
         layout
     }
 
-    /// Set layout alignment
-    /// * controls this widgets alignment in its parent layout
-    pub fn align(self, align: Align) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.align = align;
-        }
-        self
-    }
-
     /// Clone the layout and not just the layout reference
     /// * clone's layout properties and layout sub-layouts except parent
     /// * parent layout will remain the same shared layout as the original
@@ -245,9 +234,88 @@ impl Layout {
         layout
     }
 
+    /// Set layout alignment
+    /// * controls this widgets alignment in its parent layout
+    pub fn with_align(self, align: Align) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.align = align;
+        }
+        self
+    }
+
+    /// Configure layout expansion
+    /// * When enabled disables fill properties
+    pub fn with_expand(self) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.expand = true;
+            inner.fill_w = false;
+            inner.fill_h = false;
+        }
+        self
+    }
+
+    /// Fill the entire layout
+    pub fn with_fill(self) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.fill_w = true;
+            inner.fill_h = true;
+        }
+        self
+    }
+
+    /// Fill the entire width of the layout
+    pub fn with_fill_width(self) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.fill_w = true;
+        }
+        self
+    }
+
+    /// Fill the entire height of the layout
+    pub fn with_fill_height(self) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.fill_h = true;
+        }
+        self
+    }
+
+    /// Set the layout's identifier
+    pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.id = id.as_ref().to_string();
+        }
+        self
+    }
+
+    /// Space reserved outside the boundaries of the layout
+    pub fn with_margins(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.margins = RectOffset {
+                left,
+                right,
+                top,
+                bottom,
+            };
+        }
+        self
+    }
+
     /// Set layout packing mode
     /// * lays out sub-layouts using the given mode
-    pub fn mode(self, mode: Mode) -> Self {
+    pub fn with_mode(self, mode: Mode) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -256,9 +324,20 @@ impl Layout {
         self
     }
 
+    /// Add a parent layout for relative alignment
+    /// * when align is set the LayoutMode won't take affect
+    pub fn with_parent(self, parent: Layout) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.parent = Some(parent.0.clone());
+        }
+        self
+    }
+
     /// Set the layout size to full screen
     /// * disables layout expansion
-    pub fn size_f(self) -> Self {
+    pub fn with_size_full(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -273,7 +352,7 @@ impl Layout {
     /// * parent defaults to full screen if not set
     /// * `width` is a percentage of the screen/parent width range of (0.01 - 1.0)
     /// * `height` is a percentage of the screen/parent height range of (0.01 - 1.0)
-    pub fn size_p(self, width: f32, height: f32) -> Self {
+    pub fn with_size_percent(self, width: f32, height: f32) -> Self {
         {
             let size = if let Some(parent) = &self.0.borrow().parent { parent.borrow().size } else { screen() };
             let inner = &mut *self.0.borrow_mut();
@@ -286,7 +365,7 @@ impl Layout {
 
     /// Set the layout size to a static size
     /// * disables layout expansion
-    pub fn size_s(self, width: f32, height: f32) -> Self {
+    pub fn with_size_static(self, width: f32, height: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -296,101 +375,12 @@ impl Layout {
         self
     }
 
-    /// Fill the entire layout
-    pub fn fill(self) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.fill_w = true;
-            inner.fill_h = true;
-        }
-        self
-    }
-
-    /// Fill the entire width of the layout
-    pub fn fill_w(self) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.fill_w = true;
-        }
-        self
-    }
-
-    /// Fill the entire height of the layout
-    pub fn fill_h(self) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.fill_h = true;
-        }
-        self
-    }
-
-    /// Configure layout expansion
-    /// * When enabled disables fill properties
-    pub fn expand(self) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.expand = true;
-            inner.fill_w = false;
-            inner.fill_h = false;
-        }
-        self
-    }
-
     /// Space to allocate between widgets
-    pub fn spacing(self, spacing: f32) -> Self {
+    pub fn with_spacing(self, spacing: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
             inner.spacing = spacing;
-        }
-        self
-    }
-
-    /// Space reserved outside the boundaries of the layout
-    pub fn margins(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.margins = RectOffset {
-                left,
-                right,
-                top,
-                bottom,
-            };
-        }
-        self
-    }
-
-    /// Space reserved outside the boundaries of the layout
-    pub fn margins_p(self, margins: RectOffset) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.margins = margins;
-        }
-        self
-    }
-
-    /// Add a parent layout for relative alignment
-    /// * when align is set the LayoutMode won't take affect
-    pub fn parent(self, parent: Layout) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.dirty = true;
-            inner.parent = Some(parent.0.clone());
-        }
-        self
-    }
-
-    /// Set the layout's identifier
-    pub fn id<T: AsRef<str>>(self, id: T) -> Self {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            inner.id = id.as_ref().to_string();
         }
         self
     }
@@ -399,7 +389,7 @@ impl Layout {
 // Layout getters and helper functions
 impl Layout {
     /// Get layout id
-    pub fn get_id(&self) -> String {
+    pub fn id(&self) -> String {
         self.0.borrow().id.clone()
     }
 
@@ -446,7 +436,7 @@ impl Layout {
     /// Set sub-layout by id
     pub fn set_sub(&self, sub_layout: Layout) {
         let inner = &mut *self.0.borrow_mut();
-        if let Some(i) = inner.index(&sub_layout.get_id()) {
+        if let Some(i) = inner.index(&sub_layout.id()) {
             inner.layouts[i] = sub_layout.0.clone();
         } else {
             inner.layouts.push(sub_layout.0.clone());
@@ -462,11 +452,11 @@ impl Layout {
 
     // Create a new layout inside this layout
     fn alloc<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let mut layout = Layout::new(id.as_ref().to_string()).parent(Layout(self.0.clone()));
+        let mut layout = Layout::new(id.as_ref().to_string()).with_parent(Layout(self.0.clone()));
         if let Some(size) = size {
-            layout = layout.size_s(size.x, size.y).expand();
+            layout = layout.with_size_static(size.x, size.y).with_expand();
         } else {
-            layout = layout.expand();
+            layout = layout.with_expand();
         }
         layout
     }
@@ -494,7 +484,7 @@ impl Layout {
     /// Append the given sub-layout to this layout
     /// * Adds the new sub-layout to the end of the sub-layout list if it doesn't already exist
     pub fn append(&self, layout: &Layout) {
-        if self.sub_idx(&layout.get_id()).is_none() {
+        if self.sub_idx(&layout.id()).is_none() {
             {
                 // Set parent on layout
                 let sub = &mut *layout.0.borrow_mut();

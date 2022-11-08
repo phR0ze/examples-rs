@@ -31,7 +31,7 @@ impl LabelBuilder {
     /// Set the layout identifier
     pub fn id<T: AsRef<str>>(self, id: T) -> Self {
         Self {
-            layout: self.layout.id(id),
+            layout: self.layout.with_id(id),
             ..self
         }
     }
@@ -84,7 +84,7 @@ impl LabelBuilder {
 
     /// Create a new button instance
     pub fn build<T: AsRef<str>>(&self, text: T) -> Label {
-        let conf = self.clone().layout(|x| x.copy().id(text.as_ref()));
+        let conf = self.clone().layout(|x| x.copy().with_id(text.as_ref()));
         Label {
             conf,
             dirty: true,
