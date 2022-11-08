@@ -57,8 +57,7 @@ take a mutable reference to the widget or if not leverage interior mutability.
 **Naming:**  
 Because Rust doesn't support function overloading the functions are prefixed with `set_` or describe 
 the calculation being performed in a unique way to keep the function names unique from getter 
-functions. If a setters is not returning a reference or copy to internal data for a calculation it is 
-often useful for the setter to return a mutable reference pass through for chaining operations. 
+functions. Setters typically return a reference or copy to internal data for a calculation.
 Additionally surfacing internal objects for mutation via a lambda is very useful and ergonomic.
 
 **Examples:**

@@ -49,7 +49,7 @@ use std::{cell::RefCell, rc::Rc};
 type SharedLayout = Rc<RefCell<LayoutInner>>;
 
 // Internal implemenation detail for sharing ownership of layouts
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 struct LayoutInner {
     // Internal only
     dirty: bool,  // track if the widget needs calculation updates
@@ -95,7 +95,12 @@ impl LayoutInner {
         let (p_mode, p_spacing, p_idx, p_len) = match &self.parent {
             Some(parent) => {
                 let inner = parent.borrow();
-                (inner.mode, inner.spacing, inner.index(&self.id).unwrap_or(0) as f32, inner.subs.len())
+                (
+                    inner.mode,
+                    inner.spacing,
+                    inner.subs.iter().position(|x| x.borrow().id == self.id).unwrap_or(0) as f32,
+                    inner.subs.len(),
+                )
             },
             _ => (Mode::default(), 0., 0., 0),
         };
@@ -136,23 +141,61 @@ impl LayoutInner {
 
         pos
     }
-
-    // Clone the layout and not just the layout reference
-    fn copy(&self) -> SharedLayout {
-        Rc::new(RefCell::new(self.clone()))
-    }
-
-    // Get sub-layout's index in this layout
-    fn index(&self, id: &str) -> Option<usize> {
-        self.subs.iter().position(|x| x.borrow().id == id)
-    }
 }
 
 /// Layout describes a region of space and provides mechanisms for calculating where and how a
 /// widget should draw itself inside that region of space. Layout region space allocated to widgets
 /// is then tracked.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Layout(SharedLayout);
+
+impl Clone for Layout {
+    /// Clone this layout not just the reference counter
+    /// * sub-layouts will be deep copies and NOT references of the originals
+    /// * sub-layout parent references will be updated to point to new clones
+    /// * all cloned layouts will be marked to perform `update_size_and_offset`
+    /// * returned layout will not have its parent set
+    /// * returned layout will need its id updated to be unique
+    fn clone(&self) -> Self {
+        let layout = Layout::new("");
+        {
+            // Clone all properies
+            let inner = self.0.borrow();
+            let other = &mut *layout.0.borrow_mut();
+            other.dirty = true; // new layout will need re-calculated
+            other.offset = inner.offset;
+            other.id = inner.id.clone();
+            other.size = inner.size;
+            other.fill_w = inner.fill_w;
+            other.fill_h = inner.fill_h;
+            other.expand = inner.expand;
+            other.align = inner.align;
+            other.mode = inner.mode;
+            other.spacing = inner.spacing;
+            other.margins = inner.margins;
+
+            // Don't set the parent reference as we need to make a followup
+            // call to set the parent outside this function or it will get confusing
+            //other.parent = inner.parent.clone();
+
+            // Clone all sub-layouts recursively
+            for x in inner.subs.iter() {
+                let sub = Layout(x.clone()).clone();
+
+                // Set parent on layout after the fact
+                {
+                    let sub = &mut *sub.0.borrow_mut();
+                    sub.parent = Some(layout.0.clone());
+                    sub.dirty = true;
+                }
+
+                // Append sub-layout to parent
+                other.subs.push(sub.0);
+            }
+        }
+        layout
+    }
+}
 
 // Constructors and builders
 impl Layout {
@@ -185,22 +228,16 @@ impl Layout {
         layout
     }
 
-    /// Clone the layout and not just the layout reference
-    /// * clone's layout properties and layout sub-layouts except parent
-    /// * parent layout will remain the same shared layout as the original
-    /// * returned layout id will need to be changed to make it unique
-    pub fn copy(&self) -> Self {
-        let layout = Layout(self.0.borrow().copy());
-        {
-            let inner = &mut *layout.0.borrow_mut();
-            inner.subs.clear();
-            for x in self.0.borrow().subs.iter() {
-                let sub_layout = x.borrow().copy();
-                sub_layout.borrow_mut().parent = Some(layout.0.clone());
-                inner.subs.push(sub_layout);
-            }
-        }
-        layout
+    /// Create a reference of the layout to work with
+    /// * calls clone on the internal Rc to get a new reference
+    /// * useful for storing a single object in multiple locations
+    pub fn rc_ref(&self) -> Layout {
+        Layout(self.0.clone())
+    }
+
+    /// Returns true if the `other` layout is a pointer to this layout
+    pub fn rc_ref_eq(&self, other: &Layout) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
     }
 
     /// Set layout alignment
@@ -336,8 +373,8 @@ impl Layout {
 
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
-    pub fn with_parent(self, parent: Layout) -> Self {
-        parent.append(&self);
+    pub fn with_parent(self, parent: &Layout) -> Self {
+        parent.subs_append(&self);
         self
     }
 
@@ -462,6 +499,88 @@ impl Layout {
         let (parent_pos, parent_size) = self.parent_shape();
         self.0.borrow().pos(parent_pos, parent_size)
     }
+    /// Set layout alignment
+    /// * `align` is the alignment to set
+    pub fn set_align(&self, align: Align) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.align = align;
+    }
+
+    /// Set layout expand property
+    pub fn set_expand(&self) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.expand = true;
+    }
+
+    /// Set layout fill which sets fill_width and fill_height
+    pub fn set_fill(&self) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.fill_w = true;
+        inner.fill_h = true;
+    }
+
+    /// Set layout fill height property
+    pub fn set_fill_height(&self) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.fill_h = true;
+    }
+
+    /// Set layout fill width property
+    pub fn set_fill_width(&self) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.fill_w = true;
+    }
+
+    /// Set the layout's id
+    pub fn set_id<T: AsRef<str>>(&self, id: T) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.id = id.as_ref().to_string();
+    }
+
+    /// Set the layout's size not including margins
+    pub fn set_size(&self, size: Vec2) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.expand = false;
+        inner.size = size;
+    }
+
+    /// Set layout margins
+    /// * `margins` is the margins to set
+    pub fn set_margins(&self, margins: RectOffset) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.margins = margins;
+    }
+
+    /// Set layout mode
+    pub fn set_mode(&self, mode: Mode) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.mode = mode;
+    }
+
+    /// Set layout parent to reference internally
+    /// * this layout's parent property will be linked to the given parent
+    /// * `parent` is the parent layout to reference
+    pub fn set_parent(&self, parent: &Layout) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.parent = Some(parent.0.clone());
+    }
+
+    /// Set layout spacing
+    pub fn set_spacing(&self, spacing: f32) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.spacing = spacing;
+    }
 
     /// Get layout's position and size
     // * assumes layout size and position and parent size and positon are already updated
@@ -483,14 +602,49 @@ impl Layout {
         self.0.borrow().spacing
     }
 
-    /// Get the number of sub-layouts
-    pub fn sub_len(&self) -> usize {
-        self.0.borrow().subs.len()
-    }
-
     /// Get sub-layout by id
     pub fn sub(&self, id: &str) -> Option<Layout> {
         self.0.borrow().subs.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
+    }
+
+    // Create a new layout inside this layout
+    fn sub_alloc<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
+        let layout = Layout::new(id);
+        {
+            // Set parent on layout
+            let sub = &mut *layout.0.borrow_mut();
+            sub.parent = Some(self.0.clone());
+            sub.dirty = true;
+
+            // Set optional size
+            if let Some(size) = size {
+                sub.size = size;
+            }
+
+            // Ensure expand is set
+            sub.expand = true;
+        }
+        layout
+    }
+
+    /// Create a new sub-layout inside this layout
+    /// * Adds the new sub-layout to the end of the sub-layout list
+    pub fn sub_alloc_append<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
+        let sub = self.sub_alloc(id.as_ref(), size);
+        let inner = &mut *self.0.borrow_mut();
+        inner.subs.push(sub.0.clone());
+        inner.dirty = true;
+        sub
+    }
+
+    /// Create a new sub-layout inside this layout
+    /// * Adds the new sub-layout to the begining of the sub-layout list
+    pub fn sub_alloc_prepend<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
+        let layout = self.sub_alloc(id.as_ref(), size);
+        let inner = &mut *self.0.borrow_mut();
+        inner.subs.insert(0, layout.0.clone());
+        inner.dirty = true;
+        layout
     }
 
     /// Get sub-layout's index in this layout
@@ -506,65 +660,18 @@ impl Layout {
         self.sub(id).map(|x| x.shape())
     }
 
-    /// Set the layout's size not including margins
-    pub fn set_size(&self, size: Vec2) {
-        let inner = &mut *self.0.borrow_mut();
-        inner.dirty = true;
-        inner.expand = false;
-        inner.size = size;
-    }
-
-    /// Set sub-layout by id
-    pub fn set_sub(&self, sub_layout: Layout) {
-        let inner = &mut *self.0.borrow_mut();
-        if let Some(i) = inner.index(&sub_layout.id()) {
-            inner.subs[i] = sub_layout.0.clone();
-        } else {
-            inner.subs.push(sub_layout.0.clone());
-        }
-        inner.dirty = true;
-    }
-
     /// Set the sub-layout's size by id
-    /// * same as `set_layout_size_s` but takes Vec2 object instead of floats
-    pub fn set_sub_size(&self, id: &str, size: Vec2) {
+    /// * `id` is the sub-layout's id to set the size for
+    /// * `size` is the sub-layout's size to set
+    pub fn sub_set_size(&self, id: &str, size: Vec2) {
         self.sub(id).map(|x| x.set_size(size));
     }
 
-    // Create a new layout inside this layout
-    fn alloc<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let mut layout = Layout::new(id.as_ref().to_string()).with_parent(Layout(self.0.clone()));
-        if let Some(size) = size {
-            layout = layout.with_size_static(size.x, size.y).with_expand();
-        } else {
-            layout = layout.with_expand();
-        }
-        layout
-    }
-
-    /// Create a new sub-layout inside this layout
-    /// * Adds the new sub-layout to the end of the sub-layout list
-    pub fn alloc_append<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let layout = self.alloc(id.as_ref(), size);
-        let inner = &mut *self.0.borrow_mut();
-        inner.subs.push(layout.0.clone());
-        inner.dirty = true;
-        layout
-    }
-
-    /// Create a new sub-layout inside this layout
-    /// * Adds the new sub-layout to the begining of the sub-layout list
-    pub fn alloc_prepend<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let layout = self.alloc(id.as_ref(), size);
-        let inner = &mut *self.0.borrow_mut();
-        inner.subs.insert(0, layout.0.clone());
-        inner.dirty = true;
-        layout
-    }
-
     /// Append the given sub-layout to this layout
-    /// * Adds the new sub-layout to the end of the sub-layout list if it doesn't already exist
-    pub fn append(&self, layout: &Layout) {
+    /// * Adds the sub-layout to the end of the sub-layout list if it doesn't already exist
+    /// * Calls update if the sub-layout was appended
+    /// * `layout` is the sub-layout to append
+    pub fn subs_append(&self, layout: &Layout) {
         if self.sub_idx(&layout.id()).is_none() {
             {
                 // Set parent on layout
@@ -572,20 +679,49 @@ impl Layout {
                 sub.parent = Some(self.0.clone());
                 sub.dirty = true;
 
-                // Update parent
+                // Append sub-layout to parent
                 let inner = &mut *self.0.borrow_mut();
                 inner.subs.push(layout.0.clone());
                 inner.dirty = true;
             }
-            layout.update();
-            self.update();
+            self.update_size_and_offset();
         }
+    }
+
+    /// Get sub-layout by index
+    pub fn subs_idx(&self, i: usize) -> Option<Layout> {
+        if self.subs_len() > i {
+            Some(Layout(self.0.borrow().subs[i].clone()))
+        } else {
+            None
+        }
+    }
+
+    /// Get the number of sub-layouts
+    pub fn subs_len(&self) -> usize {
+        self.0.borrow().subs.len()
+    }
+
+    /// Update the sub-layout with the given sub-layout
+    /// * Calls update after the sub-layout is replaced or appended
+    /// * `layout` is the sub-layout to replace or append
+    pub fn subs_update(&self, layout: &Layout) {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            if let Some(i) = inner.subs.iter().position(|x| x.borrow().id == inner.id) {
+                inner.subs[i] = layout.0.clone();
+            } else {
+                inner.subs.push(layout.0.clone());
+            }
+            inner.dirty = true;
+        }
+        self.update_size_and_offset();
     }
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts
     /// * only performs calculation if needed
     /// * returns the size calculation including margins
-    pub fn update(&self) -> Vec2 {
+    pub fn update_size_and_offset(&self) -> Vec2 {
         let (expand, mode, mut size) = {
             let inner = &mut *self.0.borrow_mut();
 
@@ -610,7 +746,7 @@ impl Layout {
             let mut offset = Vec2::default();
             for x in self.0.borrow().subs.iter() {
                 x.borrow_mut().offset = offset; // Set positional offsets along the way.
-                let sub_size = Layout(x.clone()).update();
+                let sub_size = Layout(x.clone()).update_size_and_offset();
 
                 match mode {
                     Mode::LeftToRight | Mode::Align => {
@@ -724,17 +860,87 @@ mod tests {
     //     }
 
     #[test]
+    fn clone() {
+        let parent1 = Layout::new("parent1");
+        let layout1 = Layout::new("layout1")
+            .with_size_static(1., 2.)
+            .with_fill()
+            .with_no_expand()
+            .with_align(Align::CenterTop)
+            .with_mode(Mode::TopToBottom)
+            .with_spacing(10.)
+            .with_margins(1., 0., 0., 0.)
+            .with_parent(&parent1);
+        let sub1 = Layout::new("sub1").with_parent(&layout1);
+        let sub2 = Layout::new("sub2").with_parent(&layout1);
+
+        // Test layout1 original values
+        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout1.subs_len(), 2);
+        assert_eq!(layout1.subs_idx(0).unwrap().rc_ref_eq(&sub1), true);
+        assert_eq!(layout1.subs_idx(0).unwrap().rc_ref_eq(&sub2), false);
+        assert_eq!(layout1.subs_idx(1).unwrap().rc_ref_eq(&sub2), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().rc_ref_eq(&sub1), false);
+        assert_eq!(layout1.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&layout1), true);
+
+        // Test layout2 clone values
+        let layout2 = layout1.clone().with_id("layout2");
+        assert_eq!(layout2.id(), "layout2");
+        assert_eq!(layout2.size(), vec2(1., 2.));
+        assert_eq!(layout2.fill(), true);
+        assert_eq!(layout2.fill_height(), true);
+        assert_eq!(layout2.fill_width(), true);
+        assert_eq!(layout2.expand(), false);
+        assert_eq!(layout2.align(), Align::CenterTop);
+        assert_eq!(layout2.mode(), Mode::TopToBottom);
+        assert_eq!(layout2.spacing(), 10.);
+        assert_eq!(layout2.margins(), RectOffset::new(1., 0., 0., 0.));
+
+        // Check that parent wasn't included
+        assert_eq!(layout2.parent().is_none(), true);
+
+        // Check subs we're actually cloned
+        assert_eq!(layout2.subs_len(), 2);
+        assert_eq!(layout2.subs_idx(0).unwrap().rc_ref_eq(&sub1), false);
+        assert_eq!(layout2.subs_idx(0).unwrap().rc_ref_eq(&sub2), false);
+        assert_eq!(layout2.subs_idx(1).unwrap().rc_ref_eq(&sub2), false);
+        assert_eq!(layout2.subs_idx(1).unwrap().rc_ref_eq(&sub1), false);
+
+        // Check subs have new parent
+        assert_eq!(layout2.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&layout2), true);
+    }
+
+    #[test]
     fn append_multiple() {
         let parent = Layout::new("parent").with_size_static(60., 60.).with_mode(Mode::LeftToRight);
         let (parent_pos, parent_size) = parent.shape();
         assert_eq!((parent_pos, parent_size), (vec2(0., 0.), vec2(60., 60.)));
 
         let size = vec2(20., 20.);
-        let layout1 = Layout::new("id1").with_size_static(size.x, size.y).with_parent(parent.clone());
-        let layout2 = Layout::new("id2").with_size_static(size.x, size.y).with_parent(parent.clone());
+        let layout1 = Layout::new("id1").with_size_static(size.x, size.y).with_parent(&parent.clone());
+        let layout2 = Layout::new("id2").with_size_static(size.x, size.y).with_parent(&parent.clone());
 
         // Check that sub-layouts are being appended to parent properly
-        assert_eq!(parent.sub_len(), 2);
+        assert_eq!(parent.subs_len(), 2);
+    }
+
+    #[test]
+    fn rc_ref_eq() {
+        // Same pointer
+        let parent1 = Layout::new("parent1");
+        let layout1 = Layout::new("layout1").with_parent(&parent1);
+        let layout2 = layout1.rc_ref();
+        assert_eq!(layout1.rc_ref_eq(&layout2), true);
+        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&layout1), false);
+
+        // Different pointer, same parent
+        let layout2 = layout1.clone();
+        assert_eq!(layout1.rc_ref_eq(&layout2), false);
+        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout2.parent().unwrap().rc_ref_eq(&parent1), true);
     }
 
     #[test]
@@ -776,6 +982,7 @@ mod tests {
 
     #[test]
     fn builder_functions() {
+        // Getter functions
         let layout = Layout::new("id1");
         assert_eq!(layout.id(), "id1");
         assert_eq!(layout.size(), vec2(0., 0.));
@@ -789,29 +996,54 @@ mod tests {
         assert_eq!(layout.margins(), RectOffset::default());
         assert_eq!(layout.parent(), None);
 
-        // Now change the layout properties with builder functions
+        // Setter functions
+        layout.set_id("id2");
+        assert_eq!(layout.id(), "id2");
+        layout.set_size(vec2(0., 2.));
+        assert_eq!(layout.size(), vec2(0., 2.));
+        layout.set_fill_height();
+        assert_eq!(layout.fill_height(), true);
+        layout.set_fill_width();
+        assert_eq!(layout.fill_width(), true);
+        layout.set_fill();
+        assert_eq!(layout.fill(), true);
+        layout.set_align(Align::Center);
+        assert_eq!(layout.align(), Align::Center);
+        layout.set_expand();
+        assert_eq!(layout.expand(), true);
+        layout.set_mode(Mode::LeftToRight);
+        assert_eq!(layout.mode(), Mode::LeftToRight);
+        layout.set_spacing(5.);
+        assert_eq!(layout.spacing(), 5.);
+        layout.set_margins(RectOffset::new(2., 0., 0., 0.));
+        assert_eq!(layout.margins(), RectOffset::new(2., 0., 0., 0.));
+        layout.set_parent(&Layout::new("parent1"));
+        assert_eq!(layout.parent().is_some(), true);
+        assert_eq!(layout.parent().map(|x| x.id()).unwrap(), "parent1");
+
+        // Builder functions
         let layout = layout
-            .with_id("id2")
+            .with_id("id3")
             .with_size_static(1., 2.)
             .with_fill()
             .with_no_expand()
-            .with_align(Align::Center)
-            .with_mode(Mode::LeftToRight)
+            .with_align(Align::CenterTop)
+            .with_mode(Mode::TopToBottom)
             .with_spacing(10.)
             .with_margins(1., 0., 0., 0.)
-            .with_parent(Layout::new("parent1"));
-        assert_eq!(layout.id(), "id2");
+            .with_parent(&Layout::new("parent2"));
+        assert_eq!(layout.id(), "id3");
         assert_eq!(layout.size(), vec2(1., 2.));
         assert_eq!(layout.fill(), true);
         assert_eq!(layout.fill_height(), true);
         assert_eq!(layout.fill_width(), true);
         assert_eq!(layout.expand(), false);
-        assert_eq!(layout.align(), Align::Center);
-        assert_eq!(layout.mode(), Mode::LeftToRight);
+        assert_eq!(layout.align(), Align::CenterTop);
+        assert_eq!(layout.mode(), Mode::TopToBottom);
         assert_eq!(layout.spacing(), 10.);
         assert_eq!(layout.margins(), RectOffset::new(1., 0., 0., 0.));
         assert_eq!(layout.parent().is_some(), true);
-        assert_eq!(layout.parent().map(|x| x.id()).unwrap(), "parent1");
+        assert_eq!(layout.parent().map(|x| x.id()).unwrap(), "parent2");
 
         // Test no fill builder functions
         let layout = layout.with_no_fill_height();

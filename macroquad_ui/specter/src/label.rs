@@ -84,7 +84,7 @@ impl LabelBuilder {
 
     /// Create a new button instance
     pub fn build<T: AsRef<str>>(&self, text: T) -> Label {
-        let conf = self.clone().layout(|x| x.copy().with_id(text.as_ref()));
+        let conf = self.clone().layout(|x| x.with_id(text.as_ref()));
         Label {
             conf,
             dirty: true,
@@ -238,7 +238,7 @@ impl Label {
 
         // Set parent if given
         if let Some(parent) = layout {
-            parent.append(&self.conf.layout);
+            parent.subs_append(&self.conf.layout);
         }
 
         let (pos, size) = self.conf.layout.shape();

@@ -51,7 +51,7 @@ impl Panel {
     /// * returns true when clicked in the current frame
     pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>, f: impl FnOnce(&mut Ui, &Layout)) {
         if let Some(parent) = layout {
-            parent.append(&self.layout);
+            parent.subs_append(&self.layout);
         }
 
         // Draw panel

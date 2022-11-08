@@ -29,8 +29,7 @@ impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         let layout = Layout::horz("");
-        let label = Label::new("").layout(|_| layout.alloc_append(LABEL_ID, None));
-        println!("LABEL: {}", label.get_layout().id());
+        let label = Label::new("").layout(|_| layout.sub_alloc_append(LABEL_ID, None));
 
         Self {
             layout,
@@ -105,7 +104,7 @@ impl ButtonBuilder {
 
     /// Set icon to use
     pub fn icon_texture<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
-        self.layout.alloc_prepend(ICON_ID, None);
+        self.layout.sub_alloc_prepend(ICON_ID, None);
         Self {
             icon: icon.into(),
             ..self
@@ -114,7 +113,8 @@ impl ButtonBuilder {
 
     /// Update icon layout properties
     pub fn icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        self.layout.set_sub(f(self.layout.sub(ICON_ID).unwrap().clone()));
+        let sub = f(self.layout.sub(ICON_ID).unwrap().rc_ref());
+        self.layout.subs_update(&sub);
         self
     }
 
@@ -161,7 +161,7 @@ impl ButtonBuilder {
 
     /// Create a new button instance
     pub fn build<T: AsRef<str>>(&self, label: T) -> Button {
-        let mut conf = self.clone().layout(|x| x.copy().with_id(label.as_ref()));
+        let mut conf = self.clone().layout(|x| x.with_id(label.as_ref()));
         conf.label.set_text(label.as_ref());
         Button {
             conf,
@@ -358,9 +358,9 @@ impl Button {
         // Calculate and cache button component sizes to reduce compute time
         let (_, label_size) = self.conf.label.shape();
         if let Some(_) = &self.conf.icon {
-            self.conf.layout.set_sub_size(ICON_ID, vec2(label_size.y + 5.0, label_size.y + 5.0));
+            self.conf.layout.sub_set_size(ICON_ID, vec2(label_size.y + 5.0, label_size.y + 5.0));
         }
-        self.conf.layout.update();
+        self.conf.layout.update_size_and_offset();
 
         self.skin = Some(skin);
         self.dirty = false;
@@ -376,7 +376,7 @@ impl Button {
 
         // Set parent if given
         if let Some(parent) = layout {
-            parent.append(&self.conf.layout);
+            parent.subs_append(&self.conf.layout);
         }
 
         // Draw button
