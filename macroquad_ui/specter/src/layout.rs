@@ -168,18 +168,6 @@ impl Layout {
         layout
     }
 
-    /// Create a reference of the layout to work with
-    /// * calls clone on the internal Rc to get a new reference
-    /// * useful for storing a single object in multiple locations
-    pub fn rc_ref(&self) -> Layout {
-        Layout(self.0.clone())
-    }
-
-    /// Returns true if the `other` layout is a pointer to this layout
-    pub fn rc_ref_eq(&self, other: &Layout) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
-    }
-
     /// Set layout alignment
     /// * controls this widgets alignment in its parent layout
     pub fn with_align(self, align: Align) -> Self {
@@ -369,7 +357,7 @@ impl Layout {
     }
 }
 
-// Getters and setters
+// Getters
 impl Layout {
     /// Get layout alignment
     pub fn align(&self) -> Align {
@@ -416,72 +404,19 @@ impl Layout {
         self.0.borrow().parent.as_ref().map(|x| Layout(x.clone()))
     }
 
-    /// Get parent layout's position and size
-    /// * position accounts for margins
-    /// * returns (pos, size)
-    pub fn parent_shape(&self) -> (Vec2, Vec2) {
-        match self.parent() {
-            Some(parent) => parent.shape(),
-
-            // Default parent position and size
-            _ => (Vec2::default(), screen()),
-        }
+    /// Get layout size not including margins
+    pub fn size(&self) -> Vec2 {
+        self.0.borrow().size
     }
 
-    /// Get layout's position
-    /// * assumes layout size and parent size are already updated
-    /// * position accounts for margins
-    /// * returns (pos, size)
-    pub fn pos(&self) -> Vec2 {
-        let (p_pos, p_size) = self.parent_shape();
-        let (p_mode, p_spacing, p_idx, p_len) = match self.parent() {
-            Some(parent) => (
-                parent.mode(),
-                parent.spacing(),
-                parent.sub_idx(&self.0.borrow().id).unwrap_or(0) as f32,
-                parent.subs_len(),
-            ),
-            _ => (Mode::default(), 0., 0., 0),
-        };
-
-        // Alignment against parent
-        let inner = self.0.borrow();
-        let mut pos = inner.align.relative(inner.size, p_size, p_pos);
-        pos = match p_mode {
-            // Override x coordinate using pre-calculation offset of size including margins
-            Mode::LeftToRight => vec2(p_pos.x + inner.offset.x, pos.y),
-
-            // Override y coordinate using pre-calculation offset of size including margins
-            Mode::TopToBottom => vec2(pos.x, p_pos.y + inner.offset.y),
-
-            // No overrides
-            Mode::Align => pos,
-        };
-
-        // Spacing
-        if let Mode::LeftToRight = p_mode {
-            pos.x += p_spacing * p_idx as f32;
-        } else if let Mode::TopToBottom = p_mode {
-            pos.y += p_spacing * p_idx as f32;
-        }
-
-        // Margins
-        if p_len > 0 {
-            if p_mode == Mode::LeftToRight {
-                pos.x += inner.margins.left;
-                pos.y += inner.margins.top - inner.margins.bottom;
-            } else if p_mode == Mode::TopToBottom {
-                pos.x += inner.margins.left - inner.margins.right;
-                pos.y += inner.margins.top;
-            }
-        } else {
-            pos.x += inner.margins.left - inner.margins.right;
-            pos.y += inner.margins.top - inner.margins.bottom;
-        }
-
-        pos
+    /// Get layout spacing
+    pub fn spacing(&self) -> f32 {
+        self.0.borrow().spacing
     }
+}
 
+// Setters
+impl Layout {
     /// Set layout alignment
     /// * `align` is the alignment to set
     pub fn set_align(&self, align: Align) {
@@ -564,23 +499,95 @@ impl Layout {
         inner.dirty = true;
         inner.spacing = spacing;
     }
+}
+
+// Utility functions
+impl Layout {
+    /// Get parent layout's position and size
+    /// * position accounts for margins
+    /// * returns (pos, size)
+    pub fn parent_shape(&self) -> (Vec2, Vec2) {
+        match self.parent() {
+            Some(parent) => parent.shape(),
+
+            // Default parent position and size
+            _ => (Vec2::default(), screen()),
+        }
+    }
+
+    /// Get layout's position
+    /// * assumes layout size and parent size are already updated
+    /// * position accounts for margins
+    /// * returns (pos, size)
+    pub fn pos(&self) -> Vec2 {
+        let (p_pos, p_size) = self.parent_shape();
+        let (p_mode, p_spacing, p_idx, p_len) = match self.parent() {
+            Some(parent) => (
+                parent.mode(),
+                parent.spacing(),
+                parent.sub_idx(&self.0.borrow().id).unwrap_or(0) as f32,
+                parent.subs_len(),
+            ),
+            _ => (Mode::default(), 0., 0., 0),
+        };
+
+        // Alignment against parent
+        let inner = self.0.borrow();
+        let mut pos = inner.align.relative(inner.size, p_size, p_pos);
+        pos = match p_mode {
+            // Override x coordinate using pre-calculation offset of size including margins
+            Mode::LeftToRight => vec2(p_pos.x + inner.offset.x, pos.y),
+
+            // Override y coordinate using pre-calculation offset of size including margins
+            Mode::TopToBottom => vec2(pos.x, p_pos.y + inner.offset.y),
+
+            // No overrides
+            Mode::Align => pos,
+        };
+
+        // Spacing
+        if let Mode::LeftToRight = p_mode {
+            pos.x += p_spacing * p_idx as f32;
+        } else if let Mode::TopToBottom = p_mode {
+            pos.y += p_spacing * p_idx as f32;
+        }
+
+        // Margins
+        if p_len > 0 {
+            if p_mode == Mode::LeftToRight {
+                pos.x += inner.margins.left;
+                pos.y += inner.margins.top - inner.margins.bottom;
+            } else if p_mode == Mode::TopToBottom {
+                pos.x += inner.margins.left - inner.margins.right;
+                pos.y += inner.margins.top;
+            }
+        } else {
+            pos.x += inner.margins.left - inner.margins.right;
+            pos.y += inner.margins.top - inner.margins.bottom;
+        }
+
+        pos
+    }
+
+    /// Create a reference of the layout to work with
+    /// * calls clone on the internal Rc to get a new reference
+    /// * useful for storing a single object in multiple locations
+    pub fn rc_ref(&self) -> Layout {
+        Layout(self.0.clone())
+    }
+
+    /// Returns true if the `other` layout is a pointer to this layout
+    pub fn rc_ref_eq(&self, other: &Layout) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
 
     /// Get layout's position and size
     // * assumes layout size and position and parent size and positon are already updated
     /// * position accounts for margins
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
+        self.update_size_and_offset();
         (self.pos(), self.size())
-    }
-
-    /// Get layout size not including margins
-    pub fn size(&self) -> Vec2 {
-        self.0.borrow().size
-    }
-
-    /// Get layout spacing
-    pub fn spacing(&self) -> f32 {
-        self.0.borrow().spacing
     }
 
     /// Get sub-layout by id
@@ -665,7 +672,6 @@ impl Layout {
                 inner.subs.push(layout.0.clone());
                 inner.dirty = true;
             }
-            self.update_size_and_offset();
         }
     }
 
@@ -687,16 +693,13 @@ impl Layout {
     /// * Calls update after the sub-layout is replaced or appended
     /// * `layout` is the sub-layout to replace or append
     pub fn subs_update(&self, layout: &Layout) {
-        {
-            let inner = &mut *self.0.borrow_mut();
-            if let Some(i) = inner.subs.iter().position(|x| x.borrow().id == inner.id) {
-                inner.subs[i] = layout.0.clone();
-            } else {
-                inner.subs.push(layout.0.clone());
-            }
-            inner.dirty = true;
+        let inner = &mut *self.0.borrow_mut();
+        if let Some(i) = inner.subs.iter().position(|x| x.borrow().id == inner.id) {
+            inner.subs[i] = layout.0.clone();
+        } else {
+            inner.subs.push(layout.0.clone());
         }
-        self.update_size_and_offset();
+        inner.dirty = true;
     }
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts
@@ -805,19 +808,47 @@ impl Default for Mode {
 mod tests {
 
     use super::*;
+    fn empty() -> Vec2 {
+        vec2(0., 0.)
+    }
 
     #[test]
-    fn append_multiple() {
-        let parent = Layout::new("parent").with_size_static(60., 60.).with_mode(Mode::LeftToRight);
-        let (parent_pos, parent_size) = parent.shape();
-        assert_eq!((parent_pos, parent_size), (vec2(0., 0.), vec2(60., 60.)));
+    fn left_to_right_expansion_no_align() {
+        let parent = Layout::new("parent").with_mode(Mode::LeftToRight);
+        assert_eq!(parent.shape(), (empty(), empty()));
 
+        // Check expanding parent size
+        // widget = accumulation, height = largest
         let size = vec2(20., 20.);
-        let layout1 = Layout::new("id1").with_size_static(size.x, size.y).with_parent(&parent.clone());
-        let layout2 = Layout::new("id2").with_size_static(size.x, size.y).with_parent(&parent.clone());
+        let layout1 = Layout::new("id1").with_size_static(size.x, size.y).with_parent(&parent);
+        assert_eq!(parent.shape(), (empty(), vec2(20., 20.)));
+        let layout2 = Layout::new("id2").with_size_static(size.x, size.y).with_parent(&parent);
+        assert_eq!(parent.shape(), (empty(), vec2(40., 20.)));
+        let layout3 = Layout::new("id3").with_size_static(size.x, 30.).with_parent(&parent);
+        assert_eq!(parent.shape(), (empty(), vec2(60., 30.)));
 
         // Check that sub-layouts are being appended to parent properly
-        assert_eq!(parent.subs_len(), 2);
+        assert_eq!(parent.subs_len(), 3);
+        assert_eq!(parent.subs_idx(0).unwrap().rc_ref_eq(&layout1), true);
+        assert_eq!(parent.subs_idx(1).unwrap().rc_ref_eq(&layout2), true);
+        assert_eq!(parent.subs_idx(2).unwrap().rc_ref_eq(&layout3), true);
+        assert_eq!(parent.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.shape(), (empty(), vec2(60., 30.)));
+
+        // Check sub-layout position
+        assert_eq!(layout1.shape(), (vec2(0., 0.), size));
+        assert_eq!(layout2.shape(), (vec2(20., 0.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 0.), vec2(20., 30.)));
+
+        // Now set spacing and check
+        parent.set_spacing(5.);
+
+        // Check sub-layout position
+        assert_eq!(layout1.shape(), (vec2(0., 0.), size));
+        assert_eq!(layout2.shape(), (vec2(25., 0.), size));
+        assert_eq!(layout3.shape(), (vec2(50., 0.), vec2(20., 30.)));
     }
 
     #[test]
@@ -920,11 +951,11 @@ mod tests {
         assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
         assert_eq!(layout1.parent().unwrap().rc_ref_eq(&layout1), false);
 
-        // Different pointer, same parent
+        // Different pointer and no parent
         let layout2 = layout1.clone();
         assert_eq!(layout1.rc_ref_eq(&layout2), false);
         assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
-        assert_eq!(layout2.parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout2.parent().is_none(), true);
     }
 
     #[test]

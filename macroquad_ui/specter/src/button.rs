@@ -360,7 +360,6 @@ impl Button {
         if let Some(_) = &self.conf.icon {
             self.conf.layout.sub_set_size(ICON_ID, vec2(label_size.y + 5.0, label_size.y + 5.0));
         }
-        self.conf.layout.update_size_and_offset();
 
         self.skin = Some(skin);
         self.dirty = false;
