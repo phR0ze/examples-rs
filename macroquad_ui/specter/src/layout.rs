@@ -38,13 +38,17 @@
 //! TopToBottom. It is not considered when using the Align mode.
 //!
 //! ## Margins
-//! Margins are defined as additional space outside the widgets content area. Margins will affect
-//! how the widget is drawn in two ways. The first way is that margins are included in the size of
-//! the widget when considering how much space a widget will require inside a parent widget. However
-//! margins don't affect the content area of the wiget. The second way margins affect the widget is
-//! in its position. A left margin of 5.0 pts will positionally offset the widget to the right by
-//! 5.0 pts. This means that having equal and opposite margins will cancel out the margin's
-//! positional affect.
+//! Margins are defined as additional space outside the widget's content area. Margins will affect
+//! how the widget is drawn inside a parent layout. Margins are included in the size of the widget
+//! when considering how much space a widget will require inside a parent widget added to the total
+//! size a parent layout will expand to. Additionally the widget's position inside the parent layout
+//! will be affected. A left margin of 5.0 pts will positionally offset the widget to the right by
+//! 5.0 pts.
+//!
+//! ## Padding
+//! Padding is defined as additional space inside the widget's content area. Padding will affect how
+//! widgets are drawn inside its content area pushing widget's in from the edges of the content
+//! area. Padding is included in the widget's size.
 use crate::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
@@ -68,6 +72,7 @@ struct LayoutInner {
     mode: Mode,                   // layout mode directive
     spacing: f32,                 // space to include between widgets
     margins: RectOffset,          // space outside the frame edge
+    padding: RectOffset,          // space inside the frame edge
     subs: Vec<SharedLayout>,      // sub-layouts
     parent: Option<SharedLayout>, // parent layout
 }
@@ -102,6 +107,7 @@ impl Clone for Layout {
             other.mode = inner.mode;
             other.spacing = inner.spacing;
             other.margins = inner.margins;
+            other.padding = inner.padding;
 
             // Don't set the parent reference as we need to make a followup
             // call to set the parent outside this function or it will get confusing
@@ -142,6 +148,7 @@ impl Layout {
             align: Align::default(),
             spacing: 0.,
             margins: RectOffset::default(),
+            padding: RectOffset::default(),
             subs: vec![],
             parent: Option::<SharedLayout>::default(),
         })))
@@ -302,6 +309,21 @@ impl Layout {
         self
     }
 
+    /// Space reserved inside the boundaries of the layout
+    pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.padding = RectOffset {
+                left,
+                right,
+                top,
+                bottom,
+            };
+        }
+        self
+    }
+
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
     pub fn with_parent(self, parent: &Layout) -> Self {
@@ -402,12 +424,17 @@ impl Layout {
         self.0.borrow().mode
     }
 
+    /// Get layout padding
+    pub fn padding(&self) -> RectOffset {
+        self.0.borrow().padding
+    }
+
     /// Get layout parent
     pub fn parent(&self) -> Option<Layout> {
         self.0.borrow().parent.as_ref().map(|x| Layout(x.clone()))
     }
 
-    /// Get layout size not including margins
+    /// Get layout size includin padding but not including margins
     pub fn size(&self) -> Vec2 {
         self.0.borrow().size
     }
@@ -491,6 +518,14 @@ impl Layout {
         inner.mode = mode;
     }
 
+    /// Set layout padding
+    /// * `padding` is the padding to set
+    pub fn set_padding(&self, left: f32, right: f32, top: f32, bottom: f32) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.padding = RectOffset::new(left, right, top, bottom);
+    }
+
     /// Set layout parent to reference internally
     /// * this layout's parent property will be linked to the given parent
     /// * `parent` is the parent layout to reference
@@ -511,51 +546,44 @@ impl Layout {
 // Utility functions
 impl Layout {
     /// Get parent layout's position and size
-    /// * position accounts for margins
     /// * returns (pos, size)
     pub fn parent_shape(&self) -> (Vec2, Vec2) {
         match self.parent() {
             Some(parent) => parent.shape(),
-
-            // Default parent position and size
             _ => (Vec2::default(), screen()),
         }
     }
 
     /// Get layout's position
     /// * assumes layout size and parent size are already updated
-    /// * position accounts for margins
     /// * returns (pos, size)
     pub fn pos(&self) -> Vec2 {
         let (p_pos, p_size) = self.parent_shape();
-        let (p_mode, p_len) = match self.parent() {
-            Some(parent) => (parent.mode(), parent.subs_len()),
-            _ => (Mode::default(), 0),
-        };
+        let mode = self.parent().map(|x| x.mode()).unwrap_or(Mode::default());
 
-        // Alignment against parent
         let inner = self.0.borrow();
-        let mut pos = inner.align.relative(inner.size, p_size, p_pos);
-        pos = match p_mode {
-            // Offset doesn't apply
-            Mode::Align => pos,
 
-            // Offset was previously calculated
+        // Alignment vs positional offset
+        let mut pos = match mode {
+            Mode::Align => inner.align.relative(inner.size, p_size, p_pos),
             _ => p_pos + inner.offset,
         };
 
-        // Margins
-        if p_len > 0 {
-            if p_mode == Mode::LeftToRight {
+        // Include margins
+        match mode {
+            Mode::LeftToRight => {
                 pos.x += inner.margins.left;
                 pos.y += inner.margins.top - inner.margins.bottom;
-            } else if p_mode == Mode::TopToBottom {
+            },
+            Mode::TopToBottom => {
                 pos.x += inner.margins.left - inner.margins.right;
                 pos.y += inner.margins.top;
-            }
-        } else {
-            pos.x += inner.margins.left - inner.margins.right;
-            pos.y += inner.margins.top - inner.margins.bottom;
+            },
+            Mode::Align => {
+                // TODO: overflow?
+                pos.x += inner.margins.left; // - inner.margins.right;
+                pos.y += inner.margins.top; // - inner.margins.bottom;
+            },
         }
 
         pos
@@ -575,7 +603,6 @@ impl Layout {
 
     /// Get layout's position and size
     // * assumes layout size and position and parent size and positon are already updated
-    /// * position accounts for margins
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
         self.update_size_and_offset();
@@ -633,8 +660,6 @@ impl Layout {
     }
 
     /// Get sub-layout's position and size by id
-    /// * position accounts for margins
-    /// * size accounts for margins
     /// * returns (pos, size)
     pub fn sub_shape(&self, id: &str) -> Option<(Vec2, Vec2)> {
         self.sub(id).map(|x| x.shape())
@@ -698,7 +723,7 @@ impl Layout {
     /// * only performs calculation if needed
     /// * returns the size calculation including margins
     pub fn update_size_and_offset(&self) -> Vec2 {
-        let (expand, mode, mut size, margins) = {
+        let (expand, mode, mut size, margins, padding) = {
             let inner = &mut *self.0.borrow_mut();
 
             // Include margins in the total size for use in expansion cases
@@ -713,20 +738,20 @@ impl Layout {
             }
 
             inner.dirty = false;
-            (inner.expand, inner.mode, inner_size, inner.margins)
+            (inner.expand, inner.mode, inner_size, inner.margins, inner.padding)
         };
 
         // Calculate total layout size
         if !self.0.borrow().subs.is_empty() {
-            // Add opening margins
-            size = vec2(margins.left, margins.top);
+            // Add opening padding
+            size = vec2(padding.left, padding.top);
 
-            // Offset to account for margins
+            // Offset to account for padding
             let mut offset = size;
 
             let len = self.subs_len();
             for (i, x) in self.0.borrow().subs.iter().enumerate() {
-                // Positional offset takes spacing and margins into account
+                // Positional offset
                 x.borrow_mut().offset = offset;
 
                 // Get sub-layout size recursively
@@ -736,13 +761,13 @@ impl Layout {
                     Mode::LeftToRight | Mode::Align => {
                         size.x += sub_size.x + self.add_spacing(i, len);
                         if size.y < sub_size.y {
-                            size.y = margins.top + sub_size.y;
+                            size.y = padding.top + sub_size.y;
                         }
                         offset.x = size.x;
                     },
                     Mode::TopToBottom => {
                         if size.x < sub_size.x {
-                            size.x = margins.left + sub_size.x;
+                            size.x = padding.left + sub_size.x;
                         }
                         size.y += sub_size.y + self.add_spacing(i, len);
                         offset.y = size.y;
@@ -750,13 +775,17 @@ impl Layout {
                 }
             }
 
-            // Add closing margins
-            size += vec2(margins.right, margins.bottom);
+            // Add closing padding
+            size += vec2(padding.right, padding.bottom);
 
             // Persist the calculated size if set to expand
             if expand && size != Vec2::default() {
                 self.0.borrow_mut().size = size;
             }
+
+            // Add margins - don't persist
+            size.x += margins.left + margins.right;
+            size.y += margins.top + margins.bottom;
         }
 
         // Handle fill directives
@@ -872,28 +901,37 @@ mod tests {
         assert_eq!(layout3.shape(), (vec2(50., 0.), vec2(20., 30.)));
         assert_eq!(parent.shape(), (empty(), vec2(70., 30.)));
 
-        // Set parent margins and check
-        parent.set_margins(5., 5., 5., 5.);
+        // Set parent padding and check
+        // Sub-layout positional offset will be affected but not parent
+        parent.set_padding(5., 5., 5., 5.);
         assert_eq!(layout1.shape(), (vec2(5., 5.), size));
         assert_eq!(layout2.shape(), (vec2(30., 5.), size));
         assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
         assert_eq!(parent.shape(), (empty(), vec2(80., 40.)));
 
-        // Set parent static size bigger than needed and sub-layouts shouldn't change
+        // Set parent margins and check
+        // Sub-layout positional offset will be affected and parent's
+        parent.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout1.shape(), (vec2(10., 10.), size));
+        assert_eq!(layout2.shape(), (vec2(35., 10.), size));
+        assert_eq!(layout3.shape(), (vec2(60., 10.), vec2(20., 30.)));
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(80., 40.)));
+
+        // Set parent static size bigger than needed
+        // Nothing should change other than the parent's size
         parent.set_size(90., 50.);
-        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
-        assert_eq!(layout2.shape(), (vec2(30., 5.), size));
-        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (empty(), vec2(90., 50.)));
+        assert_eq!(layout1.shape(), (vec2(10., 10.), size));
+        assert_eq!(layout2.shape(), (vec2(35., 10.), size));
+        assert_eq!(layout3.shape(), (vec2(60., 10.), vec2(20., 30.)));
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(90., 50.)));
 
         // TODO: control overflow?
-        // Set parent static size smaller than needed and sub-layouts shouldn't change
-        // but will overflow the parents layout
+        // Nothing should change other than the parent's size
         parent.set_size(70., 30.);
-        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
-        assert_eq!(layout2.shape(), (vec2(30., 5.), size));
-        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (empty(), vec2(70., 30.)));
+        assert_eq!(layout1.shape(), (vec2(10., 10.), size));
+        assert_eq!(layout2.shape(), (vec2(35., 10.), size));
+        assert_eq!(layout3.shape(), (vec2(60., 10.), vec2(20., 30.)));
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(70., 30.)));
     }
 
     #[test]
