@@ -358,7 +358,7 @@ impl Button {
         // Calculate and cache button component sizes to reduce compute time
         let (_, label_size) = self.conf.label.shape();
         if let Some(_) = &self.conf.icon {
-            self.conf.layout.sub_set_size(ICON_ID, vec2(label_size.y + 5.0, label_size.y + 5.0));
+            self.conf.layout.sub_set_size(ICON_ID, label_size.y + 5.0, label_size.y + 5.0);
         }
 
         self.skin = Some(skin);

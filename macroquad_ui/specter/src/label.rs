@@ -224,7 +224,8 @@ impl Label {
         };
 
         // Calculate text size and include margin
-        self.conf.layout.set_size(text_size(ui, &skin, Some(&self.text)));
+        let size = text_size(ui, &skin, Some(&self.text));
+        self.conf.layout.set_size(size.x, size.y);
         self.skin = Some(skin);
         self.dirty = false;
     }

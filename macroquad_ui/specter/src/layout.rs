@@ -19,20 +19,23 @@
 //!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
-//! for all content allocations. This is very useful for cases where you don't know the size of the
+//! for the size of all content. This is very useful for cases where you don't know the size of the
 //! layout in advance and need to build that knowledge based on the widgets it is composed of taking
-//! into account margins and/or alignment preferences for one or more widgts. For example Button is
-//! composed of an Icon, Label and a Frame each of which require layout mangement.
+//! into account margins, spacing and/or alignment preferences for one or more widgts. For example a
+//! Button is composed of an Icon and Label each of which can be measured and included into the
+//! total layout expansion. Setting the expand directive will disable the fill directives.
 //!
 //! ## Fill directive
-//! The fill properties `fill_w`, `fill_h` and `fill` direct the layout to have the allocated widget
-//! fill the (w) width, (h) height or both directions. This provides the ability to create a Panel
-//! to be used as a menu with a fixed size and then have buttons of unknown size fill the width of
-//! the menu with margins taken into acocunt.
+//! The fill properties `fill_w`, `fill_h` and `fill` direct sub-layouts to fill the layout's width
+//! (w), height (h) or both directions. This provides the ability to create a Panel to be used as a
+//! menu with a fixed size and then have buttons of unknown size fill the width of the menu with
+//! margins taken into acocunt. Setting the fill directives will cause the expand directive to be
+//! ignored. Setting fill directives requires the layout to have a static size configured.
 //!
 //! ## Spacing
-//! When packing widgets in a layout consecutively spacing can be applied to provide a consistent
-//! space between widgets
+//! When packing widgets in a layout consecutively, spacing can be applied to provide a consistent
+//! space between widgets. This directive is only used for non alignment modes like LeftToRight or
+//! TopToBottom. It is not considered when using the Align mode.
 //!
 //! ## Margins
 //! Margins are defined as additional space outside the widgets content area. Margins will affect
@@ -52,8 +55,8 @@ type SharedLayout = Rc<RefCell<LayoutInner>>;
 #[derive(Debug, PartialEq)]
 struct LayoutInner {
     // Internal only
-    dirty: bool,  // track if the widget needs calculation updates
-    offset: Vec2, // positional offset including margins
+    dirty: bool,  // track if calculations are needed
+    offset: Vec2, // calculated positional offset
 
     // Exposed through Layout functions
     id: String,                   // layout identifier
@@ -426,10 +429,13 @@ impl Layout {
     }
 
     /// Set layout expand property
+    /// * disables the fill directives
     pub fn set_expand(&self) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.expand = true;
+        inner.fill_w = false;
+        inner.fill_h = false;
     }
 
     /// Set layout fill which sets fill_width and fill_height
@@ -462,19 +468,20 @@ impl Layout {
     }
 
     /// Set the layout's size not including margins
-    pub fn set_size(&self, size: Vec2) {
+    /// * disables the expand directive
+    pub fn set_size(&self, width: f32, height: f32) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.expand = false;
-        inner.size = size;
+        inner.size = vec2(width, height);
     }
 
     /// Set layout margins
     /// * `margins` is the margins to set
-    pub fn set_margins(&self, margins: RectOffset) {
+    pub fn set_margins(&self, left: f32, right: f32, top: f32, bottom: f32) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
-        inner.margins = margins;
+        inner.margins = RectOffset::new(left, right, top, bottom);
     }
 
     /// Set layout mode
@@ -521,36 +528,21 @@ impl Layout {
     /// * returns (pos, size)
     pub fn pos(&self) -> Vec2 {
         let (p_pos, p_size) = self.parent_shape();
-        let (p_mode, p_spacing, p_idx, p_len) = match self.parent() {
-            Some(parent) => (
-                parent.mode(),
-                parent.spacing(),
-                parent.sub_idx(&self.0.borrow().id).unwrap_or(0) as f32,
-                parent.subs_len(),
-            ),
-            _ => (Mode::default(), 0., 0., 0),
+        let (p_mode, p_len) = match self.parent() {
+            Some(parent) => (parent.mode(), parent.subs_len()),
+            _ => (Mode::default(), 0),
         };
 
         // Alignment against parent
         let inner = self.0.borrow();
         let mut pos = inner.align.relative(inner.size, p_size, p_pos);
         pos = match p_mode {
-            // Override x coordinate using pre-calculation offset of size including margins
-            Mode::LeftToRight => vec2(p_pos.x + inner.offset.x, pos.y),
-
-            // Override y coordinate using pre-calculation offset of size including margins
-            Mode::TopToBottom => vec2(pos.x, p_pos.y + inner.offset.y),
-
-            // No overrides
+            // Offset doesn't apply
             Mode::Align => pos,
-        };
 
-        // Spacing
-        if let Mode::LeftToRight = p_mode {
-            pos.x += p_spacing * p_idx as f32;
-        } else if let Mode::TopToBottom = p_mode {
-            pos.y += p_spacing * p_idx as f32;
-        }
+            // Offset was previously calculated
+            _ => p_pos + inner.offset,
+        };
 
         // Margins
         if p_len > 0 {
@@ -651,8 +643,8 @@ impl Layout {
     /// Set the sub-layout's size by id
     /// * `id` is the sub-layout's id to set the size for
     /// * `size` is the sub-layout's size to set
-    pub fn sub_set_size(&self, id: &str, size: Vec2) {
-        self.sub(id).map(|x| x.set_size(size));
+    pub fn sub_set_size(&self, id: &str, width: f32, height: f32) {
+        self.sub(id).map(|x| x.set_size(width, height));
     }
 
     /// Append the given sub-layout to this layout
@@ -706,50 +698,60 @@ impl Layout {
     /// * only performs calculation if needed
     /// * returns the size calculation including margins
     pub fn update_size_and_offset(&self) -> Vec2 {
-        let (expand, mode, mut size) = {
+        let (expand, mode, mut size, margins) = {
             let inner = &mut *self.0.borrow_mut();
 
-            // Calculate total layout size based on static size and margins
+            // Include margins in the total size for use in expansion cases
             let inner_size = vec2(
                 inner.size.x + inner.margins.left + inner.margins.right,
                 inner.size.y + inner.margins.top + inner.margins.bottom,
             );
 
-            // Return persisted value including margins if not dirty
+            // Bail earlier if not dirty
             if !inner.dirty {
                 return inner_size;
             }
 
             inner.dirty = false;
-            (inner.expand, inner.mode, inner_size)
+            (inner.expand, inner.mode, inner_size, inner.margins)
         };
 
-        // Calculate total layout size based on sub-layouts size and margins
+        // Calculate total layout size
         if !self.0.borrow().subs.is_empty() {
-            size = Vec2::default();
-            let mut offset = Vec2::default();
+            // Add opening margins
+            size = vec2(margins.left, margins.top);
+
+            // Offset to account for margins
+            let mut offset = size;
+
             let len = self.subs_len();
             for (i, x) in self.0.borrow().subs.iter().enumerate() {
-                x.borrow_mut().offset = offset; // Set positional offsets along the way.
+                // Positional offset takes spacing and margins into account
+                x.borrow_mut().offset = offset;
+
+                // Get sub-layout size recursively
                 let sub_size = Layout(x.clone()).update_size_and_offset();
 
                 match mode {
                     Mode::LeftToRight | Mode::Align => {
                         size.x += sub_size.x + self.add_spacing(i, len);
                         if size.y < sub_size.y {
-                            size.y = sub_size.y;
+                            size.y = margins.top + sub_size.y;
                         }
                         offset.x = size.x;
                     },
                     Mode::TopToBottom => {
                         if size.x < sub_size.x {
-                            size.x = sub_size.x;
+                            size.x = margins.left + sub_size.x;
                         }
                         size.y += sub_size.y + self.add_spacing(i, len);
                         offset.y = size.y;
                     },
                 }
             }
+
+            // Add closing margins
+            size += vec2(margins.right, margins.bottom);
 
             // Persist the calculated size if set to expand
             if expand && size != Vec2::default() {
@@ -772,6 +774,7 @@ impl Layout {
             }
         }
 
+        // Returned values always includes margins
         size
     }
 
@@ -862,13 +865,34 @@ mod tests {
         assert_eq!(layout3.shape(), (vec2(40., 0.), vec2(20., 30.)));
         assert_eq!(parent.shape(), (empty(), vec2(60., 30.)));
 
-        // Now set spacing and check
+        // Set parent spacing and check
         parent.set_spacing(5.);
-
-        // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
-        // assert_eq!(layout2.shape(), (vec2(25., 0.), size));
-        // assert_eq!(layout3.shape(), (vec2(50., 0.), vec2(20., 30.)));
+        assert_eq!(layout2.shape(), (vec2(25., 0.), size));
+        assert_eq!(layout3.shape(), (vec2(50., 0.), vec2(20., 30.)));
+        assert_eq!(parent.shape(), (empty(), vec2(70., 30.)));
+
+        // Set parent margins and check
+        parent.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
+        assert_eq!(layout2.shape(), (vec2(30., 5.), size));
+        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
+        assert_eq!(parent.shape(), (empty(), vec2(80., 40.)));
+
+        // Set parent static size bigger than needed and sub-layouts shouldn't change
+        parent.set_size(90., 50.);
+        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
+        assert_eq!(layout2.shape(), (vec2(30., 5.), size));
+        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
+        assert_eq!(parent.shape(), (empty(), vec2(90., 50.)));
+
+        // TODO: control overflow?
+        // Set parent static size smaller than needed and sub-layouts shouldn't change
+        // but will overflow the parents layout
+        parent.set_size(70., 30.);
+        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
+        assert_eq!(layout2.shape(), (vec2(30., 5.), size));
+        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
         assert_eq!(parent.shape(), (empty(), vec2(70., 30.)));
     }
 
@@ -998,7 +1022,7 @@ mod tests {
         // Setter functions
         layout.set_id("id2");
         assert_eq!(layout.id(), "id2");
-        layout.set_size(vec2(0., 2.));
+        layout.set_size(0., 2.);
         assert_eq!(layout.size(), vec2(0., 2.));
         layout.set_fill_height();
         assert_eq!(layout.fill_height(), true);
@@ -1014,7 +1038,7 @@ mod tests {
         assert_eq!(layout.mode(), Mode::LeftToRight);
         layout.set_spacing(5.);
         assert_eq!(layout.spacing(), 5.);
-        layout.set_margins(RectOffset::new(2., 0., 0., 0.));
+        layout.set_margins(2., 0., 0., 0.);
         assert_eq!(layout.margins(), RectOffset::new(2., 0., 0., 0.));
         layout.set_parent(&Layout::new("parent1"));
         assert_eq!(layout.parent().is_some(), true);
