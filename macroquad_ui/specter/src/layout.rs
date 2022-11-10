@@ -13,9 +13,9 @@
 //! direction. For example a
 //!
 //! ## Align directive
-//! The alignment directive as modified by the various align functions is used to guide the
-//! calculation of the widgets position in its parent layout. Margins will still affect the position
-//! even when an alignment directive existe.
+//! The alignment directive is used to guide the calculation of the widgets position in its parent
+//! layout. Margins and padding will still affect the position even when an alignment directive
+//! exists.
 //!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
@@ -560,7 +560,6 @@ impl Layout {
     pub fn pos(&self) -> Vec2 {
         let (p_pos, p_size) = self.parent_shape();
         let mode = self.parent().map(|x| x.mode()).unwrap_or(Mode::default());
-
         let inner = self.0.borrow();
 
         // Alignment vs positional offset
@@ -569,21 +568,22 @@ impl Layout {
             _ => p_pos + inner.offset,
         };
 
-        // Include margins
-        match mode {
-            Mode::LeftToRight => {
-                pos.x += inner.margins.left;
-                pos.y += inner.margins.top - inner.margins.bottom;
-            },
-            Mode::TopToBottom => {
-                pos.x += inner.margins.left - inner.margins.right;
-                pos.y += inner.margins.top;
-            },
-            Mode::Align => {
-                // TODO: overflow?
-                pos.x += inner.margins.left; // - inner.margins.right;
-                pos.y += inner.margins.top; // - inner.margins.bottom;
-            },
+        // Include opening margins
+        pos.x += inner.margins.left;
+        pos.y += inner.margins.top;
+
+        // Include closing margins via overflow control
+        let overflow = vec2(
+            (pos.x + inner.size.x) - (p_pos.x + p_size.x - inner.margins.right),
+            (pos.y + inner.size.y) - (p_pos.y + p_size.y - inner.margins.bottom),
+        );
+
+        // Don't allow overflow
+        if overflow.x > 0. {
+            pos.x -= overflow.x;
+        }
+        if overflow.y >= 0. {
+            pos.y -= overflow.y;
         }
 
         pos
@@ -865,6 +865,95 @@ mod tests {
     }
 
     #[test]
+    fn align_in_sized_parent() {
+        let parent = Layout::new("parent").with_size_static(100., 100.);
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+
+        let size = vec2(20., 20.);
+        let builder = Layout::new("").with_size_static(size.x, size.y);
+
+        // All alignment permutations
+        let layout1 = builder.clone().with_id("id1").with_align(Align::Center).with_parent(&parent);
+        let layout2 = builder.clone().with_id("id2").with_align(Align::CenterBottom).with_parent(&parent);
+        let layout3 = builder.clone().with_id("id3").with_align(Align::CenterTop).with_parent(&parent);
+        let layout4 = builder.clone().with_id("id4").with_align(Align::LeftBottom).with_parent(&parent);
+        let layout5 = builder.clone().with_id("id5").with_align(Align::LeftCenter).with_parent(&parent);
+        let layout6 = builder.clone().with_id("id6").with_align(Align::LeftTop).with_parent(&parent);
+        let layout7 = builder.clone().with_id("id7").with_align(Align::RightBottom).with_parent(&parent);
+        let layout8 = builder.clone().with_id("id8").with_align(Align::RightCenter).with_parent(&parent);
+        let layout9 = builder.clone().with_id("id9").with_align(Align::RightTop).with_parent(&parent);
+        let layout10 = builder.clone().with_id("id10").with_align(Align::Static(40., 40.)).with_parent(&parent);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(40., 80.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 0.), size));
+        assert_eq!(layout4.shape(), (vec2(0., 80.), size));
+        assert_eq!(layout5.shape(), (vec2(0., 40.), size));
+        assert_eq!(layout6.shape(), (vec2(0., 0.), size));
+        assert_eq!(layout7.shape(), (vec2(80., 80.), size));
+        assert_eq!(layout8.shape(), (vec2(80., 40.), size));
+        assert_eq!(layout9.shape(), (vec2(80., 0.), size));
+        assert_eq!(layout10.shape(), (vec2(40., 40.), size));
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+
+        // Spacing should have no affect when using alignment
+        parent.set_spacing(10.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(40., 80.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 0.), size));
+        assert_eq!(layout4.shape(), (vec2(0., 80.), size));
+        assert_eq!(layout5.shape(), (vec2(0., 40.), size));
+        assert_eq!(layout6.shape(), (vec2(0., 0.), size));
+        assert_eq!(layout7.shape(), (vec2(80., 80.), size));
+        assert_eq!(layout8.shape(), (vec2(80., 40.), size));
+        assert_eq!(layout9.shape(), (vec2(80., 0.), size));
+        assert_eq!(layout10.shape(), (vec2(40., 40.), size));
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+
+        // Padding should have no affect on sub-layouts or parent since its a static size
+        parent.set_padding(10., 10., 10., 10.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(40., 80.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 0.), size));
+        assert_eq!(layout4.shape(), (vec2(0., 80.), size));
+        assert_eq!(layout5.shape(), (vec2(0., 40.), size));
+        assert_eq!(layout6.shape(), (vec2(0., 0.), size));
+        assert_eq!(layout7.shape(), (vec2(80., 80.), size));
+        assert_eq!(layout8.shape(), (vec2(80., 40.), size));
+        assert_eq!(layout9.shape(), (vec2(80., 0.), size));
+        assert_eq!(layout10.shape(), (vec2(40., 40.), size));
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+
+        // Margins should offset alignment
+        parent.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout1.shape(), (vec2(45., 45.), size));
+        assert_eq!(layout2.shape(), (vec2(45., 85.), size));
+        assert_eq!(layout3.shape(), (vec2(45., 5.), size));
+        assert_eq!(layout4.shape(), (vec2(5., 85.), size));
+        assert_eq!(layout5.shape(), (vec2(5., 45.), size));
+        assert_eq!(layout6.shape(), (vec2(5., 5.), size));
+        assert_eq!(layout7.shape(), (vec2(85., 85.), size));
+        assert_eq!(layout8.shape(), (vec2(85., 45.), size));
+        assert_eq!(layout9.shape(), (vec2(85., 5.), size));
+        assert_eq!(layout10.shape(), (vec2(45., 45.), size));
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
+
+        // Adding margins to sub-layouts means overflow needs to be dealt with
+        layout1.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout1.shape(), (vec2(50., 50.), size));
+        layout2.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout2.shape(), (vec2(50., 80.), size));
+        layout4.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout4.shape(), (vec2(10., 80.), size));
+        layout7.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout7.shape(), (vec2(80., 80.), size));
+        layout8.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout8.shape(), (vec2(80., 50.), size));
+        layout10.set_margins(5., 5., 5., 5.);
+        assert_eq!(layout10.shape(), (vec2(50., 50.), size));
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
+    }
+
+    #[test]
     fn left_to_right_expansion_no_align() {
         let parent = Layout::new("parent").with_mode(Mode::LeftToRight);
         assert_eq!(parent.shape(), (empty(), empty()));
@@ -925,50 +1014,12 @@ mod tests {
         assert_eq!(layout3.shape(), (vec2(60., 10.), vec2(20., 30.)));
         assert_eq!(parent.shape(), (vec2(5., 5.), vec2(90., 50.)));
 
-        // TODO: control overflow?
-        // Nothing should change other than the parent's size
+        // Nothing should change other than the parent's size and overflow control
         parent.set_size(70., 30.);
         assert_eq!(layout1.shape(), (vec2(10., 10.), size));
         assert_eq!(layout2.shape(), (vec2(35., 10.), size));
-        assert_eq!(layout3.shape(), (vec2(60., 10.), vec2(20., 30.)));
+        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.))); // overflow control
         assert_eq!(parent.shape(), (vec2(5., 5.), vec2(70., 30.)));
-    }
-
-    #[test]
-    fn pos_alignment_mode_align() {
-        let (w, h) = (450., 800.);
-        let size = vec2(20., 20.);
-        let layout = Layout::new("id1").with_size_static(size.x, size.y);
-        let (parent_pos, parent_size) = layout.parent_shape();
-        assert_eq!(layout.shape(), (vec2(0., 0.), size));
-        assert_eq!((parent_pos, parent_size), (vec2(0., 0.), vec2(w, h)));
-
-        let layout = layout.with_align(Align::Center);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::CenterBottom);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::CenterTop);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::LeftBottom);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::LeftCenter);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::LeftTop);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::RightBottom);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::RightCenter);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
-
-        let layout = layout.with_align(Align::RightTop);
-        assert_eq!(layout.pos(), layout.align().relative(size, parent_size, parent_pos));
     }
 
     #[test]
