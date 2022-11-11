@@ -56,34 +56,34 @@ impl Align {
     /// Calculate the position vector based on the given widget size and positioning directive as well
     /// as the containing widget's size and optional position.
     /// * `size` is the size of the widget to position
-    /// * `cont_size` is the containing widget's size
-    /// * `cont_pos` is the containing positional to offset
+    /// * `parent_size` is the parent widget's size
+    /// * `parent_pos` is the parent widget's positional offset
     ///
     /// ### Examples
     /// ```
     /// use specter::prelude::*;
     ///
     /// let size = vec2(2., 2.);
-    /// let cont_size = vec2(4., 4.);
-    /// let cont_pos = vec2(2., 2.);
-    /// assert_eq!(Align::LeftTop.relative(size, cont_size, cont_pos), vec2(2., 2.));
+    /// let parent_size = vec2(4., 4.);
+    /// let parent_pos = vec2(2., 2.);
+    /// assert_eq!(Align::LeftTop.relative(size, parent_size, parent_pos), vec2(2., 2.));
     /// ```
-    pub fn relative(&self, size: Vec2, cont_size: Vec2, cont_pos: Vec2) -> Vec2 {
+    pub fn relative(&self, size: Vec2, parent_size: Vec2, parent_pos: Vec2) -> Vec2 {
         let pos = match self {
-            Align::CenterTop => vec2((cont_size.x - size.x) / 2.0, 0.0),
-            Align::Center => vec2(cont_size.x - size.x, cont_size.y - size.y) / 2.0,
-            Align::CenterBottom => vec2((cont_size.x - size.x) / 2.0, cont_size.y - size.y),
-            Align::RightTop => vec2(cont_size.x - size.x, 0.0),
-            Align::RightCenter => vec2(cont_size.x - size.x, (cont_size.y - size.y) / 2.0),
-            Align::RightBottom => vec2(cont_size.x - size.x, cont_size.y - size.y),
+            Align::CenterTop => vec2((parent_size.x - size.x) / 2.0, 0.0),
+            Align::Center => vec2(parent_size.x - size.x, parent_size.y - size.y) / 2.0,
+            Align::CenterBottom => vec2((parent_size.x - size.x) / 2.0, parent_size.y - size.y),
+            Align::RightTop => vec2(parent_size.x - size.x, 0.0),
+            Align::RightCenter => vec2(parent_size.x - size.x, (parent_size.y - size.y) / 2.0),
+            Align::RightBottom => vec2(parent_size.x - size.x, parent_size.y - size.y),
             Align::LeftTop => vec2(0.0, 0.0),
-            Align::LeftCenter => vec2(0.0, (cont_size.y - size.y) / 2.0),
-            Align::LeftBottom => vec2(0.0, cont_size.y - size.y),
+            Align::LeftCenter => vec2(0.0, (parent_size.y - size.y) / 2.0),
+            Align::LeftBottom => vec2(0.0, parent_size.y - size.y),
             Align::Static(x, y) => vec2(*x, *y),
         };
 
         // If the containing widget's position was given offset by that amount
-        pos + cont_pos
+        pos + parent_pos
     }
 }
 

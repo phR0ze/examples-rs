@@ -24,13 +24,12 @@ async fn main() {
 
         builder
             .build("Left Top")
-            .layout(|x| x.with_align(Align::LeftTop).with_margins(5., 0., 5., 0.))
-            .label_layout(|x| x.with_align(Align::LeftTop).with_margins(5., 0., 5., 0.))
+            .layout(|x| x.with_align(Align::LeftTop).with_margins(5., 0., 5., 0.).with_padding(5., 0., 5., 0.))
             .show(&mut *root_ui(), None);
         builder
             .build("Center Top")
-            .layout(|x| x.with_align(Align::CenterTop).with_margins(0., 0., 25., 20.))
-            .label_layout(|x| x.with_align(Align::CenterTop).with_margins(0., 0., 25., 20.))
+            .layout(|x| x.with_align(Align::CenterTop).with_margins(0., 0., 5., 0.))
+            .label_layout(|x| x.with_align(Align::CenterTop).with_margins(5., 0., 5., 0.))
             .show(&mut *root_ui(), None);
         builder
             .build("Right Top")
