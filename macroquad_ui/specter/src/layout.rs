@@ -727,7 +727,7 @@ impl Layout {
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts
     /// * only performs calculation if needed
-    /// * returns the size calculation excluding margins
+    /// * returns the size calculation including margins
     fn update_size_and_offset(&self) -> Vec2 {
         let (expand, mode, mut size, margins, padding) = {
             let inner = &mut *self.0.borrow_mut();
@@ -750,59 +750,45 @@ impl Layout {
 
         // Calculate total layout size
         if !self.0.borrow().subs.is_empty() {
-            // Size: Add parent padding open
+            // Add parent padding open
             size = vec2(padding.left, padding.top);
-
-            // Offset: add parent padding open
             let mut offset = size;
 
             let len = self.subs_len();
             for (i, x) in self.0.borrow().subs.iter().enumerate() {
-                // Get sub-layout size (includes margins, open/close)
+                // Get sub-layout size and margins
                 let (sub_size, sub_margins) = {
                     let sub = Layout(x.clone());
                     (sub.update_size_and_offset(), sub.margins())
                 };
 
-                // Offset: add sub-layout margins open
+                // Add sub-layout opening margins
                 if mode == Mode::LeftToRight {
+                    offset.x += sub_margins.left;
                     if offset.y < padding.top + sub_margins.top {
-                        // Reset offset vertical to new larger value including padding
                         offset.y = padding.top + sub_margins.top;
                     }
-                    // Incrementally track horizontal value
-                    offset.x += sub_margins.left;
                 } else if mode == Mode::TopToBottom {
                     if offset.x < padding.left + sub_margins.left {
-                        // Reset offset horizontal to new larger value including padding
                         offset.x = padding.left + sub_margins.left;
                     }
-                    // Incrementally track vertical value
                     offset.y += sub_margins.top;
                 }
-
-                // Set positional offset
                 x.borrow_mut().offset = offset;
 
-                // Size: add sub-layout size (includes margins) and spacing
-                // Offset: add sub-layout size removing opening margin as already accounted for
-                match mode {
-                    Mode::LeftToRight | Mode::Align => {
-                        size.x += sub_size.x + self.add_spacing(i, len);
-                        if size.y < padding.top + sub_size.y {
-                            size.y = padding.top + sub_size.y;
-                        }
-                        // Account for double open padding and margin
-                        offset.x += size.x - padding.left - sub_margins.left;
-                    },
-                    Mode::TopToBottom => {
-                        if size.x < padding.left + sub_size.x {
-                            size.x = padding.left + sub_size.x;
-                        }
-                        size.y += sub_size.y + self.add_spacing(i, len);
-                        // Account for double open padding and margin
-                        offset.y += size.y - padding.top - sub_margins.top;
-                    },
+                // Add sub-layout size, margins and spacing
+                if mode == Mode::LeftToRight {
+                    size.x += sub_size.x + self.add_spacing(i, len);
+                    offset.x += sub_size.x - sub_margins.left + self.add_spacing(i, len);
+                    if size.y < padding.top + sub_size.y {
+                        size.y = padding.top + sub_size.y;
+                    }
+                } else if mode == Mode::TopToBottom {
+                    if size.x < padding.left + sub_size.x {
+                        size.x = padding.left + sub_size.x;
+                    }
+                    size.y += sub_size.y + self.add_spacing(i, len);
+                    offset.y += sub_size.y - sub_margins.top + self.add_spacing(i, len);
                 }
             }
 
