@@ -52,39 +52,6 @@ impl Align {
             _ => false,
         }
     }
-
-    /// Calculate the position vector based on the given widget size and positioning directive as well
-    /// as the containing widget's size and optional position.
-    /// * `size` is the size of the widget to position
-    /// * `parent_size` is the parent widget's size
-    /// * `parent_pos` is the parent widget's positional offset
-    ///
-    /// ### Examples
-    /// ```
-    /// use specter::prelude::*;
-    ///
-    /// let size = vec2(2., 2.);
-    /// let parent_size = vec2(4., 4.);
-    /// let parent_pos = vec2(2., 2.);
-    /// assert_eq!(Align::LeftTop.relative(size, parent_size, parent_pos), vec2(2., 2.));
-    /// ```
-    pub fn relative(&self, size: Vec2, parent_size: Vec2, parent_pos: Vec2) -> Vec2 {
-        let pos = match self {
-            Align::CenterTop => vec2((parent_size.x - size.x) / 2.0, 0.0),
-            Align::Center => vec2(parent_size.x - size.x, parent_size.y - size.y) / 2.0,
-            Align::CenterBottom => vec2((parent_size.x - size.x) / 2.0, parent_size.y - size.y),
-            Align::RightTop => vec2(parent_size.x - size.x, 0.0),
-            Align::RightCenter => vec2(parent_size.x - size.x, (parent_size.y - size.y) / 2.0),
-            Align::RightBottom => vec2(parent_size.x - size.x, parent_size.y - size.y),
-            Align::LeftTop => vec2(0.0, 0.0),
-            Align::LeftCenter => vec2(0.0, (parent_size.y - size.y) / 2.0),
-            Align::LeftBottom => vec2(0.0, parent_size.y - size.y),
-            Align::Static(x, y) => vec2(*x, *y),
-        };
-
-        // If the containing widget's position was given offset by that amount
-        pos + parent_pos
-    }
 }
 
 impl Default for Align {
@@ -120,23 +87,9 @@ impl From<Vec2> for Align {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
+    //use super::*;
     #[test]
     fn relative() {
-        let (w, h) = (450., 800.);
-        let size = vec2(20., 20.);
-        let cpos = vec2(10., 10.);
-        let csize = vec2(w, h);
-
-        assert_eq!(Align::CenterTop.relative(size, csize, cpos), vec2((w - size.x) / 2., 0.) + cpos);
-        assert_eq!(Align::Center.relative(size, csize, cpos), vec2((w - size.x) / 2., (h - size.y) / 2.) + cpos);
-        assert_eq!(Align::CenterBottom.relative(size, csize, cpos), vec2((w - size.x) / 2., h - size.y) + cpos);
-        assert_eq!(Align::RightTop.relative(size, csize, cpos), vec2(w - size.x, 0.) + cpos);
-        assert_eq!(Align::RightCenter.relative(size, csize, cpos), vec2(w - size.x, (h - size.y) / 2.) + cpos);
-        assert_eq!(Align::RightBottom.relative(size, csize, cpos), vec2(w - size.x, h - size.y) + cpos);
-        assert_eq!(Align::LeftTop.relative(size, csize, cpos), vec2(0., 0.) + cpos);
-        assert_eq!(Align::LeftCenter.relative(size, csize, cpos), vec2(0., (h - size.y) / 2.) + cpos);
-        assert_eq!(Align::LeftBottom.relative(size, csize, cpos), vec2(0., h - size.y) + cpos);
-        assert_eq!(Align::Static(10., 10.).relative(size, csize, cpos), vec2(10., 10.) + cpos);
+        //
     }
 }

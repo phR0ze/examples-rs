@@ -2,20 +2,35 @@
 //! calculating and tracking where and how they should be drawn.
 //!
 //! ## Defaults
-//! * horizontal layout
-//! * expansion enabled
+//! * LeftToRight layout
+//! * Expansion enabled
+//!
+//! ## Terminology
+//! * `child layout` is the inner layout when dealing with nested layouts
+//! * `parent layout` is the outer layout when dealing with nested layouts
+//! * `origin` is contextual to a layout and refers to where its top left corner starts
+//! * `mode` is the packing directive defining different layout packing interpretations
 //!
 //! ## Pack mode
-//! Pack modes provide different interpretations of how widgets should be packed into the layout's
-//! defined region of space. The default LeftToRight mode will add widgets horizontally from left to
-//! right while the TopToBottom layout will add widgets vertically from top to bottom. The alignment
-//! directive can be combined with the pack mode to provide centering for the uncontrolled
-//! direction. For example a
+//! Pack modes provide different interpretations of how child layouts should be packed into the
+//! parent layout's defined region of space. The default `Mode::LeftToRight` will add child layouts
+//! horizontally from left to right while `Mode::TopToBottom` will add child layouts vertically from
+//! top to bottom. `Mode::Align` enables the use of the Align directive without which the Align
+//! directive will be ignored on child layouts.
 //!
 //! ## Align directive
-//! The alignment directive is used to guide the calculation of the widgets position in its parent
-//! layout. Margins and padding will still affect the position even when an alignment directive
-//! exists.
+//! The align directive is used to remove a layout from the standard linear packing mode to instead
+//! follow a calculated positioning relative to its parent layout. Margins and padding will still
+//! affect the position even when an align directive is used but behave differently then the
+//! standard linear packing modes. While the standard linear modes process out to in first parent
+//! margins then parent padding then child margins, Align will take padding into account during the
+//! relative calculation but margins are processed post alignment. For example if a layout, sized
+//! 20x20, is to be positioned in the center of its parent, sized 100x100, its origin would be
+//! (40,40). If we set a child margin (not parent margin) of 10.0 on the layout alignment would be
+//! calculated as (40,40) then the margin would be included to make the final origin as (50,50) with
+//! a post shift in the origin. Padding however is calculated as a reduction in parent content space
+//! which means in a similar situation if we instead had a parent padding of 5.0 alignment would be
+//! calculated still as (40, 40) because of the even reduction in content space of the parent.
 //!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
@@ -560,26 +575,48 @@ impl Layout {
     pub fn pos(&self) -> Vec2 {
         let (p_pos, p_size) = self.parent_shape();
         let p_mode = self.parent().map(|x| x.mode()).unwrap_or(Mode::default());
-        let p_padding = self.parent().map(|x| x.padding()).unwrap_or(RectOffset::default());
+        let p_pad = self.parent().map(|x| x.padding()).unwrap_or(RectOffset::default());
         let inner = self.0.borrow();
 
         // Calculate position
         let mut pos = match p_mode {
-            // Alignment handles parent margins but needs padding manually added here
             Mode::Align => {
-                let mut pos = inner.align.relative(inner.size, p_size, p_pos);
-                pos += vec2(p_padding.left, p_padding.top);
+                // First reduce parent size by parent padding amount
+                let padded = vec2(p_size.x - p_pad.left - p_pad.right, p_size.y - p_pad.top - p_pad.bottom);
+
+                let mut pos = match inner.align {
+                    Align::CenterTop => vec2((padded.x - inner.size.x) / 2.0, 0.0),
+                    Align::Center => vec2(padded.x - inner.size.x, padded.y - inner.size.y) / 2.0,
+                    Align::CenterBottom => vec2((padded.x - inner.size.x) / 2.0, padded.y - inner.size.y),
+                    Align::RightTop => vec2(padded.x - inner.size.x, 0.0),
+                    Align::RightCenter => vec2(padded.x - inner.size.x, (padded.y - inner.size.y) / 2.0),
+                    Align::RightBottom => vec2(padded.x - inner.size.x, padded.y - inner.size.y),
+                    Align::LeftTop => vec2(0.0, 0.0),
+                    Align::LeftCenter => vec2(0.0, (padded.y - inner.size.y) / 2.0),
+                    Align::LeftBottom => vec2(0.0, padded.y - inner.size.y),
+                    Align::Static(x, y) => vec2(x, y),
+                };
+
+                // Offset by parent layout's position which already includes its margins
+                pos += p_pos;
+
+                // Offset by parent layout's padding
+                pos += vec2(p_pad.left, p_pad.top);
+
+                // Offset by layout's margins
                 pos += vec2(inner.margins.left, inner.margins.top);
+
                 pos
             },
-            // Positional offset already handles parent margins and padding
+
+            // Positional offset already handles margins and padding appropriately
             _ => p_pos + inner.offset,
         };
 
         // Overflow control
         let overflow = vec2(
-            (pos.x + inner.size.x + inner.margins.right + p_padding.right) - (p_pos.x + p_size.x),
-            (pos.y + inner.size.y + inner.margins.bottom + p_padding.bottom) - (p_pos.y + p_size.y),
+            (pos.x + inner.size.x + inner.margins.right + p_pad.right) - (p_pos.x + p_size.x),
+            (pos.y + inner.size.y + inner.margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
         );
         if overflow.x > 0. {
             pos.x -= overflow.x;
@@ -928,41 +965,47 @@ mod tests {
 
         // Padding should offset alignment for sub-layouts inside parent
         parent.set_padding(10., 10., 10., 10.);
-        assert_eq!(layout1.shape(), (vec2(50., 50.), size));
-        // assert_eq!(layout2.shape(), (vec2(50., 70.), size)); // adjusted for overflow
-        // assert_eq!(layout3.shape(), (vec2(50., 10.), size));
-        // assert_eq!(layout4.shape(), (vec2(10., 80.), size));
-        // assert_eq!(layout5.shape(), (vec2(10., 50.), size));
-        // assert_eq!(layout6.shape(), (vec2(10., 10.), size));
-        // assert_eq!(layout7.shape(), (vec2(80., 80.), size)); // adjusted for overflow
-        // assert_eq!(layout8.shape(), (vec2(80., 50.), size)); // adjusted for overflow
-        // assert_eq!(layout9.shape(), (vec2(80., 10.), size)); // adjusted for overflow
-        // assert_eq!(layout10.shape(), (vec2(50., 50.), size));
-        // assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+        let shapes = vec![
+            vec2(40., 40.),
+            vec2(40., 70.),
+            vec2(40., 10.),
+            vec2(10., 70.),
+            vec2(10., 40.),
+            vec2(10., 10.),
+            vec2(70., 70.),
+            vec2(70., 40.),
+            vec2(70., 10.),
+            vec2(50., 50.),
+        ];
+
+        for i in 0..=9 {
+            assert_eq!(parent.subs_idx(i).unwrap().shape(), (shapes[i], size));
+        }
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
 
         // Margins should offset alignment for sub-layouts inside parent
-        // parent.set_margins(5., 5., 5., 5.);
-        // for i in 0..=9 {
-        //     assert_eq!(parent.subs_idx(i).unwrap().shape().0, shapes[i] + 5.);
-        // }
-        // assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
+        parent.set_margins(5., 5., 5., 5.);
+        for i in 0..=9 {
+            assert_eq!(parent.subs_idx(i).unwrap().shape().0, shapes[i] + 5.);
+        }
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
 
-        // // Adding margins to sub-layouts means overflow needs to be dealt with
-        // for i in 0..=9 {
-        //     parent.subs_idx(i).unwrap().set_margins(5., 5., 5., 5.);
-        // }
+        // Adding margins to sub-layouts means overflow needs to be dealt with
+        for i in 0..=9 {
+            parent.subs_idx(i).unwrap().set_margins(5., 5., 5., 5.);
+        }
 
-        // assert_eq!(layout1.shape(), (vec2(50., 50.), size));
-        // assert_eq!(layout2.shape(), (vec2(50., 80.), size)); // adjusted for overflow
-        // assert_eq!(layout3.shape(), (vec2(50., 10.), size));
-        // assert_eq!(layout4.shape(), (vec2(10., 80.), size));
-        // assert_eq!(layout5.shape(), (vec2(10., 50.), size));
-        // assert_eq!(layout6.shape(), (vec2(10., 10.), size));
-        // assert_eq!(layout7.shape(), (vec2(80., 80.), size)); // adjusted for overflow
-        // assert_eq!(layout8.shape(), (vec2(80., 50.), size)); // adjusted for overflow
-        // assert_eq!(layout9.shape(), (vec2(80., 10.), size)); // adjusted for overflow
-        // assert_eq!(layout10.shape(), (vec2(50., 50.), size));
-        // assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
+        assert_eq!(layout1.shape(), (vec2(50., 50.), size));
+        assert_eq!(layout2.shape(), (vec2(50., 70.), size)); // adjusted for overflow
+        assert_eq!(layout3.shape(), (vec2(50., 20.), size));
+        assert_eq!(layout4.shape(), (vec2(20., 70.), size)); // adjusted for overflow
+        assert_eq!(layout5.shape(), (vec2(20., 50.), size));
+        assert_eq!(layout6.shape(), (vec2(20., 20.), size));
+        assert_eq!(layout7.shape(), (vec2(70., 70.), size)); // adjusted for overflow
+        assert_eq!(layout8.shape(), (vec2(70., 50.), size)); // adjusted for overflow
+        assert_eq!(layout9.shape(), (vec2(70., 20.), size)); // adjusted for overflow
+        assert_eq!(layout10.shape(), (vec2(60., 60.), size));
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
     }
 
     #[test]
