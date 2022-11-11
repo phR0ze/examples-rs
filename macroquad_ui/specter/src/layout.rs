@@ -928,7 +928,7 @@ mod tests {
 
         // Padding should offset alignment for sub-layouts inside parent
         parent.set_padding(10., 10., 10., 10.);
-        // assert_eq!(layout1.shape(), (vec2(50., 50.), size));
+        assert_eq!(layout1.shape(), (vec2(50., 50.), size));
         // assert_eq!(layout2.shape(), (vec2(50., 70.), size)); // adjusted for overflow
         // assert_eq!(layout3.shape(), (vec2(50., 10.), size));
         // assert_eq!(layout4.shape(), (vec2(10., 80.), size));
@@ -1042,9 +1042,8 @@ mod tests {
         parent.set_size(100., 50.);
         assert_eq!(layout1.shape(), (vec2(15., 15.), size));
         assert_eq!(layout2.shape(), (vec2(50., 15.), size));
-        assert_eq!(layout3.shape(), (vec2(65., 15.), vec2(20., 30.))); // overflow control
-
-        // assert_eq!(parent.shape(), (vec2(5., 5.), vec2(70., 30.)));
+        assert_eq!(layout3.shape(), (vec2(75., 15.), vec2(20., 30.))); // overflow control
+        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 50.)));
     }
 
     #[test]
