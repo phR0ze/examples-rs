@@ -820,7 +820,6 @@ impl Layout {
     /// inner most layouts i.e. the leaf layouts.
     /// * returns the size calculation including margins
     fn update_size(&self) -> Vec2 {
-        println!("ID: {}", self.id());
         let (expand, mode, mut size, margins, padding) = {
             let inner = &mut *self.0.borrow_mut();
 
@@ -1065,22 +1064,36 @@ mod tests {
             .with_padding_all(5.);
 
         // Row 1
-        let r1 =
-            Layout::new("r1").with_size_static(180., 60.).with_margins_all(5.).with_spacing(5.).with_parent(&p1);
+        let r1 = Layout::new("r1")
+            .with_mode(Mode::LeftToRight)
+            .with_size_static(180., 60.)
+            .with_margins_all(5.)
+            .with_spacing(5.)
+            .with_parent(&p1);
         let r1c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
         let r1c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
         let r1c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
 
-        // // Row 2
-        // let r2 = Layout::new("r2").with_size_static(180., 60.);
-        // let r2c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
-        // let r2c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
-        // let r2c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
+        // Row 2
+        let r2 = Layout::new("r2")
+            .with_mode(Mode::LeftToRight)
+            .with_size_static(180., 60.)
+            .with_margins_all(5.)
+            .with_spacing(5.)
+            .with_parent(&p1);
+        let r2c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r2);
+        let r2c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r2);
+        let r2c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r2);
 
-        //assert_eq!(p1.shape().0, vec2(0., 0.));
-        //assert_eq!(r1.shape().0, vec2(10., 10.));
-        //assert_eq!(r1c1.shape().0, vec2(10., 10.));
+        assert_eq!(p1.shape().0, vec2(0., 0.));
+        assert_eq!(r1.shape().0, vec2(10., 10.));
+        assert_eq!(r1c1.shape().0, vec2(10., 10.));
         assert_eq!(r1c2.shape().0, vec2(65., 10.));
+        assert_eq!(r1c3.shape().0, vec2(120., 10.));
+        assert_eq!(r2.shape().0, vec2(10., 80.));
+        assert_eq!(r2c1.shape().0, vec2(10., 80.));
+        assert_eq!(r2c2.shape().0, vec2(65., 80.));
+        assert_eq!(r2c3.shape().0, vec2(120., 80.));
     }
 
     #[test]

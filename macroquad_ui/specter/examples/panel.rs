@@ -23,7 +23,12 @@ async fn main() {
             .with_frame(|x| x.with_fill(BLACK))
             .show_f(&mut *root_ui(), |ui, layout| {
                 Panel::new("p2")
-                    .with_layout(|x| x.with_size_static(390., 200.0).with_spacing(10.).with_padding_all(20.))
+                    .with_layout(|x| {
+                        x.with_mode(Mode::LeftToRight)
+                            .with_size_static(390., 200.0)
+                            .with_spacing(10.)
+                            .with_padding_all(20.)
+                    })
                     .with_frame(|x| x.with_fill(DARKGRAY))
                     .show_pf(ui, Some(layout), |ui, layout| {
                         Panel::new("0")
@@ -40,7 +45,12 @@ async fn main() {
                             .show_p(ui, layout);
                     });
                 Panel::new("p3")
-                    .with_layout(|x| x.with_size_static(390., 200.0).with_spacing(10.).with_padding_all(20.))
+                    .with_layout(|x| {
+                        x.with_mode(Mode::LeftToRight)
+                            .with_size_static(390., 200.0)
+                            .with_spacing(10.)
+                            .with_padding_all(20.)
+                    })
                     .with_frame(|x| x.with_fill(GREEN))
                     .show_pf(ui, Some(layout), |ui, layout| {
                         Panel::new("0")
