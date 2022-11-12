@@ -791,17 +791,17 @@ impl Layout {
             _ => p_pos + offset,
         };
 
-        // // Overflow control
-        // let overflow = vec2(
-        //     (pos.x + size.x + margins.right + p_pad.right) - (p_pos.x + p_size.x),
-        //     (pos.y + size.y + margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
-        // );
-        // if overflow.x > 0. {
-        //     pos.x -= overflow.x;
-        // }
-        // if overflow.y >= 0. {
-        //     pos.y -= overflow.y;
-        // }
+        // Overflow control
+        let overflow = vec2(
+            (pos.x + size.x + margins.right + p_pad.right) - (p_pos.x + p_size.x),
+            (pos.y + size.y + margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
+        );
+        if overflow.x > 0. {
+            pos.x -= overflow.x;
+        }
+        if overflow.y >= 0. {
+            pos.y -= overflow.y;
+        }
 
         // Persist the calculated value
         self.0.borrow_mut().pos = pos;
