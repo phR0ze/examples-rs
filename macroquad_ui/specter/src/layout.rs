@@ -791,17 +791,17 @@ impl Layout {
             _ => p_pos + offset,
         };
 
-        // Overflow control
-        let overflow = vec2(
-            (pos.x + size.x + margins.right + p_pad.right) - (p_pos.x + p_size.x),
-            (pos.y + size.y + margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
-        );
-        if overflow.x > 0. {
-            pos.x -= overflow.x;
-        }
-        if overflow.y >= 0. {
-            pos.y -= overflow.y;
-        }
+        // // Overflow control
+        // let overflow = vec2(
+        //     (pos.x + size.x + margins.right + p_pad.right) - (p_pos.x + p_size.x),
+        //     (pos.y + size.y + margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
+        // );
+        // if overflow.x > 0. {
+        //     pos.x -= overflow.x;
+        // }
+        // if overflow.y >= 0. {
+        //     pos.y -= overflow.y;
+        // }
 
         // Persist the calculated value
         self.0.borrow_mut().pos = pos;
@@ -1056,44 +1056,45 @@ mod tests {
     }
 
     #[test]
-    fn linear_combination_static() {
+    fn layout_linear_combination_static() {
         let p1 = Layout::new("p1")
             .with_mode(Mode::TopToBottom)
-            .with_size_static(200., 200.)
+            .with_size_static(450. - 20., 800. - 20.)
             .with_spacing(10.)
-            .with_padding_all(5.);
+            .with_padding_all(30.)
+            .with_margins_all(10.);
 
         // Row 1
         let r1 = Layout::new("r1")
             .with_mode(Mode::LeftToRight)
-            .with_size_static(180., 60.)
-            .with_margins_all(5.)
-            .with_spacing(5.)
+            .with_size_static(360., 140.)
+            .with_spacing(10.)
+            .with_padding_all(20.)
             .with_parent(&p1);
-        let r1c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
-        let r1c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
-        let r1c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
+        let r1c1 = Layout::new("c1").with_size_static(100., 100.).with_parent(&r1);
+        let r1c2 = Layout::new("c2").with_size_static(100., 100.).with_parent(&r1);
+        let r1c3 = Layout::new("c3").with_size_static(100., 100.).with_parent(&r1);
 
         // Row 2
         let r2 = Layout::new("r2")
             .with_mode(Mode::LeftToRight)
-            .with_size_static(180., 60.)
-            .with_margins_all(5.)
-            .with_spacing(5.)
+            .with_size_static(360., 140.)
+            .with_spacing(10.)
+            .with_padding_all(20.)
             .with_parent(&p1);
-        let r2c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r2);
-        let r2c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r2);
-        let r2c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r2);
+        let r2c1 = Layout::new("c1").with_size_static(100., 100.).with_parent(&r2);
+        let r2c2 = Layout::new("c2").with_size_static(100., 100.).with_parent(&r2);
+        let r2c3 = Layout::new("c3").with_size_static(100., 100.).with_parent(&r2);
 
-        assert_eq!(p1.shape().0, vec2(0., 0.));
-        assert_eq!(r1.shape().0, vec2(10., 10.));
-        assert_eq!(r1c1.shape().0, vec2(10., 10.));
-        assert_eq!(r1c2.shape().0, vec2(65., 10.));
-        assert_eq!(r1c3.shape().0, vec2(120., 10.));
-        assert_eq!(r2.shape().0, vec2(10., 80.));
-        assert_eq!(r2c1.shape().0, vec2(10., 80.));
-        assert_eq!(r2c2.shape().0, vec2(65., 80.));
-        assert_eq!(r2c3.shape().0, vec2(120., 80.));
+        assert_eq!(p1.shape().0, vec2(10., 10.));
+        assert_eq!(r1.shape().0, vec2(40., 40.));
+        assert_eq!(r1c1.shape().0, vec2(60., 60.));
+        assert_eq!(r1c2.shape().0, vec2(170., 60.));
+        assert_eq!(r1c3.shape().0, vec2(280., 60.));
+        assert_eq!(r2.shape().0, vec2(40., 190.));
+        assert_eq!(r2c1.shape().0, vec2(60., 210.));
+        assert_eq!(r2c2.shape().0, vec2(170., 210.));
+        assert_eq!(r2c3.shape().0, vec2(280., 210.));
     }
 
     #[test]
