@@ -19,7 +19,7 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        panel.show(&mut *root_ui(), None, |ui, layout| {
+        panel.show_f(&mut *root_ui(), |ui, layout| {
             fps.show(ui, Some(layout));
         });
 

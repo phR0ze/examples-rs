@@ -103,7 +103,7 @@ pub struct Label {
     text: String,       // actual text to display
 }
 
-// Constructors and builder functions
+// Constructors and builders
 impl Label {
     /// Create a new widget instance
     pub fn new<T: AsRef<str>>(text: T) -> Self {
@@ -111,7 +111,7 @@ impl Label {
     }
 
     /// Set the layout's identifier
-    pub fn id<T: AsRef<str>>(self, id: T) -> Self {
+    pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
         Self {
             dirty: true,
             conf: self.conf.id(id),
@@ -120,7 +120,7 @@ impl Label {
     }
 
     /// Set font to use
-    pub fn font(self, font: Option<&'static [u8]>) -> Self {
+    pub fn with_font(self, font: Option<&'static [u8]>) -> Self {
         Self {
             dirty: true,
             conf: self.conf.font(font),
@@ -130,7 +130,7 @@ impl Label {
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
-    pub fn font_size(self, size: f32) -> Self {
+    pub fn with_font_size(self, size: f32) -> Self {
         Self {
             dirty: true,
             conf: self.conf.font_size(size),
@@ -139,7 +139,7 @@ impl Label {
     }
 
     /// Set font color to use
-    pub fn font_color(self, color: Color) -> Self {
+    pub fn with_font_color(self, color: Color) -> Self {
         Self {
             dirty: true,
             conf: self.conf.font_color(color),
@@ -148,7 +148,7 @@ impl Label {
     }
 
     /// Set font color to use when clicked
-    pub fn font_color_clk(self, color: Color) -> Self {
+    pub fn with_font_color_clk(self, color: Color) -> Self {
         Self {
             dirty: true,
             conf: self.conf.font_color_clk(color),
@@ -157,7 +157,7 @@ impl Label {
     }
 
     /// Set font color to use when hovered
-    pub fn font_color_hov(self, color: Color) -> Self {
+    pub fn with_font_color_hov(self, color: Color) -> Self {
         Self {
             dirty: true,
             conf: self.conf.font_color_hov(color),
@@ -166,7 +166,7 @@ impl Label {
     }
 
     /// Set layout properties to use
-    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+    pub fn with_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
             dirty: true,
             conf: self.conf.layout(f),
@@ -175,27 +175,33 @@ impl Label {
     }
 }
 
-// Utility functions
+// Getters
 impl Label {
     /// Get a reference to the layout
-    pub fn get_layout(&self) -> &Layout {
+    pub fn layout(&self) -> &Layout {
         &self.conf.layout
-    }
-
-    /// Set the widget's text value
-    pub fn set_text<T: AsRef<str>>(&mut self, text: T) {
-        self.dirty = true;
-        self.text = text.as_ref().to_string();
-    }
-
-    /// Get the widget's shape from its layout
-    pub fn shape(&self) -> (Vec2, Vec2) {
-        self.conf.layout.shape()
     }
 
     /// Get the widget's text value
     pub fn text(&self) -> &str {
         &self.text
+    }
+}
+
+// Setters
+impl Label {
+    /// Set the widget's text value
+    pub fn set_text<T: AsRef<str>>(&mut self, text: T) {
+        self.dirty = true;
+        self.text = text.as_ref().to_string();
+    }
+}
+
+// Utility functions
+impl Label {
+    /// Get the widget's shape from its layout
+    pub fn shape(&self) -> (Vec2, Vec2) {
+        self.conf.layout.shape()
     }
 
     /// Make layout, styling and shape calculation updates in prepartion for showing

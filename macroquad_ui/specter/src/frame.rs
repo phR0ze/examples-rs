@@ -31,13 +31,16 @@ impl Frame {
     }
 }
 
-// Getters and setters
+// Getters
 impl Frame {
     /// Get the fill color
     pub fn fill(&self) -> Color {
         self.fill
     }
+}
 
+// Setters
+impl Frame {
     /// Set the fill color
     pub fn set_fill(&mut self, color: Color) -> &mut Self {
         self.fill = color;

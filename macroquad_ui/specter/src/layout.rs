@@ -79,6 +79,7 @@ struct LayoutInner {
 
     // Exposed through Layout functions
     id: String,                   // layout identifier
+    pos: Vec2,                    // caching for calculated position
     size: Vec2,                   // size of the layout region excluding margins
     fill_w: bool,                 // fill width of layout
     fill_h: bool,                 // fill height of layout
@@ -114,6 +115,7 @@ impl Clone for Layout {
             other.dirty = true; // new layout will need re-calculated
             other.offset = inner.offset;
             other.id = inner.id.clone();
+            other.pos = inner.pos;
             other.size = inner.size;
             other.fill_w = inner.fill_w;
             other.fill_h = inner.fill_h;
@@ -154,6 +156,7 @@ impl Layout {
         Self(Rc::new(RefCell::new(LayoutInner {
             id: id.as_ref().to_string(),
             dirty: true, // always dirty by default
+            pos: Vec2::default(),
             size: Vec2::default(),
             offset: Vec2::default(),
             fill_w: false,
@@ -272,6 +275,16 @@ impl Layout {
         self
     }
 
+    /// Space reserved outside the boundaries of the layout
+    pub fn with_margins_all(self, margin: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.margins = RectOffset::new(margin, margin, margin, margin);
+        }
+        self
+    }
+
     /// Set layout packing mode
     /// * lays out sub-layouts using the given mode
     pub fn with_mode(self, mode: Mode) -> Self {
@@ -335,6 +348,16 @@ impl Layout {
                 top,
                 bottom,
             };
+        }
+        self
+    }
+
+    /// Space reserved inside the boundaries of the layout
+    pub fn with_padding_all(self, pad: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.padding = RectOffset::new(pad, pad, pad, pad);
         }
         self
     }
@@ -449,8 +472,13 @@ impl Layout {
         self.0.borrow().parent.as_ref().map(|x| Layout(x.clone()))
     }
 
+    /// Get cached position value
+    fn pos(&self) -> Vec2 {
+        self.0.borrow().pos
+    }
+
     /// Get layout size includin padding but not including margins
-    pub fn size(&self) -> Vec2 {
+    fn size(&self) -> Vec2 {
         self.0.borrow().size
     }
 
@@ -519,11 +547,18 @@ impl Layout {
     }
 
     /// Set layout margins
-    /// * `margins` is the margins to set
     pub fn set_margins(&self, left: f32, right: f32, top: f32, bottom: f32) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.margins = RectOffset::new(left, right, top, bottom);
+    }
+
+    /// Set layout margins
+    /// * `margin` is the margins to set for all values
+    pub fn set_margins_all(&self, margin: f32) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.margins = RectOffset::new(margin, margin, margin, margin);
     }
 
     /// Set layout mode
@@ -534,11 +569,18 @@ impl Layout {
     }
 
     /// Set layout padding
-    /// * `padding` is the padding to set
     pub fn set_padding(&self, left: f32, right: f32, top: f32, bottom: f32) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.padding = RectOffset::new(left, right, top, bottom);
+    }
+
+    /// Set layout padding values all to the one given
+    /// * `pad` is the padding value to use for all
+    pub fn set_padding_all(&self, pad: f32) {
+        let inner = &mut *self.0.borrow_mut();
+        inner.dirty = true;
+        inner.padding = RectOffset::new(pad, pad, pad, pad);
     }
 
     /// Set layout parent to reference internally
@@ -560,74 +602,6 @@ impl Layout {
 
 // Utility functions
 impl Layout {
-    /// Get parent layout's position and size
-    /// * returns (pos, size)
-    pub fn parent_shape(&self) -> (Vec2, Vec2) {
-        match self.parent() {
-            Some(parent) => parent.shape(),
-            _ => (Vec2::default(), screen()),
-        }
-    }
-
-    /// Get layout's position
-    /// * assumes layout size and parent size are already updated
-    /// * returns (pos, size)
-    pub fn pos(&self) -> Vec2 {
-        let (p_pos, p_size) = self.parent_shape();
-        let p_mode = self.parent().map(|x| x.mode()).unwrap_or(Mode::default());
-        let p_pad = self.parent().map(|x| x.padding()).unwrap_or(RectOffset::default());
-        let inner = self.0.borrow();
-
-        // Calculate position
-        let mut pos = match p_mode {
-            Mode::Align => {
-                // First reduce parent size by parent padding amount
-                let padded = vec2(p_size.x - p_pad.left - p_pad.right, p_size.y - p_pad.top - p_pad.bottom);
-
-                let mut pos = match inner.align {
-                    Align::CenterTop => vec2((padded.x - inner.size.x) / 2.0, 0.0),
-                    Align::Center => vec2(padded.x - inner.size.x, padded.y - inner.size.y) / 2.0,
-                    Align::CenterBottom => vec2((padded.x - inner.size.x) / 2.0, padded.y - inner.size.y),
-                    Align::RightTop => vec2(padded.x - inner.size.x, 0.0),
-                    Align::RightCenter => vec2(padded.x - inner.size.x, (padded.y - inner.size.y) / 2.0),
-                    Align::RightBottom => vec2(padded.x - inner.size.x, padded.y - inner.size.y),
-                    Align::LeftTop => vec2(0.0, 0.0),
-                    Align::LeftCenter => vec2(0.0, (padded.y - inner.size.y) / 2.0),
-                    Align::LeftBottom => vec2(0.0, padded.y - inner.size.y),
-                    Align::Static(x, y) => vec2(x, y),
-                };
-
-                // Offset by parent layout's position which already includes its margins
-                pos += p_pos;
-
-                // Offset by parent layout's padding
-                pos += vec2(p_pad.left, p_pad.top);
-
-                // Offset by layout's margins
-                pos += vec2(inner.margins.left, inner.margins.top);
-
-                pos
-            },
-
-            // Positional offset already handles margins and padding appropriately
-            _ => p_pos + inner.offset,
-        };
-
-        // Overflow control
-        let overflow = vec2(
-            (pos.x + inner.size.x + inner.margins.right + p_pad.right) - (p_pos.x + p_size.x),
-            (pos.y + inner.size.y + inner.margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
-        );
-        if overflow.x > 0. {
-            pos.x -= overflow.x;
-        }
-        if overflow.y >= 0. {
-            pos.y -= overflow.y;
-        }
-
-        pos
-    }
-
     /// Create a reference of the layout to work with
     /// * calls clone on the internal Rc to get a new reference
     /// * useful for storing a single object in multiple locations
@@ -641,14 +615,18 @@ impl Layout {
     }
 
     /// Get layout's position and size
+    /// * this will find the root layout and re-calculate down to this layout
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
-        if let Some(parent) = self.parent() {
-            // Ensure parent size and position are calculated first
-            parent.update_size_and_offset();
-        } else {
-            self.update_size_and_offset();
+        let mut layout = self.rc_ref();
+        while let Some(parent) = layout.parent() {
+            layout = parent.rc_ref();
         }
+        // if self.dirty {
+        layout.update_size_and_offset();
+        layout.update_pos();
+        // self.dirty = false;
+        //}
         (self.pos(), self.size())
     }
 
@@ -760,6 +738,68 @@ impl Layout {
             inner.subs.push(layout.0.clone());
         }
         inner.dirty = true;
+    }
+
+    /// Calculate position
+    /// * requires update_size_and_offset has already been run
+    /// * returns pos
+    fn update_pos(&self) -> Vec2 {
+        let (p_pos, p_size) = (Vec2::default(), screen());
+        let p_mode = self.parent().map(|x| x.mode()).unwrap_or(Mode::default());
+        let p_pad = self.parent().map(|x| x.padding()).unwrap_or(RectOffset::default());
+        let mut inner = self.0.borrow_mut();
+
+        // Calculate position
+        let mut pos = match p_mode {
+            Mode::Align => {
+                // First reduce parent size by parent padding amount
+                let padded = vec2(p_size.x - p_pad.left - p_pad.right, p_size.y - p_pad.top - p_pad.bottom);
+
+                let mut pos = match inner.align {
+                    Align::CenterTop => vec2((padded.x - inner.size.x) / 2.0, 0.0),
+                    Align::Center => vec2(padded.x - inner.size.x, padded.y - inner.size.y) / 2.0,
+                    Align::CenterBottom => vec2((padded.x - inner.size.x) / 2.0, padded.y - inner.size.y),
+                    Align::RightTop => vec2(padded.x - inner.size.x, 0.0),
+                    Align::RightCenter => vec2(padded.x - inner.size.x, (padded.y - inner.size.y) / 2.0),
+                    Align::RightBottom => vec2(padded.x - inner.size.x, padded.y - inner.size.y),
+                    Align::LeftTop => vec2(0.0, 0.0),
+                    Align::LeftCenter => vec2(0.0, (padded.y - inner.size.y) / 2.0),
+                    Align::LeftBottom => vec2(0.0, padded.y - inner.size.y),
+                    Align::Static(x, y) => vec2(x, y),
+                };
+
+                // Offset by parent layout's position which already includes its margins
+                pos += p_pos;
+
+                // Offset by parent layout's padding
+                pos += vec2(p_pad.left, p_pad.top);
+
+                // Offset by layout's margins
+                pos += vec2(inner.margins.left, inner.margins.top);
+
+                pos
+            },
+
+            // Positional offset already handles margins and padding appropriately
+            _ => p_pos + inner.offset,
+        };
+
+        // Overflow control
+        let overflow = vec2(
+            (pos.x + inner.size.x + inner.margins.right + p_pad.right) - (p_pos.x + p_size.x),
+            (pos.y + inner.size.y + inner.margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
+        );
+        if overflow.x > 0. {
+            pos.x -= overflow.x;
+        }
+        if overflow.y >= 0. {
+            pos.y -= overflow.y;
+        }
+
+        // Persist the calculated value
+        inner.pos = pos;
+
+        pos
     }
 
     /// Calculate and set the size and positional offset of the layout and sub-layouts
@@ -1007,6 +1047,33 @@ mod tests {
         assert_eq!(layout10.shape(), (vec2(60., 60.), size));
         assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
     }
+
+    // #[test]
+    // fn linear_combination_static() {
+    //     let p1 = Layout::new("p1")
+    //         .with_mode(Mode::TopToBottom)
+    //         .with_size_static(200., 200.)
+    //         .with_spacing(10.)
+    //         .with_padding_all(5.);
+
+    //     // Row 1
+    //     let r1 =
+    //         Layout::new("r1").with_size_static(180., 60.).with_margins_all(5.).with_spacing(5.).with_parent(&p1);
+    //     let r1c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
+    //     let r1c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
+    //     let r1c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
+
+    //     // // Row 2
+    //     // let r2 = Layout::new("r2").with_size_static(180., 60.);
+    //     // let r2c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
+    //     // let r2c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
+    //     // let r2c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
+
+    //     //assert_eq!(p1.shape().0, vec2(0., 0.));
+    //     //assert_eq!(r1.shape().0, vec2(10., 10.));
+    //     //assert_eq!(r1c1.shape().0, vec2(10., 10.));
+    //     assert_eq!(r1c2.shape().0, vec2(65., 10.));
+    // }
 
     #[test]
     fn top_to_bottom_expansion_no_align() {

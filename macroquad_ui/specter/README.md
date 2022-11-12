@@ -10,8 +10,8 @@ functions.
 ```rust
 fn id(&self) -> &str
 fn size(&self) -> Vec2
-fn set_id<T: AsRef<str>>(&mut self, id: T) -> &mut Self
-fn set_size(&mut self, size: Vec2) -> &mut Self
+fn set_id<T: AsRef<str>>(&mut self, id: T)
+fn set_size(&mut self, size: Vec2)
 fn with_id<T: AsRef<str>>(self, id: T) -> Self
 fn with_size(self, size: Vec2) -> Self
 ```
@@ -57,27 +57,23 @@ take a mutable reference to the widget or if not leverage interior mutability.
 **Naming:**  
 Because Rust doesn't support function overloading the functions are prefixed with `set_` or describe 
 the calculation being performed in a unique way to keep the function names unique from getter 
-functions. Setters typically return a reference or copy to internal data for a calculation.
-Additionally surfacing internal objects for mutation via a lambda is very useful and ergonomic.
+functions. Surfacing internal objects for mutation via a lambda is very useful and ergonomic.
 
 **Examples:**
 ```rust
 /// Set the widget's id
-pub fn set_id<T: AsRef<str>>(&mut self, id: T) -> &mut Self {
+pub fn set_id<T: AsRef<str>>(&mut self, id: T) {
   self.id = id.as_ref().to_string();
-  self
 }
 
 /// Set the widget's size
-pub fn set_size(&mut self, size: Vec2) -> &mut Self {
+pub fn set_size(&mut self, size: Vec2) {
   self.size = size;
-  self
 }
 
 /// Set the widget's frame
-pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) -> &mut Self {
+pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) {
   self.frame = f(self.frame);
-  self
 }
 ```
 
@@ -112,13 +108,9 @@ pub fn with_frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
 }
 ```
 
-
-## Patterns
-
-### Builder
-Often when creating Ui's builder pattern is useful for Specter
-
 ## Backlog
+* Widgets taking a lambda of child layouts needs to have a predefined size currently as the prarent 
+widget needs to be drawn before the child widgets are added to the parent for sizing.
 * Frame properties
 
 * Layout support for label

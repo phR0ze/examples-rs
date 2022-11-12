@@ -25,7 +25,7 @@ impl Panel {
     }
 
     /// Set layout to use
-    pub fn layout(self, f: impl FnOnce(Layout) -> Layout) -> Self {
+    pub fn with_layout(self, f: impl FnOnce(Layout) -> Layout) -> Self {
         Self {
             layout: f(self.layout),
             ..self
@@ -33,23 +33,53 @@ impl Panel {
     }
 }
 
-// Getters and setters
+// Getters
 impl Panel {
     /// Get the frame's properties
     pub fn frame(&self) -> Frame {
         self.frame
     }
+}
 
+// Setters
+impl Panel {
     /// Set the frame's properties
-    pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) -> &mut Self {
+    pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) {
         self.frame = f(self.frame);
-        self
+    }
+}
+
+// Utility functions
+impl Panel {
+    /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
+    /// * returns true when clicked in the current frame
+    pub fn show(&mut self, ui: &mut Ui) {
+        self.show_pf(ui, None, |_, _| {})
     }
 
     /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
+    /// * `f` is a lambda for child layout creation
+    /// * returns true when clicked in the current frame
+    pub fn show_f(&mut self, ui: &mut Ui, f: impl FnOnce(&mut Ui, &Layout)) {
+        self.show_pf(ui, None, f)
+    }
+
+    /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
     /// * `layout` parent layout to draw button within
     /// * returns true when clicked in the current frame
-    pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>, f: impl FnOnce(&mut Ui, &Layout)) {
+    pub fn show_p(&mut self, ui: &mut Ui, layout: &Layout) {
+        self.show_pf(ui, Some(layout), |_, _| {})
+    }
+
+    /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
+    /// * `layout` parent layout to draw button within
+    /// * `f` is a lambda for child layout creation
+    /// * returns true when clicked in the current frame
+    pub fn show_pf(&mut self, ui: &mut Ui, layout: Option<&Layout>, f: impl FnOnce(&mut Ui, &Layout)) {
         if let Some(parent) = layout {
             parent.subs_append(&self.layout);
         }

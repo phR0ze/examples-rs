@@ -29,7 +29,7 @@ impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         let layout = Layout::horz("");
-        let label = Label::new("").layout(|_| layout.sub_alloc_append(LABEL_ID, None));
+        let label = Label::new("").with_layout(|_| layout.sub_alloc_append(LABEL_ID, None));
 
         Self {
             layout,
@@ -121,7 +121,7 @@ impl ButtonBuilder {
     /// Set font to use
     pub fn label_font(self, font: Option<&'static [u8]>) -> Self {
         Self {
-            label: self.label.font(font),
+            label: self.label.with_font(font),
             ..self
         }
     }
@@ -130,7 +130,7 @@ impl ButtonBuilder {
     /// * handles scaling for mobile
     pub fn label_size(self, size: f32) -> Self {
         Self {
-            label: self.label.font_size(size),
+            label: self.label.with_font_size(size),
             ..self
         }
     }
@@ -138,7 +138,7 @@ impl ButtonBuilder {
     /// Set font color to use
     pub fn label_color(self, color: Color) -> Self {
         Self {
-            label: self.label.font_color(color),
+            label: self.label.with_font_color(color),
             ..self
         }
     }
@@ -146,7 +146,7 @@ impl ButtonBuilder {
     /// Set label layout to use
     pub fn label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
-            label: self.label.layout(f),
+            label: self.label.with_layout(f),
             ..self
         }
     }
