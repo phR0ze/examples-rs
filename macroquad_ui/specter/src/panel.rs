@@ -39,6 +39,11 @@ impl Panel {
     pub fn frame(&self) -> Frame {
         self.frame
     }
+
+    /// Get a shared reference to the layout
+    pub fn layout(&self) -> Layout {
+        self.layout.rc_ref()
+    }
 }
 
 // Setters

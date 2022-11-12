@@ -1,6 +1,25 @@
 # Specter
 Immediate mode Ui toolkit
 
+### Quick links
+* [Layout management](#layout-management)
+
+* [Widget properties](#widget-properties)
+  * [Builders](#builders)
+  * [Getters](#getters)
+  * [Setters](#setters)
+
+## Layout management
+Layout management is based on layout objects that provide policy and configuration to guide the 
+automatic arrangement of child widgets within a parent widget including positioning and sizing 
+dynamically for the available space. They are higher level constructs that allow you to move beyond 
+exact postional coordinates. 
+
+Immediate mode Ui's typically make use of lambdas liberally to stitch Ui code together much like a 
+scripting language. However such models don't require a more primitive layout management system due 
+to the lack of sizing knowldget ahead of time. Specter instead provides mechanisms for layout 
+decisions to be made separate from actual excution and drawing of the Ui.
+
 ## Widget properties
 Every wiget has a set of properties associated with it used to control styling and behaviors. The 
 typical interactions with these properties is done through `getter`, `setter` and `builder` 
@@ -8,12 +27,43 @@ functions.
 
 **Example Signatures:**
 ```rust
+fn with_id<T: AsRef<str>>(self, id: T) -> Self
+fn with_size(self, size: Vec2) -> Self
 fn id(&self) -> &str
 fn size(&self) -> Vec2
 fn set_id<T: AsRef<str>>(&mut self, id: T)
 fn set_size(&mut self, size: Vec2)
-fn with_id<T: AsRef<str>>(self, id: T) -> Self
-fn with_size(self, size: Vec2) -> Self
+```
+
+### Builders
+Builder functions are those used during widget construction to set optional properties. Builder 
+functions consume the object `self` and return a new modified copy of the object `Self`.
+
+**Naming:**  
+Because Rust doesn't support function overloading the functions are prefixed with `with_`. However in 
+the case where you have a pure builder object the `with_` prefix can typically be dropped unless 
+getters are being used on the builder object as well. Additionally surfacing internal objects for 
+mutation via a lambda is very useful and ergonomic.
+
+**Examples:**
+```rust
+/// Set the widget's id
+pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
+  Self { id: id.as_ref().to_string(), ..self }
+}
+
+/// Set the widget's size
+pub fn with_size(self, size: Vec2) -> Self {
+  Self { size, ..self }
+}
+
+/// Set the widget's frame
+pub fn with_frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
+  Self {
+    frame: f(self.frame),
+    ..self
+  }
+}
 ```
 
 ### Getters
@@ -74,37 +124,6 @@ pub fn set_size(&mut self, size: Vec2) {
 /// Set the widget's frame
 pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) {
   self.frame = f(self.frame);
-}
-```
-
-### Builders
-Builder functions are those used during widget construction to set optional properties. Builder 
-functions consume the object `self` and return a new modified copy of the object `Self`.
-
-**Naming:**  
-Because Rust doesn't support function overloading the functions are prefixed with `with_`. However in 
-the case where you have a pure builder object the `with_` prefix can typically be dropped unless 
-getters are being used on the builder object as well. Additionally surfacing internal objects for 
-mutation via a lambda is very useful and ergonomic.
-
-**Examples:**
-```rust
-/// Set the widget's id
-pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
-  Self { id: id.as_ref().to_string(), ..self }
-}
-
-/// Set the widget's size
-pub fn with_size(self, size: Vec2) -> Self {
-  Self { size, ..self }
-}
-
-/// Set the widget's frame
-pub fn with_frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
-  Self {
-    frame: f(self.frame),
-    ..self
-  }
 }
 ```
 

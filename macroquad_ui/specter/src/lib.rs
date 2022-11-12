@@ -15,6 +15,7 @@ mod label;
 mod layout;
 mod panel;
 mod utils;
+mod widget;
 
 /// All essential symbols in a simple consumable form
 ///
@@ -43,6 +44,7 @@ pub mod prelude {
     pub use crate::macros::*;
     pub use crate::panel::*;
     pub use crate::utils::*;
+    pub use crate::widget::*;
 }
 
 pub fn add(left: usize, right: usize) -> usize {
