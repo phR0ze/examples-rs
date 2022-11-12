@@ -623,7 +623,7 @@ impl Layout {
             layout = parent.rc_ref();
         }
         // if self.dirty {
-        layout.update_size_and_offset();
+        layout.update_size();
         layout.update_pos();
         // self.dirty = false;
         //}
@@ -744,10 +744,17 @@ impl Layout {
     /// * requires update_size_and_offset has already been run
     /// * returns pos
     fn update_pos(&self) -> Vec2 {
-        let (p_pos, p_size) = (Vec2::default(), screen());
-        let p_mode = self.parent().map(|x| x.mode()).unwrap_or(Mode::default());
-        let p_pad = self.parent().map(|x| x.padding()).unwrap_or(RectOffset::default());
-        let mut inner = self.0.borrow_mut();
+        // Extract parent values
+        let (p_pos, p_size, p_mode, p_pad) = match self.parent() {
+            Some(parent) => (parent.pos(), parent.size(), parent.mode(), parent.padding()),
+            _ => (Vec2::default(), screen(), Mode::default(), RectOffset::default()),
+        };
+
+        // Extract layout values
+        let (align, offset, size, margins, subs) = {
+            let inner = self.0.borrow();
+            (inner.align, inner.offset, inner.size, inner.margins, !inner.subs.is_empty())
+        };
 
         // Calculate position
         let mut pos = match p_mode {
@@ -755,16 +762,16 @@ impl Layout {
                 // First reduce parent size by parent padding amount
                 let padded = vec2(p_size.x - p_pad.left - p_pad.right, p_size.y - p_pad.top - p_pad.bottom);
 
-                let mut pos = match inner.align {
-                    Align::CenterTop => vec2((padded.x - inner.size.x) / 2.0, 0.0),
-                    Align::Center => vec2(padded.x - inner.size.x, padded.y - inner.size.y) / 2.0,
-                    Align::CenterBottom => vec2((padded.x - inner.size.x) / 2.0, padded.y - inner.size.y),
-                    Align::RightTop => vec2(padded.x - inner.size.x, 0.0),
-                    Align::RightCenter => vec2(padded.x - inner.size.x, (padded.y - inner.size.y) / 2.0),
-                    Align::RightBottom => vec2(padded.x - inner.size.x, padded.y - inner.size.y),
+                let mut pos = match align {
+                    Align::CenterTop => vec2((padded.x - size.x) / 2.0, 0.0),
+                    Align::Center => vec2(padded.x - size.x, padded.y - size.y) / 2.0,
+                    Align::CenterBottom => vec2((padded.x - size.x) / 2.0, padded.y - size.y),
+                    Align::RightTop => vec2(padded.x - size.x, 0.0),
+                    Align::RightCenter => vec2(padded.x - size.x, (padded.y - size.y) / 2.0),
+                    Align::RightBottom => vec2(padded.x - size.x, padded.y - size.y),
                     Align::LeftTop => vec2(0.0, 0.0),
-                    Align::LeftCenter => vec2(0.0, (padded.y - inner.size.y) / 2.0),
-                    Align::LeftBottom => vec2(0.0, padded.y - inner.size.y),
+                    Align::LeftCenter => vec2(0.0, (padded.y - size.y) / 2.0),
+                    Align::LeftBottom => vec2(0.0, padded.y - size.y),
                     Align::Static(x, y) => vec2(x, y),
                 };
 
@@ -775,19 +782,19 @@ impl Layout {
                 pos += vec2(p_pad.left, p_pad.top);
 
                 // Offset by layout's margins
-                pos += vec2(inner.margins.left, inner.margins.top);
+                pos += vec2(margins.left, margins.top);
 
                 pos
             },
 
             // Positional offset already handles margins and padding appropriately
-            _ => p_pos + inner.offset,
+            _ => p_pos + offset,
         };
 
         // Overflow control
         let overflow = vec2(
-            (pos.x + inner.size.x + inner.margins.right + p_pad.right) - (p_pos.x + p_size.x),
-            (pos.y + inner.size.y + inner.margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
+            (pos.x + size.x + margins.right + p_pad.right) - (p_pos.x + p_size.x),
+            (pos.y + size.y + margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
         );
         if overflow.x > 0. {
             pos.x -= overflow.x;
@@ -797,15 +804,23 @@ impl Layout {
         }
 
         // Persist the calculated value
-        inner.pos = pos;
+        self.0.borrow_mut().pos = pos;
+
+        // Recurse on child layouts
+        if subs {
+            for x in self.0.borrow().subs.iter() {
+                Layout(x.clone()).update_pos();
+            }
+        }
 
         pos
     }
 
-    /// Calculate and set the size and positional offset of the layout and sub-layouts
-    /// * only performs calculation if needed
+    /// Calculate and set the size and positional offset of all layouts starting from the
+    /// inner most layouts i.e. the leaf layouts.
     /// * returns the size calculation including margins
-    fn update_size_and_offset(&self) -> Vec2 {
+    fn update_size(&self) -> Vec2 {
+        println!("ID: {}", self.id());
         let (expand, mode, mut size, margins, padding) = {
             let inner = &mut *self.0.borrow_mut();
 
@@ -815,13 +830,6 @@ impl Layout {
                 inner.size.y + inner.margins.top + inner.margins.bottom,
             );
 
-            // TODO: to use this correctly the parent would need to be marked
-            // dirty as well on most sub property changes
-            // // Bail earlier if not dirty
-            // if !inner.dirty {
-            //     return inner_size;
-            // }
-            //inner.dirty = false;
             (inner.expand, inner.mode, inner_size, inner.margins, inner.padding)
         };
 
@@ -836,7 +844,7 @@ impl Layout {
                 // Get sub-layout size and margins
                 let (sub_size, sub_margins) = {
                     let sub = Layout(x.clone());
-                    (sub.update_size_and_offset(), sub.margins())
+                    (sub.update_size(), sub.margins())
                 };
 
                 // Add sub-layout opening margins
@@ -1048,32 +1056,32 @@ mod tests {
         assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
     }
 
-    // #[test]
-    // fn linear_combination_static() {
-    //     let p1 = Layout::new("p1")
-    //         .with_mode(Mode::TopToBottom)
-    //         .with_size_static(200., 200.)
-    //         .with_spacing(10.)
-    //         .with_padding_all(5.);
+    #[test]
+    fn linear_combination_static() {
+        let p1 = Layout::new("p1")
+            .with_mode(Mode::TopToBottom)
+            .with_size_static(200., 200.)
+            .with_spacing(10.)
+            .with_padding_all(5.);
 
-    //     // Row 1
-    //     let r1 =
-    //         Layout::new("r1").with_size_static(180., 60.).with_margins_all(5.).with_spacing(5.).with_parent(&p1);
-    //     let r1c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
-    //     let r1c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
-    //     let r1c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
+        // Row 1
+        let r1 =
+            Layout::new("r1").with_size_static(180., 60.).with_margins_all(5.).with_spacing(5.).with_parent(&p1);
+        let r1c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
+        let r1c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
+        let r1c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
 
-    //     // // Row 2
-    //     // let r2 = Layout::new("r2").with_size_static(180., 60.);
-    //     // let r2c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
-    //     // let r2c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
-    //     // let r2c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
+        // // Row 2
+        // let r2 = Layout::new("r2").with_size_static(180., 60.);
+        // let r2c1 = Layout::new("c1").with_size_static(50., 50.).with_parent(&r1);
+        // let r2c2 = Layout::new("c2").with_size_static(50., 50.).with_parent(&r1);
+        // let r2c3 = Layout::new("c3").with_size_static(50., 50.).with_parent(&r1);
 
-    //     //assert_eq!(p1.shape().0, vec2(0., 0.));
-    //     //assert_eq!(r1.shape().0, vec2(10., 10.));
-    //     //assert_eq!(r1c1.shape().0, vec2(10., 10.));
-    //     assert_eq!(r1c2.shape().0, vec2(65., 10.));
-    // }
+        //assert_eq!(p1.shape().0, vec2(0., 0.));
+        //assert_eq!(r1.shape().0, vec2(10., 10.));
+        //assert_eq!(r1c1.shape().0, vec2(10., 10.));
+        assert_eq!(r1c2.shape().0, vec2(65., 10.));
+    }
 
     #[test]
     fn top_to_bottom_expansion_no_align() {
