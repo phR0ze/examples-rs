@@ -25,9 +25,9 @@ async fn main() {
             .layout(|x| x.with_size_full().with_spacing(10.).with_margins_all(10.).with_fill_height())
             .with_frame(|x| x.with_fill(BLACK));
 
-        let mut c1 = builder.build("1").layout(|x| x.with_parent(&p1.get_layout()));
-        let mut c2 = builder.build("2").layout(|x| x.with_parent(&p1.get_layout()));
-        let mut c3 = builder.build("3").layout(|x| x.with_size_static(150., 100.).with_parent(&p1.get_layout()));
+        let mut c1 = builder.build("1").layout(|x| x.with_parent(&p1));
+        let mut c2 = builder.build("2").layout(|x| x.with_parent(&p1));
+        let mut c3 = builder.build("3").layout(|x| x.with_size_static(150., 100.).with_parent(&p1));
 
         p1.show(&mut *root_ui());
         c1.show(&mut *root_ui());

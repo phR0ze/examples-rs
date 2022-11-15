@@ -9,8 +9,8 @@ pub trait Widget {
     /// * `ui` is the Macroquad Ui engine
     //fn show(&mut self, ui: &mut Ui);
 
-    /// Get the widget's layout
-    fn get_layout() -> Layout;
+    /// Get the widget's layout as a cloned reference
+    fn layout_g(&self) -> Layout;
 }
 
 // Unit tests

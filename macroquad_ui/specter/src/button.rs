@@ -113,7 +113,7 @@ impl ButtonBuilder {
 
     /// Update icon layout properties
     pub fn icon_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
-        let sub = f(self.layout.sub(ICON_ID).unwrap().rc_ref());
+        let sub = f(self.layout.sub(ICON_ID).unwrap().layout_g());
         self.layout.subs_update(&sub);
         self
     }

@@ -383,7 +383,8 @@ impl Layout {
 
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
-    pub fn with_parent(self, parent: &Layout) -> Self {
+    pub fn with_parent(self, widget: impl Widget) -> Self {
+        let parent = widget.layout_g();
         parent.subs_append(&self);
         self
     }
@@ -624,13 +625,6 @@ impl Layout {
 
 // Utility functions
 impl Layout {
-    /// Create a reference of the layout to work with
-    /// * calls clone on the internal Rc to get a new reference
-    /// * useful for storing a single object in multiple locations
-    pub fn rc_ref(&self) -> Layout {
-        Layout(self.0.clone())
-    }
-
     /// Returns true if the `other` layout is a pointer to this layout
     pub fn rc_ref_eq(&self, other: &Layout) -> bool {
         Rc::ptr_eq(&self.0, &other.0)
@@ -750,9 +744,9 @@ impl Layout {
     /// * re-calculates the entire layout stack associated with this layout
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
-        let mut layout = self.rc_ref();
+        let mut layout = self.layout_g();
         while let Some(parent) = layout.get_parent() {
-            layout = parent.rc_ref();
+            layout = parent.layout_g();
         }
         // if self.dirty {
         layout.update_size();
@@ -962,6 +956,20 @@ impl Layout {
         }
 
         value
+    }
+}
+
+impl Widget for Layout {
+    /// Get the widget's layout as a cloned reference
+    fn layout_g(&self) -> Layout {
+        Layout(self.0.clone())
+    }
+}
+
+impl Widget for &Layout {
+    /// Get the widget's layout as a cloned reference
+    fn layout_g(&self) -> Layout {
+        Layout(self.0.clone())
     }
 }
 
@@ -1374,7 +1382,7 @@ mod tests {
         // Same pointer
         let parent1 = Layout::new("parent1");
         let layout1 = Layout::new("layout1").with_parent(&parent1);
-        let layout2 = layout1.rc_ref();
+        let layout2 = layout1.layout_g();
         assert_eq!(layout1.rc_ref_eq(&layout2), true);
         assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
         assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&layout1), false);

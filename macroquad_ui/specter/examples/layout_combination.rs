@@ -36,17 +36,17 @@ async fn main() {
                     .with_align(Align::Center)
                     .with_spacing(10.)
                     .with_padding_all(20.)
-                    .with_parent(&p1.get_layout())
+                    .with_parent(&p1)
             })
             .with_frame(|x| x.with_fill(DARKGRAY));
         let mut r1c1 = Panel::new("0")
-            .layout(|x| x.with_size_static(100., 100.).with_parent(&r1.get_layout()))
+            .layout(|x| x.with_size_static(100., 100.).with_parent(&r1))
             .with_frame(|x| x.with_fill(RED));
         let mut r1c2 = Panel::new("1")
-            .layout(|x| x.with_size_static(100., 100.).with_parent(&r1.get_layout()))
+            .layout(|x| x.with_size_static(100., 100.).with_parent(&r1))
             .with_frame(|x| x.with_fill(GRAY));
         let mut r1c3 = Panel::new("2")
-            .layout(|x| x.with_size_static(100., 100.).with_parent(&r1.get_layout()))
+            .layout(|x| x.with_size_static(100., 100.).with_parent(&r1))
             .with_frame(|x| x.with_fill(BLUE));
 
         let mut r2 = Panel::new("p3")
@@ -55,17 +55,17 @@ async fn main() {
                     .with_align(Align::Center)
                     .with_spacing(10.)
                     .with_padding_all(20.)
-                    .with_parent(&p1.get_layout())
+                    .with_parent(&p1)
             })
             .with_frame(|x| x.with_fill(GREEN));
         let mut r2c1 = Panel::new("0")
-            .layout(|x| x.with_size_static(100., 100.).with_parent(&r2.get_layout()))
+            .layout(|x| x.with_size_static(100., 100.).with_parent(&r2))
             .with_frame(|x| x.with_fill(RED));
         let mut r2c2 = Panel::new("1")
-            .layout(|x| x.with_size_static(100., 100.).with_parent(&r2.get_layout()))
+            .layout(|x| x.with_size_static(100., 100.).with_parent(&r2))
             .with_frame(|x| x.with_fill(GRAY));
         let mut r2c3 = Panel::new("2")
-            .layout(|x| x.with_size_static(100., 100.).with_parent(&r2.get_layout()))
+            .layout(|x| x.with_size_static(100., 100.).with_parent(&r2))
             .with_frame(|x| x.with_fill(BLUE));
 
         p1.show(&mut *root_ui());

@@ -30,9 +30,9 @@ async fn main() {
             })
             .with_frame(|x| x.with_fill(BLACK));
 
-        let mut c1 = builder.build("1").layout(|x| x.with_parent(&p1.get_layout()));
-        let mut c2 = builder.build("2").layout(|x| x.with_parent(&p1.get_layout()));
-        let mut c3 = builder.build("3").layout(|x| x.with_size_static(100., 150.).with_parent(&p1.get_layout()));
+        let mut c1 = builder.build("1").layout(|x| x.with_parent(&p1));
+        let mut c2 = builder.build("2").layout(|x| x.with_parent(&p1));
+        let mut c3 = builder.build("3").layout(|x| x.with_size_static(100., 150.).with_parent(&p1));
 
         p1.show(&mut *root_ui());
         c1.show(&mut *root_ui());

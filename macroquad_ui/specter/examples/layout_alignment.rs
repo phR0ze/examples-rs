@@ -37,7 +37,7 @@ async fn main() {
         for i in 0..=9 {
             shapes.push(
                 Panel::new(format!("{}", i))
-                    .layout(|x| x.with_size_static(100., 100.).with_align(align[i]).with_parent(&p1.get_layout()))
+                    .layout(|x| x.with_size_static(100., 100.).with_align(align[i]).with_parent(&p1))
                     .with_frame(|x| x.with_fill(GRAY)),
             );
         }

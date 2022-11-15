@@ -90,11 +90,6 @@ impl Panel {
     pub fn frame(&self) -> &Frame {
         &self.frame
     }
-
-    /// Get a shared reference to the layout
-    pub fn get_layout(&self) -> Layout {
-        self.layout.rc_ref()
-    }
 }
 
 // Setters
@@ -146,6 +141,20 @@ impl Panel {
 
         // Draw widgets
         f(ui, &self.layout)
+    }
+}
+
+impl Widget for Panel {
+    /// Get the widget's layout as a cloned reference
+    fn layout_g(&self) -> Layout {
+        self.layout.layout_g()
+    }
+}
+
+impl Widget for &Panel {
+    /// Get the widget's layout as a cloned reference
+    fn layout_g(&self) -> Layout {
+        self.layout.layout_g()
     }
 }
 
