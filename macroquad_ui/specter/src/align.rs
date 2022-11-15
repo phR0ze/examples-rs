@@ -52,6 +52,31 @@ impl Align {
             _ => false,
         }
     }
+
+    /// Calculates the layout's position relative to its parent layout
+    /// * `layout` is the layout's size
+    /// * `parent` is the layout's parenent's size
+    ///
+    /// ### Examples
+    /// ```
+    /// use specter::prelude::*;
+    ///
+    /// assert_eq!(Align::Center.relative(vec2(20., 20.), vec2(100., 100.)), vec2(40., 40.));
+    /// ```
+    pub fn relative(&self, layout: Vec2, parent: Vec2) -> Vec2 {
+        match self {
+            Align::CenterTop => vec2((parent.x - layout.x) / 2.0, 0.0),
+            Align::Center => vec2(parent.x - layout.x, parent.y - layout.y) / 2.0,
+            Align::CenterBottom => vec2((parent.x - layout.x) / 2.0, parent.y - layout.y),
+            Align::RightTop => vec2(parent.x - layout.x, 0.0),
+            Align::RightCenter => vec2(parent.x - layout.x, (parent.y - layout.y) / 2.0),
+            Align::RightBottom => vec2(parent.x - layout.x, parent.y - layout.y),
+            Align::LeftTop => vec2(0.0, 0.0),
+            Align::LeftCenter => vec2(0.0, (parent.y - layout.y) / 2.0),
+            Align::LeftBottom => vec2(0.0, parent.y - layout.y),
+            Align::Static(x, y) => vec2(*x, *y),
+        }
+    }
 }
 
 impl Default for Align {

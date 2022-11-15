@@ -216,7 +216,7 @@ impl Layout {
     }
 
     /// Set layout alignment
-    /// * controls this widgets alignment in its parent layout
+    /// * controls this widget's alignment in its parent layout
     pub fn with_align(self, align: Align) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
@@ -770,45 +770,41 @@ impl Layout {
         };
 
         // Extract layout values
-        let (mut size, align, offset, margins) = {
+        let (mut size, align, offset, margins, mode) = {
             let inner = self.0.borrow();
-            (inner.size, inner.align, inner.offset, inner.margins)
+            (inner.size, inner.align, inner.offset, inner.margins, inner.mode)
         };
 
-        // Calculate position
-        let mut pos = match p_mode {
-            Mode::Align => {
-                // First reduce parent size by parent padding amount
-                let padded = vec2(p_size.x - p_pad.left - p_pad.right, p_size.y - p_pad.top - p_pad.bottom);
+        // Calculate position for alignment
+        let mut pos = {
+            // First reduce parent size by parent padding amount
+            let padded = vec2(p_size.x - p_pad.left - p_pad.right, p_size.y - p_pad.top - p_pad.bottom);
 
-                let mut pos = match align {
-                    Align::CenterTop => vec2((padded.x - size.x) / 2.0, 0.0),
-                    Align::Center => vec2(padded.x - size.x, padded.y - size.y) / 2.0,
-                    Align::CenterBottom => vec2((padded.x - size.x) / 2.0, padded.y - size.y),
-                    Align::RightTop => vec2(padded.x - size.x, 0.0),
-                    Align::RightCenter => vec2(padded.x - size.x, (padded.y - size.y) / 2.0),
-                    Align::RightBottom => vec2(padded.x - size.x, padded.y - size.y),
-                    Align::LeftTop => vec2(0.0, 0.0),
-                    Align::LeftCenter => vec2(0.0, (padded.y - size.y) / 2.0),
-                    Align::LeftBottom => vec2(0.0, padded.y - size.y),
-                    Align::Static(x, y) => vec2(x, y),
-                };
+            // Calculate position relative to parent
+            let mut pos = align.relative(size, padded);
 
-                // Offset by parent layout's position which already includes its margins
-                pos += p_pos;
+            // Offset by parent layout's position which already includes its margins
+            pos += p_pos;
 
-                // Offset by parent layout's padding
-                pos += vec2(p_pad.left, p_pad.top);
+            // Offset by parent layout's padding
+            pos += vec2(p_pad.left, p_pad.top);
 
-                // Offset by layout's margins
-                pos += vec2(margins.left, margins.top);
+            // Offset by layout's margins
+            pos += vec2(margins.left, margins.top);
 
-                pos
-            },
-
-            // Positional offset already handles margins and padding appropriately
-            _ => p_pos + offset,
+            pos
         };
+
+        // Override controled linear direction with pre-calculated value but use
+        // centering alignment for non-controled linear direction.
+        // Positional offset already handles margins and padding appropriately
+        if p_mode != Mode::Align {
+            if p_mode == Mode::LeftToRight {
+                pos.x = p_pos.x + offset.x;
+            } else {
+                pos.y = p_pos.y + offset.y;
+            }
+        }
 
         // Overflow control
         let overflow = vec2(
@@ -1103,7 +1099,7 @@ mod tests {
         // Row 1
         let r1 = Layout::new("r1")
             .with_mode(Mode::LeftToRight)
-            .with_size_static(360., 140.)
+            .with_align(Align::Center)
             .with_spacing(10.)
             .with_padding_all(20.)
             .with_parent(&p1);
@@ -1114,7 +1110,7 @@ mod tests {
         // Row 2
         let r2 = Layout::new("r2")
             .with_mode(Mode::LeftToRight)
-            .with_size_static(360., 140.)
+            .with_align(Align::Center)
             .with_spacing(10.)
             .with_padding_all(20.)
             .with_parent(&p1);
@@ -1123,14 +1119,14 @@ mod tests {
         let r2c3 = Layout::new("c3").with_size_static(100., 100.).with_parent(&r2);
 
         assert_eq!(p1.shape(), (vec2(10., 10.), vec2(430., 780.)));
-        assert_eq!(r1.shape().0, vec2(40., 40.));
-        assert_eq!(r1c1.shape().0, vec2(60., 60.));
-        assert_eq!(r1c2.shape().0, vec2(170., 60.));
-        assert_eq!(r1c3.shape().0, vec2(280., 60.));
-        assert_eq!(r2.shape().0, vec2(40., 190.));
-        assert_eq!(r2c1.shape().0, vec2(60., 210.));
-        assert_eq!(r2c2.shape().0, vec2(170., 210.));
-        assert_eq!(r2c3.shape().0, vec2(280., 210.));
+        assert_eq!(r1.shape().0, vec2(45., 40.));
+        assert_eq!(r1c1.shape().0, vec2(65., 60.));
+        assert_eq!(r1c2.shape().0, vec2(175., 60.));
+        assert_eq!(r1c3.shape().0, vec2(285., 60.));
+        assert_eq!(r2.shape().0, vec2(45., 190.));
+        assert_eq!(r2c1.shape().0, vec2(65., 210.));
+        assert_eq!(r2c2.shape().0, vec2(175., 210.));
+        assert_eq!(r2c3.shape().0, vec2(285., 210.));
     }
 
     #[test]

@@ -3,6 +3,7 @@
 //! * Margins and padding are used in various layouts
 //! * overflow control occurs below because the Panel p1 at full screen will be adjusted for padding
 //! and margins which will then push it over its parent boundaries and it will be resized.
+//! * row layouts use expansion to fit content
 //! * visual of layout::tests::layout_linear_combination_static
 use specter::prelude::*;
 
@@ -24,7 +25,6 @@ async fn main() {
         let mut p1 = Panel::new("p1")
             .with_layout(|x| {
                 x.with_mode(Mode::TopToBottom)
-                    //.with_align(Align::Center)
                     .with_size_full()
                     .with_spacing(10.)
                     .with_padding_all(30.)
@@ -34,7 +34,7 @@ async fn main() {
         let mut r1 = Panel::new("p2")
             .with_layout(|x| {
                 x.with_mode(Mode::LeftToRight)
-                    .with_size_static(360., 140.0)
+                    .with_align(Align::Center)
                     .with_spacing(10.)
                     .with_padding_all(20.)
                     .with_parent(&p1.layout())
@@ -53,7 +53,7 @@ async fn main() {
         let mut r2 = Panel::new("p3")
             .with_layout(|x| {
                 x.with_mode(Mode::LeftToRight)
-                    .with_size_static(360., 140.0)
+                    .with_align(Align::Center)
                     .with_spacing(10.)
                     .with_padding_all(20.)
                     .with_parent(&p1.layout())
