@@ -18,7 +18,7 @@ async fn main() {
         clear_background(WHITE);
 
         let mut p1 = Panel::new("p1")
-            .with_layout(|x| x.with_size_full().with_padding_all(30.).with_margins_all(10.))
+            .layout(|x| x.with_size_full().with_padding_all(30.).with_margins_all(10.))
             .with_frame(|x| x.with_fill(BLACK));
 
         let align = vec![
@@ -37,7 +37,7 @@ async fn main() {
         for i in 0..=9 {
             shapes.push(
                 Panel::new(format!("{}", i))
-                    .with_layout(|x| x.with_size_static(100., 100.).with_align(align[i]).with_parent(&p1.layout()))
+                    .layout(|x| x.with_size_static(100., 100.).with_align(align[i]).with_parent(&p1.get_layout()))
                     .with_frame(|x| x.with_fill(GRAY)),
             );
         }

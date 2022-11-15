@@ -22,15 +22,27 @@ decisions to be made separate from actual excution and drawing of the Ui.
 
 ## Widget properties
 Every wiget has a set of properties associated with it used to control styling and behaviors. The 
-typical interactions with these properties is done through `getter`, `setter` and `builder` 
+typical interactions with these properties is done through `builder`, `getter` and `setter` 
 functions.
+
+**Naming:**  
+Because Rust doesn't support function overloading functions with related purposes e.g. builder, 
+getter, or setter functions used to interact with common properties typically have a prefix or suffix 
+describing the action being performed on the property. Only one of the 3 typical function types can 
+have the simple un-prefixed/un-suffixed name. In `Specter`'s case that typically is the builder 
+function as they are the most commonly used functions.
 
 **Example Signatures:**
 ```rust
-fn with_id<T: AsRef<str>>(self, id: T) -> Self
-fn with_size(self, size: Vec2) -> Self
-fn id(&self) -> &str
-fn size(&self) -> Vec2
+// Builders
+fn id<T: AsRef<str>>(self, id: T) -> Self
+fn size(self, size: Vec2) -> Self
+
+// Getters
+fn get_id(&self) -> &str
+fn get_size(&self) -> Vec2
+
+// Setters
 fn set_id<T: AsRef<str>>(&mut self, id: T)
 fn set_size(&mut self, size: Vec2)
 ```
@@ -40,25 +52,25 @@ Builder functions are those used during widget construction to set optional prop
 functions consume the object `self` and return a new modified copy of the object `Self`.
 
 **Naming:**  
-Because Rust doesn't support function overloading the functions are prefixed with `with_`. However in 
-the case where you have a pure builder object the `with_` prefix can typically be dropped unless 
-getters are being used on the builder object as well. Additionally surfacing internal objects for 
-mutation via a lambda is very useful and ergonomic.
+Because Rust doesn't support function overloading the functions typically prefixed with `with_`. In 
+Specter's case they are used so often I decided to not have the prefix and instead prefix the 
+getters. Additionally surfacing internal objects for mutation via a lambda is very useful and 
+ergonomic.
 
 **Examples:**
 ```rust
 /// Set the widget's id
-pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
+pub fn id<T: AsRef<str>>(self, id: T) -> Self {
   Self { id: id.as_ref().to_string(), ..self }
 }
 
 /// Set the widget's size
-pub fn with_size(self, size: Vec2) -> Self {
+pub fn size(self, size: Vec2) -> Self {
   Self { size, ..self }
 }
 
 /// Set the widget's frame
-pub fn with_frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
+pub fn frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
   Self {
     frame: f(self.frame),
     ..self
@@ -79,7 +91,7 @@ is very useful and ergonomic if somewhat prone to performance overhead.
 **Examples:**
 ```rust
 /// Return a reference to the widget's id
-pub fn id(&self) -> &str {
+pub fn get_id(&self) -> &str {
   &self.id
 }
 
@@ -89,14 +101,9 @@ pub fn shape(&self) -> (Vec2, Vec2) {
 }
 
 /// Get the widget's frame properties
-pub fn frame(&self) -> &mut Self {
+pub fn get_frame(&self) -> &mut Self {
   self.frame = f(self.frame);
   self
-}
-
-/// Get the widget's frame properties
-pub fn frame(&self) -> Frame {
-  self.frame
 }
 ```
 
@@ -128,8 +135,6 @@ pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) {
 ```
 
 ## Backlog
-* Widgets taking a lambda of child layouts needs to have a predefined size currently as the prarent 
-widget needs to be drawn before the child widgets are added to the parent for sizing.
 * Frame properties
 
 * Layout support for label

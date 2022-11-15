@@ -7,25 +7,57 @@ use crate::prelude::*;
 /// widget's or container's
 /// * background properties
 /// * stroke properties
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Frame {
     //pub rounding: Rounding,
     //pub shadow: Shadow,
     /// Color to fill the frame with
     pub fill: Color,
     //pub stroke: Stroke,
+    image: Option<Image>,     // background image to use
+    image_clk: Option<Image>, // background image to use when clicked
+    image_hov: Option<Image>, // background image to use when hovered
 }
 
 // Constructors and builders
 impl Frame {
     pub fn new() -> Self {
-        Frame { fill: GRAY }
+        Frame {
+            fill: GRAY,
+            image: None,
+            image_clk: None,
+            image_hov: None,
+        }
     }
 
     /// Set the fill color
     pub fn with_fill(self, color: Color) -> Self {
         Self {
             fill: color,
+            ..self
+        }
+    }
+
+    /// Set background image to use
+    pub fn with_image<T: Into<Option<Image>>>(self, image: T) -> Self {
+        Self {
+            image: image.into(),
+            ..self
+        }
+    }
+
+    /// Set background image to use
+    pub fn with_image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
+        Self {
+            image_clk: image.into(),
+            ..self
+        }
+    }
+
+    /// Set background image to use
+    pub fn with_image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
+        Self {
+            image_hov: image.into(),
             ..self
         }
     }

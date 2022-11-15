@@ -442,54 +442,62 @@ impl Layout {
 // Getters
 impl Layout {
     /// Get layout alignment
-    pub fn align(&self) -> Align {
+    pub fn get_align(&self) -> Align {
         self.0.borrow().align
     }
 
     /// Get layout expand property
-    pub fn expand(&self) -> bool {
+    pub fn get_expand(&self) -> bool {
         self.0.borrow().expand
     }
 
     /// Get layout fill will be true when both fill_width and fill_height are set to true
-    pub fn fill(&self) -> bool {
+    pub fn get_fill(&self) -> bool {
         self.0.borrow().fill_w && self.0.borrow().fill_h
     }
 
     /// Get layout fill height property
-    pub fn fill_height(&self) -> bool {
+    pub fn get_fill_height(&self) -> bool {
         self.0.borrow().fill_h
     }
 
     /// Get layout fill width property
-    pub fn fill_width(&self) -> bool {
+    pub fn get_fill_width(&self) -> bool {
         self.0.borrow().fill_w
     }
 
     /// Get layout id property
-    pub fn id(&self) -> String {
+    pub fn get_id(&self) -> String {
         self.0.borrow().id.clone()
     }
 
     /// Get layout margins
-    pub fn margins(&self) -> RectOffset {
+    pub fn get_margins(&self) -> RectOffset {
         self.0.borrow().margins
     }
 
     /// Get layout mode
-    pub fn mode(&self) -> Mode {
+    pub fn get_mode(&self) -> Mode {
         self.0.borrow().mode
     }
 
     /// Get layout padding
-    pub fn padding(&self) -> RectOffset {
+    pub fn get_padding(&self) -> RectOffset {
         self.0.borrow().padding
     }
 
     /// Get layout parent
-    pub fn parent(&self) -> Option<Layout> {
+    pub fn get_parent(&self) -> Option<Layout> {
         self.0.borrow().parent.as_ref().map(|x| Layout(x.clone()))
     }
+
+    /// Get layout spacing
+    pub fn get_spacing(&self) -> f32 {
+        self.0.borrow().spacing
+    }
+
+    // Private functions
+    // ---------------------------------------------------------------------------------------------
 
     /// Get cached position value
     fn pos(&self) -> Vec2 {
@@ -499,11 +507,6 @@ impl Layout {
     /// Get layout size includin padding but not including margins
     fn size(&self) -> Vec2 {
         self.0.borrow().size
-    }
-
-    /// Get layout spacing
-    pub fn spacing(&self) -> f32 {
-        self.0.borrow().spacing
     }
 }
 
@@ -701,7 +704,7 @@ impl Layout {
     /// * Calls update if the sub-layout was appended
     /// * `layout` is the sub-layout to append
     pub fn subs_append(&self, layout: &Layout) {
-        if self.sub_idx(&layout.id()).is_none() {
+        if self.sub_idx(&layout.get_id()).is_none() {
             {
                 // Set parent on layout
                 let sub = &mut *layout.0.borrow_mut();
@@ -748,7 +751,7 @@ impl Layout {
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
         let mut layout = self.rc_ref();
-        while let Some(parent) = layout.parent() {
+        while let Some(parent) = layout.get_parent() {
             layout = parent.rc_ref();
         }
         // if self.dirty {
@@ -764,8 +767,8 @@ impl Layout {
     /// * returns pos
     fn update_pos(&self) -> Vec2 {
         // Extract parent values
-        let (p_pos, p_size, p_mode, p_pad) = match self.parent() {
-            Some(parent) => (parent.pos(), parent.size(), parent.mode(), parent.padding()),
+        let (p_pos, p_size, p_mode, p_pad) = match self.get_parent() {
+            Some(parent) => (parent.pos(), parent.size(), parent.get_mode(), parent.get_padding()),
             _ => (Vec2::default(), screen(), Mode::default(), RectOffset::default()),
         };
 
@@ -877,7 +880,7 @@ impl Layout {
                 // Get sub-layout size and margins
                 let (sub_size, sub_margins) = {
                     let sub = Layout(x.clone());
-                    (sub.update_size(), sub.margins())
+                    (sub.update_size(), sub.get_margins())
                 };
 
                 // Add sub-layout opening margins
@@ -1170,9 +1173,9 @@ mod tests {
         assert_eq!(parent.subs_idx(0).unwrap().rc_ref_eq(&layout1), true);
         assert_eq!(parent.subs_idx(1).unwrap().rc_ref_eq(&layout2), true);
         assert_eq!(parent.subs_idx(2).unwrap().rc_ref_eq(&layout3), true);
-        assert_eq!(parent.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(2).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
@@ -1252,9 +1255,9 @@ mod tests {
         assert_eq!(parent.subs_idx(0).unwrap().rc_ref_eq(&layout1), true);
         assert_eq!(parent.subs_idx(1).unwrap().rc_ref_eq(&layout2), true);
         assert_eq!(parent.subs_idx(2).unwrap().rc_ref_eq(&layout3), true);
-        assert_eq!(parent.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(2).unwrap().parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
@@ -1329,30 +1332,30 @@ mod tests {
         let sub2 = Layout::new("sub2").with_parent(&layout1);
 
         // Test layout1 original values
-        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
         assert_eq!(layout1.subs_len(), 2);
         assert_eq!(layout1.subs_idx(0).unwrap().rc_ref_eq(&sub1), true);
         assert_eq!(layout1.subs_idx(0).unwrap().rc_ref_eq(&sub2), false);
         assert_eq!(layout1.subs_idx(1).unwrap().rc_ref_eq(&sub2), true);
         assert_eq!(layout1.subs_idx(1).unwrap().rc_ref_eq(&sub1), false);
-        assert_eq!(layout1.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&layout1), true);
-        assert_eq!(layout1.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&layout1), true);
 
         // Test layout2 clone values
         let layout2 = layout1.clone().with_id("layout2");
-        assert_eq!(layout2.id(), "layout2");
+        assert_eq!(layout2.get_id(), "layout2");
         assert_eq!(layout2.size(), vec2(1., 2.));
-        assert_eq!(layout2.fill(), true);
-        assert_eq!(layout2.fill_height(), true);
-        assert_eq!(layout2.fill_width(), true);
-        assert_eq!(layout2.expand(), false);
-        assert_eq!(layout2.align(), Align::CenterTop);
-        assert_eq!(layout2.mode(), Mode::TopToBottom);
-        assert_eq!(layout2.spacing(), 10.);
-        assert_eq!(layout2.margins(), RectOffset::new(1., 0., 0., 0.));
+        assert_eq!(layout2.get_fill(), true);
+        assert_eq!(layout2.get_fill_height(), true);
+        assert_eq!(layout2.get_fill_width(), true);
+        assert_eq!(layout2.get_expand(), false);
+        assert_eq!(layout2.get_align(), Align::CenterTop);
+        assert_eq!(layout2.get_mode(), Mode::TopToBottom);
+        assert_eq!(layout2.get_spacing(), 10.);
+        assert_eq!(layout2.get_margins(), RectOffset::new(1., 0., 0., 0.));
 
         // Check that parent wasn't included
-        assert_eq!(layout2.parent().is_none(), true);
+        assert_eq!(layout2.get_parent().is_none(), true);
 
         // Check subs we're actually cloned
         assert_eq!(layout2.subs_len(), 2);
@@ -1362,8 +1365,8 @@ mod tests {
         assert_eq!(layout2.subs_idx(1).unwrap().rc_ref_eq(&sub1), false);
 
         // Check subs have new parent
-        assert_eq!(layout2.subs_idx(0).unwrap().parent().unwrap().rc_ref_eq(&layout2), true);
-        assert_eq!(layout2.subs_idx(1).unwrap().parent().unwrap().rc_ref_eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&layout2), true);
     }
 
     #[test]
@@ -1373,56 +1376,56 @@ mod tests {
         let layout1 = Layout::new("layout1").with_parent(&parent1);
         let layout2 = layout1.rc_ref();
         assert_eq!(layout1.rc_ref_eq(&layout2), true);
-        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
-        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&layout1), false);
+        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&layout1), false);
 
         // Different pointer and no parent
         let layout2 = layout1.clone();
         assert_eq!(layout1.rc_ref_eq(&layout2), false);
-        assert_eq!(layout1.parent().unwrap().rc_ref_eq(&parent1), true);
-        assert_eq!(layout2.parent().is_none(), true);
+        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout2.get_parent().is_none(), true);
     }
 
     #[test]
     fn builder_functions() {
         // Getter functions
         let layout = Layout::new("id1");
-        assert_eq!(layout.id(), "id1");
+        assert_eq!(layout.get_id(), "id1");
         assert_eq!(layout.size(), vec2(0., 0.));
-        assert_eq!(layout.fill(), false);
-        assert_eq!(layout.fill_height(), false);
-        assert_eq!(layout.fill_width(), false);
-        assert_eq!(layout.expand(), true);
-        assert_eq!(layout.align(), Align::LeftTop);
-        assert_eq!(layout.mode(), Mode::Align);
-        assert_eq!(layout.spacing(), 0.);
-        assert_eq!(layout.margins(), RectOffset::default());
-        assert_eq!(layout.parent(), None);
+        assert_eq!(layout.get_fill(), false);
+        assert_eq!(layout.get_fill_height(), false);
+        assert_eq!(layout.get_fill_width(), false);
+        assert_eq!(layout.get_expand(), true);
+        assert_eq!(layout.get_align(), Align::LeftTop);
+        assert_eq!(layout.get_mode(), Mode::Align);
+        assert_eq!(layout.get_spacing(), 0.);
+        assert_eq!(layout.get_margins(), RectOffset::default());
+        assert_eq!(layout.get_parent(), None);
 
         // Setter functions
         layout.set_id("id2");
-        assert_eq!(layout.id(), "id2");
+        assert_eq!(layout.get_id(), "id2");
         layout.set_size(0., 2.);
         assert_eq!(layout.size(), vec2(0., 2.));
         layout.set_fill_height();
-        assert_eq!(layout.fill_height(), true);
+        assert_eq!(layout.get_fill_height(), true);
         layout.set_fill_width();
-        assert_eq!(layout.fill_width(), true);
+        assert_eq!(layout.get_fill_width(), true);
         layout.set_fill();
-        assert_eq!(layout.fill(), true);
+        assert_eq!(layout.get_fill(), true);
         layout.set_align(Align::Center);
-        assert_eq!(layout.align(), Align::Center);
+        assert_eq!(layout.get_align(), Align::Center);
         layout.set_expand();
-        assert_eq!(layout.expand(), true);
+        assert_eq!(layout.get_expand(), true);
         layout.set_mode(Mode::LeftToRight);
-        assert_eq!(layout.mode(), Mode::LeftToRight);
+        assert_eq!(layout.get_mode(), Mode::LeftToRight);
         layout.set_spacing(5.);
-        assert_eq!(layout.spacing(), 5.);
+        assert_eq!(layout.get_spacing(), 5.);
         layout.set_margins(2., 0., 0., 0.);
-        assert_eq!(layout.margins(), RectOffset::new(2., 0., 0., 0.));
+        assert_eq!(layout.get_margins(), RectOffset::new(2., 0., 0., 0.));
         layout.set_parent(&Layout::new("parent1"));
-        assert_eq!(layout.parent().is_some(), true);
-        assert_eq!(layout.parent().map(|x| x.id()).unwrap(), "parent1");
+        assert_eq!(layout.get_parent().is_some(), true);
+        assert_eq!(layout.get_parent().map(|x| x.get_id()).unwrap(), "parent1");
 
         // Builder functions
         let layout = layout
@@ -1435,25 +1438,25 @@ mod tests {
             .with_spacing(10.)
             .with_margins(1., 0., 0., 0.)
             .with_parent(&Layout::new("parent2"));
-        assert_eq!(layout.id(), "id3");
+        assert_eq!(layout.get_id(), "id3");
         assert_eq!(layout.size(), vec2(1., 2.));
-        assert_eq!(layout.fill(), true);
-        assert_eq!(layout.fill_height(), true);
-        assert_eq!(layout.fill_width(), true);
-        assert_eq!(layout.expand(), false);
-        assert_eq!(layout.align(), Align::CenterTop);
-        assert_eq!(layout.mode(), Mode::TopToBottom);
-        assert_eq!(layout.spacing(), 10.);
-        assert_eq!(layout.margins(), RectOffset::new(1., 0., 0., 0.));
-        assert_eq!(layout.parent().is_some(), true);
-        assert_eq!(layout.parent().map(|x| x.id()).unwrap(), "parent2");
+        assert_eq!(layout.get_fill(), true);
+        assert_eq!(layout.get_fill_height(), true);
+        assert_eq!(layout.get_fill_width(), true);
+        assert_eq!(layout.get_expand(), false);
+        assert_eq!(layout.get_align(), Align::CenterTop);
+        assert_eq!(layout.get_mode(), Mode::TopToBottom);
+        assert_eq!(layout.get_spacing(), 10.);
+        assert_eq!(layout.get_margins(), RectOffset::new(1., 0., 0., 0.));
+        assert_eq!(layout.get_parent().is_some(), true);
+        assert_eq!(layout.get_parent().map(|x| x.get_id()).unwrap(), "parent2");
 
         // Test no fill builder functions
         let layout = layout.with_no_fill_height();
-        assert_eq!(layout.fill_height(), false);
+        assert_eq!(layout.get_fill_height(), false);
         let layout = layout.with_no_fill_width();
-        assert_eq!(layout.fill_width(), false);
+        assert_eq!(layout.get_fill_width(), false);
         let layout = layout.with_fill().with_no_fill();
-        assert_eq!(layout.fill(), false);
+        assert_eq!(layout.get_fill(), false);
     }
 }

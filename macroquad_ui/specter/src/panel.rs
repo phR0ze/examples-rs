@@ -34,7 +34,7 @@ impl PanelBuilder {
     /// Create a new Panel instance
     pub fn build<T: AsRef<str>>(&self, id: T) -> Panel {
         Panel {
-            frame: self.frame,
+            frame: self.frame.clone(),
             layout: self.layout.clone().with_id(id.as_ref()),
         }
     }
@@ -58,13 +58,13 @@ impl Panel {
     /// Create a horizontal panel
     /// * lays out sub-layouts using the left to right packing mode
     pub fn horz<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).with_layout(|x| x.with_mode(Mode::LeftToRight))
+        Self::new(id).layout(|x| x.with_mode(Mode::LeftToRight))
     }
 
     /// Create a vertical layout
     /// * lays out sub-layouts using the top to bottom packing mode
     pub fn vert<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).with_layout(|x| x.with_mode(Mode::TopToBottom))
+        Self::new(id).layout(|x| x.with_mode(Mode::TopToBottom))
     }
 
     /// Set the frame's properties
@@ -76,7 +76,7 @@ impl Panel {
     }
 
     /// Set layout to use
-    pub fn with_layout(self, f: impl FnOnce(Layout) -> Layout) -> Self {
+    pub fn layout(self, f: impl FnOnce(Layout) -> Layout) -> Self {
         Self {
             layout: f(self.layout),
             ..self
@@ -87,12 +87,12 @@ impl Panel {
 // Getters
 impl Panel {
     /// Get the frame's properties
-    pub fn frame(&self) -> Frame {
-        self.frame
+    pub fn frame(&self) -> &Frame {
+        &self.frame
     }
 
     /// Get a shared reference to the layout
-    pub fn layout(&self) -> Layout {
+    pub fn get_layout(&self) -> Layout {
         self.layout.rc_ref()
     }
 }
@@ -101,7 +101,7 @@ impl Panel {
 impl Panel {
     /// Set the frame's properties
     pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) {
-        self.frame = f(self.frame);
+        self.frame = f(self.frame.clone());
     }
 }
 
