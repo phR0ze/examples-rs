@@ -2,7 +2,7 @@
 //! calculating and tracking where and how they should be drawn.
 //!
 //! ## Defaults
-//! * LeftToRight layout
+//! * Align layout
 //! * Expansion enabled
 //!
 //! ## Terminology
@@ -13,17 +13,17 @@
 //!
 //! ## Pack mode
 //! Pack modes provide different interpretations of how child layouts should be packed into the
-//! parent layout's defined region of space. The default `Mode::LeftToRight` will add child layouts
-//! horizontally from left to right while `Mode::TopToBottom` will add child layouts vertically from
-//! top to bottom. `Mode::Align` enables the use of the Align directive without which the Align
-//! directive will be ignored on child layouts.
+//! parent layout's defined region of content space. The default `Mode::LeftToRight` will add child
+//! layouts horizontally from left to right while `Mode::TopToBottom` will add child layouts
+//! vertically from top to bottom. `Mode::Align` enables the use of the Align directive without
+//! which the Align directive will be only partially adhered to on child layouts.
 //!
 //! ## Align directive
 //! The align directive is used to remove a layout from the standard linear packing mode to instead
 //! follow a calculated positioning relative to its parent layout. Margins and padding will still
 //! affect the position even when an align directive is used but behave differently then the
-//! standard linear packing modes. While the standard linear modes process out to in first parent
-//! margins then parent padding then child margins, Align will take padding into account during the
+//! standard linear packing modes. While the standard linear modes process out to in, first parent
+//! margins then parent padding then child margins; Align will take padding into account during the
 //! relative calculation but margins are processed post alignment. For example if a layout, sized
 //! 20x20, is to be positioned in the center of its parent, sized 100x100, its origin would be
 //! (40,40). If we set a child margin (not parent margin) of 10.0 on the layout alignment would be
@@ -32,10 +32,22 @@
 //! which means in a similar situation if we instead had a parent padding of 5.0 alignment would be
 //! calculated still as (40, 40) because of the even reduction in content space of the parent.
 //!
+//! Mixed modes make for partial adhereance to packing rules. When a parent layout is set to Align
+//! and a child layout is set to a linear mode both modes will be respected intuitively with the
+//! child layout being computed in a linear fashion inside the parent and the parent being
+//! positioned according to the alignment rules. However if a parent layout is set to be a linear
+//! layout and a child layout is set to `Mode::Align` behavior is a mixure. Specifically linear
+//! rules will be followed for the direction of packing. This means that with `Mode::LeftToRight`
+//! horizontal linear rules will be followed for the child despite the child's align directive yet
+//! vertical rules such as top, center or bottom including margins will be followed for the child's
+//! align directive. Likewise for `Mode::TopToBottom` vertical linear rules will be for the child
+//! layout despite the child's align directive yet horiztonal align rules such as left, center and
+//! right including margins will be followed for the child's align directive.
+//!
 //! ## Expand directive
 //! Layout expansion is the default mode. In this mode the layout will expand its size to account
 //! for the size of all content. This is very useful for cases where you don't know the size of the
-//! layout in advance and need to build that knowledge based on the widgets it is composed of taking
+//! layout in advance and need to build that knowledge based on the layouts it is composed of taking
 //! into account margins, spacing and/or alignment preferences for one or more widgts. For example a
 //! Button is composed of an Icon and Label each of which can be measured and included into the
 //! total layout expansion. Setting the expand directive will disable the fill directives.
@@ -48,9 +60,9 @@
 //! ignored. Setting fill directives requires the layout to have a static size configured.
 //!
 //! ## Spacing
-//! When packing widgets in a layout consecutively, spacing can be applied to provide a consistent
-//! space between widgets. This directive is only used for non alignment modes like LeftToRight or
-//! TopToBottom. It is not considered when using the Align mode.
+//! When packing child layouts in a parent layout consecutively, spacing can be applied to provide a
+//! consistent space between child layouts. This directive is only used for non alignment modes like
+//! LeftToRight or TopToBottom. It is not considered when using the Align mode.
 //!
 //! ## Margins
 //! Margins are defined as additional space outside the widget's content area. Margins will affect
@@ -64,6 +76,13 @@
 //! Padding is defined as additional space inside the widget's content area. Padding will affect how
 //! widgets are drawn inside its content area in any mode. It will push widget's in from the edges
 //! of the content area. Padding is included in the widget's size.
+//!
+//! ## Overflow control
+//! Overflow occurs when a child layout's position or size spans its parent layout's border. When
+//! overflow control is enabled and overflow is detected corrective actions will be taken to adjust
+//! the child layout to fit within the parent layout. First the child layout will be repositioned as
+//! much as possible. If this still doesn't move the child layout within the parent layout's borders
+//! the child layout will then be resized to fit within the parent layout's content space.
 use crate::prelude::*;
 use std::{cell::RefCell, rc::Rc};
 
@@ -614,22 +633,6 @@ impl Layout {
         Rc::ptr_eq(&self.0, &other.0)
     }
 
-    /// Get layout's position and size
-    /// * this will find the root layout and re-calculate down to this layout
-    /// * returns (pos, size)
-    pub fn shape(&self) -> (Vec2, Vec2) {
-        let mut layout = self.rc_ref();
-        while let Some(parent) = layout.parent() {
-            layout = parent.rc_ref();
-        }
-        // if self.dirty {
-        layout.update_size();
-        layout.update_pos();
-        // self.dirty = false;
-        //}
-        (self.pos(), self.size())
-    }
-
     /// Get sub-layout by id
     pub fn sub(&self, id: &str) -> Option<Layout> {
         self.0.borrow().subs.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
@@ -740,8 +743,24 @@ impl Layout {
         inner.dirty = true;
     }
 
-    /// Calculate position
-    /// * requires update_size_and_offset has already been run
+    /// Get layout's position and size
+    /// * re-calculates the entire layout stack associated with this layout
+    /// * returns (pos, size)
+    pub fn shape(&self) -> (Vec2, Vec2) {
+        let mut layout = self.rc_ref();
+        while let Some(parent) = layout.parent() {
+            layout = parent.rc_ref();
+        }
+        // if self.dirty {
+        layout.update_size();
+        layout.update_pos();
+        // self.dirty = false;
+        //}
+        (self.pos(), self.size())
+    }
+
+    /// Recursive calculation of final position from outer most to inner
+    /// * requires update_size to be already run
     /// * returns pos
     fn update_pos(&self) -> Vec2 {
         // Extract parent values
@@ -751,9 +770,9 @@ impl Layout {
         };
 
         // Extract layout values
-        let (align, offset, size, margins, subs) = {
+        let (mut size, align, offset, margins) = {
             let inner = self.0.borrow();
-            (inner.align, inner.offset, inner.size, inner.margins, !inner.subs.is_empty())
+            (inner.size, inner.align, inner.offset, inner.margins)
         };
 
         // Calculate position
@@ -797,27 +816,44 @@ impl Layout {
             (pos.y + size.y + margins.bottom + p_pad.bottom) - (p_pos.y + p_size.y),
         );
         if overflow.x > 0. {
+            // Adjust position first
             pos.x -= overflow.x;
+
+            // Now adjust size
+            if pos.x < p_pos.x + p_pad.left + margins.left {
+                let resize = (pos.x - (p_pos.x + p_pad.left + margins.left)).abs();
+                size.x -= resize;
+                pos.x += resize;
+            }
         }
         if overflow.y >= 0. {
+            // Adjust position first
             pos.y -= overflow.y;
+
+            // Now adjust size
+            if pos.y < p_pos.y + p_pad.top + margins.top {
+                let resize = (pos.y - (p_pos.y + p_pad.top + margins.top)).abs();
+                size.y -= resize;
+                pos.y += resize;
+            }
         }
 
-        // Persist the calculated value
-        self.0.borrow_mut().pos = pos;
+        // Persist the calculated values
+        {
+            let mut inner = &mut *self.0.borrow_mut();
+            inner.pos = pos;
+            inner.size = size;
+        }
 
         // Recurse on child layouts
-        if subs {
-            for x in self.0.borrow().subs.iter() {
-                Layout(x.clone()).update_pos();
-            }
+        for x in self.0.borrow().subs.iter() {
+            Layout(x.clone()).update_pos();
         }
 
         pos
     }
 
-    /// Calculate and set the size and positional offset of all layouts starting from the
-    /// inner most layouts i.e. the leaf layouts.
+    /// Recursive calculationg of sizing and position from inner most layouts to outer
     /// * returns the size calculation including margins
     fn update_size(&self) -> Vec2 {
         let (expand, mode, mut size, margins, padding) = {
@@ -1059,7 +1095,7 @@ mod tests {
     fn layout_linear_combination_static() {
         let p1 = Layout::new("p1")
             .with_mode(Mode::TopToBottom)
-            .with_size_static(450. - 20., 800. - 20.)
+            .with_size_static(450., 800.)
             .with_spacing(10.)
             .with_padding_all(30.)
             .with_margins_all(10.);
@@ -1086,7 +1122,7 @@ mod tests {
         let r2c2 = Layout::new("c2").with_size_static(100., 100.).with_parent(&r2);
         let r2c3 = Layout::new("c3").with_size_static(100., 100.).with_parent(&r2);
 
-        assert_eq!(p1.shape().0, vec2(10., 10.));
+        assert_eq!(p1.shape(), (vec2(10., 10.), vec2(430., 780.)));
         assert_eq!(r1.shape().0, vec2(40., 40.));
         assert_eq!(r1c1.shape().0, vec2(60., 60.));
         assert_eq!(r1c2.shape().0, vec2(170., 60.));

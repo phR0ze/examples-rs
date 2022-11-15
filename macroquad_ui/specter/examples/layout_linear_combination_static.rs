@@ -1,4 +1,8 @@
-//! Demonstrating margins, padding, and nested layouts
+//! Demonstrating
+//! * Both linear layout modes are used here as well as the align mode
+//! * Margins and padding are used in various layouts
+//! * overflow control occurs below because the Panel p1 at full screen will be adjusted for padding
+//! and margins which will then push it over its parent boundaries and it will be resized.
 //! * visual of layout::tests::layout_linear_combination_static
 use specter::prelude::*;
 
@@ -20,7 +24,8 @@ async fn main() {
         let mut p1 = Panel::new("p1")
             .with_layout(|x| {
                 x.with_mode(Mode::TopToBottom)
-                    .with_size_static(450. - 20., 800. - 20.)
+                    //.with_align(Align::Center)
+                    .with_size_full()
                     .with_spacing(10.)
                     .with_padding_all(30.)
                     .with_margins_all(10.)
