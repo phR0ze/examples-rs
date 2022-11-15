@@ -12,7 +12,7 @@ impl Panel {
     pub fn new<T: AsRef<str>>(id: T) -> Self {
         Self {
             frame: Frame::new(),
-            layout: Layout::horz(id),
+            layout: Layout::new(id),
         }
     }
 

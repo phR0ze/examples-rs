@@ -1,15 +1,14 @@
-//! Demonstrating
-//! * Both linear layout modes are used here as well as the align mode
+//! Demonstrating visually layout::tests::layout_linear_combination_static
+//! * Linear layouts and Align layouts are used here
 //! * Margins and padding are used in various layouts
-//! * overflow control occurs below because the Panel p1 at full screen will be adjusted for padding
+//! * Overflow control occurs below because the Panel p1 at full screen will be adjusted for padding
 //! and margins which will then push it over its parent boundaries and it will be resized.
-//! * row layouts use expansion to fit content
-//! * visual of layout::tests::layout_linear_combination_static
+//! * Expansion occurs here with the row layouts to fit content
 use specter::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
-        window_title: "panel".to_string(),
+        window_title: "combo".to_string(),
         window_width: 450,
         window_height: 800,
         high_dpi: true,

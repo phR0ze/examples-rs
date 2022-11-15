@@ -33,11 +33,12 @@ pub enum Align {
     LeftBottom,
 
     /// Align horizontally with the given value and vertically with the given value
-    Static(f32, f32),
+    /// * is removed from normal padding and margins rules providing absolute positioning
+    Absolute(f32, f32),
 }
 
 impl Align {
-    /// Returns true if we have a static alignment
+    /// Returns true if we have an absolute alignment
     ///
     /// ### Examples
     /// ```
@@ -46,9 +47,9 @@ impl Align {
     /// assert_eq!(Align::Center.is_static(), false);
     /// assert_eq!(Align::Static(0., 0.).is_static(), true);
     /// ```
-    pub fn is_static(&self) -> bool {
+    pub fn is_absolute(&self) -> bool {
         match self {
-            Align::Static(_, _) => true,
+            Align::Absolute(_, _) => true,
             _ => false,
         }
     }
@@ -74,7 +75,7 @@ impl Align {
             Align::LeftTop => vec2(0.0, 0.0),
             Align::LeftCenter => vec2(0.0, (parent.y - layout.y) / 2.0),
             Align::LeftBottom => vec2(0.0, parent.y - layout.y),
-            Align::Static(x, y) => vec2(*x, *y),
+            Align::Absolute(x, y) => vec2(*x, *y),
         }
     }
 }
@@ -103,7 +104,7 @@ impl From<Vec2> for Align {
     /// assert_eq!(Align::from(vec2(1., 2.)), Align::Static(1., 2.));
     /// ```
     fn from(val: Vec2) -> Self {
-        Align::Static(val.x, val.y)
+        Align::Absolute(val.x, val.y)
     }
 }
 

@@ -783,15 +783,17 @@ impl Layout {
             // Calculate position relative to parent
             let mut pos = align.relative(size, padded);
 
-            // Offset by parent layout's position which already includes its margins
-            pos += p_pos;
+            // Absolute alignment shouldn't be modified
+            if !align.is_absolute() {
+                // Offset by parent layout's position which already includes its margins
+                pos += p_pos;
 
-            // Offset by parent layout's padding
-            pos += vec2(p_pad.left, p_pad.top);
+                // Offset by parent layout's padding
+                pos += vec2(p_pad.left, p_pad.top);
 
-            // Offset by layout's margins
-            pos += vec2(margins.left, margins.top);
-
+                // Offset by layout's margins
+                pos += vec2(margins.left, margins.top);
+            }
             pos
         };
 
@@ -998,100 +1000,90 @@ mod tests {
     }
 
     #[test]
-    fn align_in_sized_parent() {
-        let parent = Layout::new("parent").with_size_static(100., 100.);
-        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+    fn layout_alignment() {
+        let p1 = Layout::new("p1").with_size_full();
+        assert_eq!(p1.shape(), (vec2(0., 0.), vec2(450., 800.)));
 
-        let size = vec2(20., 20.);
+        let size = vec2(100., 100.);
         let builder = Layout::new("").with_size_static(size.x, size.y);
 
         // All alignment permutations
-        let layout1 = builder.clone().with_id("1").with_align(Align::Center).with_parent(&parent);
-        let layout2 = builder.clone().with_id("2").with_align(Align::CenterBottom).with_parent(&parent);
-        let layout3 = builder.clone().with_id("3").with_align(Align::CenterTop).with_parent(&parent);
-        let layout4 = builder.clone().with_id("4").with_align(Align::LeftBottom).with_parent(&parent);
-        let layout5 = builder.clone().with_id("5").with_align(Align::LeftCenter).with_parent(&parent);
-        let layout6 = builder.clone().with_id("6").with_align(Align::LeftTop).with_parent(&parent);
-        let layout7 = builder.clone().with_id("7").with_align(Align::RightBottom).with_parent(&parent);
-        let layout8 = builder.clone().with_id("8").with_align(Align::RightCenter).with_parent(&parent);
-        let layout9 = builder.clone().with_id("9").with_align(Align::RightTop).with_parent(&parent);
-        let layout10 = builder.clone().with_id("10").with_align(Align::Static(40., 40.)).with_parent(&parent);
+        let layout1 = builder.clone().with_id("1").with_align(Align::Center).with_parent(&p1);
+        let layout2 = builder.clone().with_id("2").with_align(Align::CenterBottom).with_parent(&p1);
+        let layout3 = builder.clone().with_id("3").with_align(Align::CenterTop).with_parent(&p1);
+        let layout4 = builder.clone().with_id("4").with_align(Align::LeftBottom).with_parent(&p1);
+        let layout5 = builder.clone().with_id("5").with_align(Align::LeftCenter).with_parent(&p1);
+        let layout6 = builder.clone().with_id("6").with_align(Align::LeftTop).with_parent(&p1);
+        let layout7 = builder.clone().with_id("7").with_align(Align::RightBottom).with_parent(&p1);
+        let layout8 = builder.clone().with_id("8").with_align(Align::RightCenter).with_parent(&p1);
+        let layout9 = builder.clone().with_id("9").with_align(Align::RightTop).with_parent(&p1);
+        let layout10 = builder.clone().with_id("10").with_align(Align::Absolute(175., 150.)).with_parent(&p1);
 
         let shapes = vec![
-            vec2(40., 40.),
-            vec2(40., 80.),
-            vec2(40., 0.),
-            vec2(0., 80.),
-            vec2(0., 40.),
+            vec2(175., 350.),
+            vec2(175., 700.),
+            vec2(175., 0.),
+            vec2(0., 700.),
+            vec2(0., 350.),
             vec2(0., 0.),
-            vec2(80., 80.),
-            vec2(80., 40.),
-            vec2(80., 0.),
-            vec2(40., 40.),
+            vec2(350., 700.),
+            vec2(350., 350.),
+            vec2(350., 0.),
+            vec2(175., 150.),
         ];
 
-        for i in 0..=9 {
-            assert_eq!(parent.subs_idx(i).unwrap().shape(), (shapes[i], size));
+        for i in 0..p1.subs_len() {
+            assert_eq!(p1.subs_idx(i).unwrap().shape(), (shapes[i], size));
         }
-        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+        assert_eq!(p1.shape(), (vec2(0., 0.), vec2(450., 800.)));
 
         // Spacing should have no affect when using alignment
-        parent.set_spacing(10.);
-        for i in 0..=9 {
-            assert_eq!(parent.subs_idx(i).unwrap().shape(), (shapes[i], size));
+        p1.set_spacing(10.);
+        for i in 0..p1.subs_len() {
+            assert_eq!(p1.subs_idx(i).unwrap().shape(), (shapes[i], size));
         }
-        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+        assert_eq!(p1.shape(), (vec2(0., 0.), vec2(450., 800.)));
 
         // Padding should offset alignment for sub-layouts inside parent
-        parent.set_padding(10., 10., 10., 10.);
+        p1.set_padding_all(30.);
         let shapes = vec![
-            vec2(40., 40.),
-            vec2(40., 70.),
-            vec2(40., 10.),
-            vec2(10., 70.),
-            vec2(10., 40.),
-            vec2(10., 10.),
-            vec2(70., 70.),
-            vec2(70., 40.),
-            vec2(70., 10.),
-            vec2(50., 50.),
+            vec2(175., 350.),
+            vec2(175., 670.),
+            vec2(175., 30.),
+            vec2(30., 670.),
+            vec2(30., 350.),
+            vec2(30., 30.),
+            vec2(320., 670.),
+            vec2(320., 350.),
+            vec2(320., 30.),
+            vec2(175., 150.),
         ];
 
-        for i in 0..=9 {
-            assert_eq!(parent.subs_idx(i).unwrap().shape(), (shapes[i], size));
+        for i in 0..p1.subs_len() {
+            assert_eq!(p1.subs_idx(i).unwrap().shape(), (shapes[i], size));
         }
-        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
+        assert_eq!(p1.shape(), (vec2(0., 0.), vec2(450., 800.)));
 
         // Margins should offset alignment for sub-layouts inside parent
-        parent.set_margins(5., 5., 5., 5.);
-        for i in 0..=9 {
-            assert_eq!(parent.subs_idx(i).unwrap().shape().0, shapes[i] + 5.);
-        }
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
-
-        // Adding margins to sub-layouts means overflow needs to be dealt with
-        for i in 0..=9 {
-            parent.subs_idx(i).unwrap().set_margins(5., 5., 5., 5.);
-        }
-
-        assert_eq!(layout1.shape(), (vec2(50., 50.), size));
-        assert_eq!(layout2.shape(), (vec2(50., 70.), size)); // adjusted for overflow
-        assert_eq!(layout3.shape(), (vec2(50., 20.), size));
-        assert_eq!(layout4.shape(), (vec2(20., 70.), size)); // adjusted for overflow
-        assert_eq!(layout5.shape(), (vec2(20., 50.), size));
-        assert_eq!(layout6.shape(), (vec2(20., 20.), size));
-        assert_eq!(layout7.shape(), (vec2(70., 70.), size)); // adjusted for overflow
-        assert_eq!(layout8.shape(), (vec2(70., 50.), size)); // adjusted for overflow
-        assert_eq!(layout9.shape(), (vec2(70., 20.), size)); // adjusted for overflow
-        assert_eq!(layout10.shape(), (vec2(60., 60.), size));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 100.)));
+        p1.set_margins_all(10.);
+        assert_eq!(layout1.shape(), (vec2(175., 350.), size));
+        assert_eq!(layout2.shape(), (vec2(175., 660.), size));
+        assert_eq!(layout3.shape(), (vec2(175., 40.), size));
+        assert_eq!(layout4.shape(), (vec2(40., 660.), size));
+        assert_eq!(layout5.shape(), (vec2(40., 350.), size));
+        assert_eq!(layout6.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout7.shape(), (vec2(310., 660.), size));
+        assert_eq!(layout8.shape(), (vec2(310., 350.), size));
+        assert_eq!(layout9.shape(), (vec2(310., 40.), size));
+        assert_eq!(layout10.shape(), (vec2(175., 150.), size));
+        assert_eq!(p1.shape(), (vec2(10., 10.), vec2(430., 780.)));
     }
 
     #[test]
     fn layout_linear_combination_static() {
         let p1 = Layout::new("p1")
             .with_mode(Mode::TopToBottom)
-            .with_size_static(450., 800.)
+            .with_size_full()
             .with_spacing(10.)
             .with_padding_all(30.)
             .with_margins_all(10.);
