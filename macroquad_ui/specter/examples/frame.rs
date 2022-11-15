@@ -3,7 +3,7 @@ use specter::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
-        window_title: "example-frame".to_string(),
+        window_title: "frame".to_string(),
         window_width: 450,
         window_height: 800,
         high_dpi: true,
@@ -14,14 +14,11 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let mut fps = Fps::new();
-    let mut panel = Panel::new(id!());
 
     loop {
+        let mut ui = &mut *root_ui();
         clear_background(WHITE);
-
-        panel.show_f(&mut *root_ui(), |ui, layout| {
-            fps.show(ui, Some(layout));
-        });
+        fps.show(ui, None);
 
         next_frame().await
     }

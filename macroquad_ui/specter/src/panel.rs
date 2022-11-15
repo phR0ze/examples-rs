@@ -106,7 +106,14 @@ impl Panel {
     /// * `ui` is the Macroquad Ui engine
     /// * returns true when clicked in the current frame
     pub fn show(&mut self, ui: &mut Ui) {
-        self.show_pf(ui, None, |_, _| {})
+        // Draw panel
+        let (pos, size) = self.layout.shape();
+        draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
+
+        // Draw widgets
+        for x in self.layout.iter() {
+            x.show(ui);
+        }
     }
 
     /// Draw the widget on the screen

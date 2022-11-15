@@ -693,6 +693,11 @@ impl Layout {
         self.sub(id).map(|x| x.set_size(width, height));
     }
 
+    /// Get an iterator over the sub-layouts
+    pub fn iter(&self) -> impl Iterator<Item = Layout> {
+        self.0.borrow().subs.iter().map(|x| Layout(x.clone())).collect::<Vec<Layout>>().into_iter()
+    }
+
     /// Append the given sub-layout to this layout
     /// * Adds the sub-layout to the end of the sub-layout list if it doesn't already exist
     /// * Calls update if the sub-layout was appended
