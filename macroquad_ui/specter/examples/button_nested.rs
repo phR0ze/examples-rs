@@ -14,10 +14,8 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut menu = Panel::new(id!())
-        .with_frame(|x| x.with_fill(GRAY))
-        .layout(|x| x.with_size_percent(0.75, 1.0).with_fill_width().with_spacing(10.));
-    let mut btn1 = Button::icon("Button1", icon).fill(RED).layout(|x| x.with_margins(0., 0., 10., 0.));
+    let mut menu = Panel::new(id!()).frame(|x| x.fill(GRAY)).layout(|x| x.size_p(0.75, 1.0).fill_w().spacing(10.));
+    let mut btn1 = Button::icon("Button1", icon).fill(RED).layout(|x| x.margins(0., 0., 10., 0.));
     let mut btn2 = Button::icon("Button2", icon).fill(BLUE);
     let mut btn3 = Button::icon("Button3", icon).fill(GREEN);
     loop {

@@ -20,10 +20,7 @@ impl Fps {
             fps: 0,
             frames: 0,
             start: Instant::now(),
-            label: Label::new("")
-                .with_id(FPS_ID)
-                .with_font_color(BLACK)
-                .with_layout(|x| x.with_margins(10., 0., 0., 0.)),
+            label: Label::new("").id(FPS_ID).color(BLACK).layout(|x| x.margins(10., 0., 0., 0.)),
         }
     }
 
@@ -35,7 +32,7 @@ impl Fps {
     /// Set the font color to use
     pub fn color(self, color: Color) -> Self {
         Fps {
-            label: self.label.with_font_color(color),
+            label: self.label.color(color),
             ..self
         }
     }
@@ -48,7 +45,7 @@ impl Fps {
     /// Set layout to use
     pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
-            label: self.label.with_layout(f),
+            label: self.label.layout(f),
             ..self
         }
     }

@@ -217,7 +217,7 @@ impl Layout {
 
     /// Set layout alignment
     /// * controls this widget's alignment in its parent layout
-    pub fn with_align(self, align: Align) -> Self {
+    pub fn align(self, align: Align) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -228,7 +228,7 @@ impl Layout {
 
     /// Set layout expansion to true
     /// * When enabled disables fill properties
-    pub fn with_expand(self) -> Self {
+    pub fn expand(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -240,7 +240,7 @@ impl Layout {
     }
 
     /// Fill the entire layout
-    pub fn with_fill(self) -> Self {
+    pub fn fill(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -251,7 +251,7 @@ impl Layout {
     }
 
     /// Fill the entire width of the layout
-    pub fn with_fill_width(self) -> Self {
+    pub fn fill_w(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -261,7 +261,7 @@ impl Layout {
     }
 
     /// Fill the entire height of the layout
-    pub fn with_fill_height(self) -> Self {
+    pub fn fill_h(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -271,7 +271,7 @@ impl Layout {
     }
 
     /// Set the layout's identifier
-    pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
+    pub fn id<T: AsRef<str>>(self, id: T) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.id = id.as_ref().to_string();
@@ -280,7 +280,7 @@ impl Layout {
     }
 
     /// Space reserved outside the boundaries of the layout
-    pub fn with_margins(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    pub fn margins(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -295,7 +295,7 @@ impl Layout {
     }
 
     /// Space reserved outside the boundaries of the layout
-    pub fn with_margins_all(self, margin: f32) -> Self {
+    pub fn margins_all(self, margin: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -306,7 +306,7 @@ impl Layout {
 
     /// Set layout packing mode
     /// * lays out sub-layouts using the given mode
-    pub fn with_mode(self, mode: Mode) -> Self {
+    pub fn mode(self, mode: Mode) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -316,7 +316,7 @@ impl Layout {
     }
 
     /// Set layout expansion to false
-    pub fn with_no_expand(self) -> Self {
+    pub fn no_expand(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -326,7 +326,7 @@ impl Layout {
     }
 
     /// Set fill property to false
-    pub fn with_no_fill(self) -> Self {
+    pub fn no_fill(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -337,7 +337,7 @@ impl Layout {
     }
 
     /// Set fill width to false
-    pub fn with_no_fill_width(self) -> Self {
+    pub fn no_fill_w(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -347,7 +347,7 @@ impl Layout {
     }
 
     /// Set fill height to false
-    pub fn with_no_fill_height(self) -> Self {
+    pub fn no_fill_h(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -357,7 +357,7 @@ impl Layout {
     }
 
     /// Space reserved inside the boundaries of the layout
-    pub fn with_padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
+    pub fn padding(self, left: f32, right: f32, top: f32, bottom: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -372,7 +372,7 @@ impl Layout {
     }
 
     /// Space reserved inside the boundaries of the layout
-    pub fn with_padding_all(self, pad: f32) -> Self {
+    pub fn padding_all(self, pad: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -383,7 +383,7 @@ impl Layout {
 
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
-    pub fn with_parent(self, widget: impl Widget) -> Self {
+    pub fn parent(self, widget: impl Widget) -> Self {
         let parent = widget.layout_g();
         parent.subs_append(&self);
         self
@@ -391,7 +391,7 @@ impl Layout {
 
     /// Set the layout size to full screen
     /// * disables layout expansion
-    pub fn with_size_full(self) -> Self {
+    pub fn size_f(self) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -406,7 +406,7 @@ impl Layout {
     /// * parent defaults to full screen if not set
     /// * `width` is a percentage of the screen/parent width range of (0.01 - 1.0)
     /// * `height` is a percentage of the screen/parent height range of (0.01 - 1.0)
-    pub fn with_size_percent(self, width: f32, height: f32) -> Self {
+    pub fn size_p(self, width: f32, height: f32) -> Self {
         {
             let size = if let Some(parent) = &self.0.borrow().parent { parent.borrow().size } else { screen() };
             let inner = &mut *self.0.borrow_mut();
@@ -419,7 +419,7 @@ impl Layout {
 
     /// Set the layout size to a static size
     /// * disables layout expansion
-    pub fn with_size_static(self, width: f32, height: f32) -> Self {
+    pub fn size_s(self, width: f32, height: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -430,7 +430,7 @@ impl Layout {
     }
 
     /// Space to allocate between widgets
-    pub fn with_spacing(self, spacing: f32) -> Self {
+    pub fn spacing(self, spacing: f32) -> Self {
         {
             let inner = &mut *self.0.borrow_mut();
             inner.dirty = true;
@@ -540,14 +540,14 @@ impl Layout {
     }
 
     /// Set layout fill height property
-    pub fn set_fill_height(&self) {
+    pub fn set_fill_h(&self) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.fill_h = true;
     }
 
     /// Set layout fill width property
-    pub fn set_fill_width(&self) {
+    pub fn set_fill_w(&self) {
         let inner = &mut *self.0.borrow_mut();
         inner.dirty = true;
         inner.fill_w = true;
@@ -626,7 +626,7 @@ impl Layout {
 // Utility functions
 impl Layout {
     /// Returns true if the `other` layout is a pointer to this layout
-    pub fn rc_ref_eq(&self, other: &Layout) -> bool {
+    pub fn eq(&self, other: &Layout) -> bool {
         Rc::ptr_eq(&self.0, &other.0)
     }
 
@@ -1012,10 +1012,10 @@ mod tests {
 
     #[test]
     fn layout_fill_height() {
-        let p1 = Layout::horz("0").with_size_full().with_margins_all(10.).with_fill_height().with_spacing(10.);
-        let layout1 = Layout::new("0").with_size_static(100., 100.).with_parent(&p1);
-        let layout2 = Layout::new("1").with_size_static(100., 100.).with_parent(&p1);
-        let layout3 = Layout::new("2").with_size_static(150., 100.).with_parent(&p1);
+        let p1 = Layout::horz("0").size_f().margins_all(10.).fill_h().spacing(10.);
+        let layout1 = Layout::new("0").size_s(100., 100.).parent(&p1);
+        let layout2 = Layout::new("1").size_s(100., 100.).parent(&p1);
+        let layout3 = Layout::new("2").size_s(150., 100.).parent(&p1);
 
         assert_eq!(layout1.shape(), (vec2(10., 10.), vec2(100., 780.)));
         assert_eq!(layout2.shape(), (vec2(120., 10.), vec2(100., 780.)));
@@ -1024,14 +1024,10 @@ mod tests {
 
     #[test]
     fn layout_fill_width() {
-        let p1 = Layout::vert("0")
-            .with_size_percent(0.75, 1.)
-            .with_margins_all(10.)
-            .with_fill_width()
-            .with_spacing(10.);
-        let layout1 = Layout::new("0").with_size_static(100., 100.).with_parent(&p1);
-        let layout2 = Layout::new("1").with_size_static(100., 100.).with_parent(&p1);
-        let layout3 = Layout::new("2").with_size_static(100., 150.).with_parent(&p1);
+        let p1 = Layout::vert("0").size_p(0.75, 1.).margins_all(10.).fill_w().spacing(10.);
+        let layout1 = Layout::new("0").size_s(100., 100.).parent(&p1);
+        let layout2 = Layout::new("1").size_s(100., 100.).parent(&p1);
+        let layout3 = Layout::new("2").size_s(100., 150.).parent(&p1);
 
         assert_eq!(layout1.shape(), (vec2(10., 10.), vec2(337.5, 100.)));
         assert_eq!(layout2.shape(), (vec2(10., 120.), vec2(337.5, 100.)));
@@ -1040,23 +1036,23 @@ mod tests {
 
     #[test]
     fn layout_alignment() {
-        let p1 = Layout::new("0").with_size_full();
+        let p1 = Layout::new("0").size_f();
         assert_eq!(p1.shape(), (vec2(0., 0.), vec2(450., 800.)));
 
         let size = vec2(100., 100.);
-        let builder = Layout::new("").with_size_static(size.x, size.y);
+        let builder = Layout::new("").size_s(size.x, size.y);
 
         // All alignment permutations
-        let layout1 = builder.clone().with_id("1").with_align(Align::Center).with_parent(&p1);
-        let layout2 = builder.clone().with_id("2").with_align(Align::CenterBottom).with_parent(&p1);
-        let layout3 = builder.clone().with_id("3").with_align(Align::CenterTop).with_parent(&p1);
-        let layout4 = builder.clone().with_id("4").with_align(Align::LeftBottom).with_parent(&p1);
-        let layout5 = builder.clone().with_id("5").with_align(Align::LeftCenter).with_parent(&p1);
-        let layout6 = builder.clone().with_id("6").with_align(Align::LeftTop).with_parent(&p1);
-        let layout7 = builder.clone().with_id("7").with_align(Align::RightBottom).with_parent(&p1);
-        let layout8 = builder.clone().with_id("8").with_align(Align::RightCenter).with_parent(&p1);
-        let layout9 = builder.clone().with_id("9").with_align(Align::RightTop).with_parent(&p1);
-        let layout10 = builder.clone().with_id("10").with_align(Align::Absolute(175., 150.)).with_parent(&p1);
+        let layout1 = builder.clone().id("1").align(Align::Center).parent(&p1);
+        let layout2 = builder.clone().id("2").align(Align::CenterBottom).parent(&p1);
+        let layout3 = builder.clone().id("3").align(Align::CenterTop).parent(&p1);
+        let layout4 = builder.clone().id("4").align(Align::LeftBottom).parent(&p1);
+        let layout5 = builder.clone().id("5").align(Align::LeftCenter).parent(&p1);
+        let layout6 = builder.clone().id("6").align(Align::LeftTop).parent(&p1);
+        let layout7 = builder.clone().id("7").align(Align::RightBottom).parent(&p1);
+        let layout8 = builder.clone().id("8").align(Align::RightCenter).parent(&p1);
+        let layout9 = builder.clone().id("9").align(Align::RightTop).parent(&p1);
+        let layout10 = builder.clone().id("10").align(Align::Absolute(175., 150.)).parent(&p1);
 
         let shapes = vec![
             vec2(175., 350.),
@@ -1120,34 +1116,29 @@ mod tests {
 
     #[test]
     fn layout_combination() {
-        let p1 = Layout::new("p1")
-            .with_mode(Mode::TopToBottom)
-            .with_size_full()
-            .with_spacing(10.)
-            .with_padding_all(30.)
-            .with_margins_all(10.);
+        let p1 = Layout::new("p1").mode(Mode::TopToBottom).size_f().spacing(10.).padding_all(30.).margins_all(10.);
 
         // Row 1
         let r1 = Layout::new("r1")
-            .with_mode(Mode::LeftToRight)
-            .with_align(Align::Center)
-            .with_spacing(10.)
-            .with_padding_all(20.)
-            .with_parent(&p1);
-        let r1c1 = Layout::new("c1").with_size_static(100., 100.).with_parent(&r1);
-        let r1c2 = Layout::new("c2").with_size_static(100., 100.).with_parent(&r1);
-        let r1c3 = Layout::new("c3").with_size_static(100., 100.).with_parent(&r1);
+            .mode(Mode::LeftToRight)
+            .align(Align::Center)
+            .spacing(10.)
+            .padding_all(20.)
+            .parent(&p1);
+        let r1c1 = Layout::new("c1").size_s(100., 100.).parent(&r1);
+        let r1c2 = Layout::new("c2").size_s(100., 100.).parent(&r1);
+        let r1c3 = Layout::new("c3").size_s(100., 100.).parent(&r1);
 
         // Row 2
         let r2 = Layout::new("r2")
-            .with_mode(Mode::LeftToRight)
-            .with_align(Align::Center)
-            .with_spacing(10.)
-            .with_padding_all(20.)
-            .with_parent(&p1);
-        let r2c1 = Layout::new("c1").with_size_static(100., 100.).with_parent(&r2);
-        let r2c2 = Layout::new("c2").with_size_static(100., 100.).with_parent(&r2);
-        let r2c3 = Layout::new("c3").with_size_static(100., 100.).with_parent(&r2);
+            .mode(Mode::LeftToRight)
+            .align(Align::Center)
+            .spacing(10.)
+            .padding_all(20.)
+            .parent(&p1);
+        let r2c1 = Layout::new("c1").size_s(100., 100.).parent(&r2);
+        let r2c2 = Layout::new("c2").size_s(100., 100.).parent(&r2);
+        let r2c3 = Layout::new("c3").size_s(100., 100.).parent(&r2);
 
         assert_eq!(p1.shape(), (vec2(10., 10.), vec2(430., 780.)));
         assert_eq!(r1.shape().0, vec2(45., 40.));
@@ -1169,21 +1160,21 @@ mod tests {
 
         // Check expanding parent size
         let size = vec2(100., 100.);
-        let layout1 = Layout::new("1").with_size_static(size.x, size.y).with_parent(&parent);
+        let layout1 = Layout::new("1").size_s(size.x, size.y).parent(&parent);
         assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
-        let layout2 = Layout::new("2").with_size_static(size.x, size.y).with_parent(&parent);
+        let layout2 = Layout::new("2").size_s(size.x, size.y).parent(&parent);
         assert_eq!(parent.shape(), (empty(), vec2(100., 200.)));
-        let layout3 = Layout::new("3").with_size_static(150., size.y).with_parent(&parent);
+        let layout3 = Layout::new("3").size_s(150., size.y).parent(&parent);
         assert_eq!(parent.shape(), (empty(), vec2(150., 300.)));
 
         // Check that sub-layouts are being appended to parent properly
         assert_eq!(parent.subs_len(), 3);
-        assert_eq!(parent.subs_idx(0).unwrap().rc_ref_eq(&layout1), true);
-        assert_eq!(parent.subs_idx(1).unwrap().rc_ref_eq(&layout2), true);
-        assert_eq!(parent.subs_idx(2).unwrap().rc_ref_eq(&layout3), true);
-        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(0).unwrap().eq(&layout1), true);
+        assert_eq!(parent.subs_idx(1).unwrap().eq(&layout2), true);
+        assert_eq!(parent.subs_idx(2).unwrap().eq(&layout3), true);
+        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().eq(&parent), true);
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
@@ -1251,21 +1242,21 @@ mod tests {
 
         // Check expanding parent size
         let size = vec2(100., 100.);
-        let layout1 = Layout::new("1").with_size_static(size.x, size.y).with_parent(&parent);
+        let layout1 = Layout::new("1").size_s(size.x, size.y).parent(&parent);
         assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
-        let layout2 = Layout::new("2").with_size_static(size.x, size.y).with_parent(&parent);
+        let layout2 = Layout::new("2").size_s(size.x, size.y).parent(&parent);
         assert_eq!(parent.shape(), (empty(), vec2(200., 100.)));
-        let layout3 = Layout::new("3").with_size_static(size.x, 150.).with_parent(&parent);
+        let layout3 = Layout::new("3").size_s(size.x, 150.).parent(&parent);
         assert_eq!(parent.shape(), (empty(), vec2(300., 150.)));
 
         // Check that sub-layouts are being appended to parent properly
         assert_eq!(parent.subs_len(), 3);
-        assert_eq!(parent.subs_idx(0).unwrap().rc_ref_eq(&layout1), true);
-        assert_eq!(parent.subs_idx(1).unwrap().rc_ref_eq(&layout2), true);
-        assert_eq!(parent.subs_idx(2).unwrap().rc_ref_eq(&layout3), true);
-        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
-        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().rc_ref_eq(&parent), true);
+        assert_eq!(parent.subs_idx(0).unwrap().eq(&layout1), true);
+        assert_eq!(parent.subs_idx(1).unwrap().eq(&layout2), true);
+        assert_eq!(parent.subs_idx(2).unwrap().eq(&layout3), true);
+        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().eq(&parent), true);
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
@@ -1328,29 +1319,29 @@ mod tests {
     fn clone() {
         let parent1 = Layout::new("parent1");
         let layout1 = Layout::new("layout1")
-            .with_size_static(1., 2.)
-            .with_fill()
-            .with_no_expand()
-            .with_align(Align::CenterTop)
-            .with_mode(Mode::TopToBottom)
-            .with_spacing(10.)
-            .with_margins(1., 0., 0., 0.)
-            .with_parent(&parent1);
-        let sub1 = Layout::new("sub1").with_parent(&layout1);
-        let sub2 = Layout::new("sub2").with_parent(&layout1);
+            .size_s(1., 2.)
+            .fill()
+            .no_expand()
+            .align(Align::CenterTop)
+            .mode(Mode::TopToBottom)
+            .spacing(10.)
+            .margins(1., 0., 0., 0.)
+            .parent(&parent1);
+        let sub1 = Layout::new("sub1").parent(&layout1);
+        let sub2 = Layout::new("sub2").parent(&layout1);
 
         // Test layout1 original values
-        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
         assert_eq!(layout1.subs_len(), 2);
-        assert_eq!(layout1.subs_idx(0).unwrap().rc_ref_eq(&sub1), true);
-        assert_eq!(layout1.subs_idx(0).unwrap().rc_ref_eq(&sub2), false);
-        assert_eq!(layout1.subs_idx(1).unwrap().rc_ref_eq(&sub2), true);
-        assert_eq!(layout1.subs_idx(1).unwrap().rc_ref_eq(&sub1), false);
-        assert_eq!(layout1.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&layout1), true);
-        assert_eq!(layout1.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(0).unwrap().eq(&sub1), true);
+        assert_eq!(layout1.subs_idx(0).unwrap().eq(&sub2), false);
+        assert_eq!(layout1.subs_idx(1).unwrap().eq(&sub2), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().eq(&sub1), false);
+        assert_eq!(layout1.subs_idx(0).unwrap().get_parent().unwrap().eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().get_parent().unwrap().eq(&layout1), true);
 
         // Test layout2 clone values
-        let layout2 = layout1.clone().with_id("layout2");
+        let layout2 = layout1.clone().id("layout2");
         assert_eq!(layout2.get_id(), "layout2");
         assert_eq!(layout2.size(), vec2(1., 2.));
         assert_eq!(layout2.get_fill(), true);
@@ -1367,30 +1358,30 @@ mod tests {
 
         // Check subs we're actually cloned
         assert_eq!(layout2.subs_len(), 2);
-        assert_eq!(layout2.subs_idx(0).unwrap().rc_ref_eq(&sub1), false);
-        assert_eq!(layout2.subs_idx(0).unwrap().rc_ref_eq(&sub2), false);
-        assert_eq!(layout2.subs_idx(1).unwrap().rc_ref_eq(&sub2), false);
-        assert_eq!(layout2.subs_idx(1).unwrap().rc_ref_eq(&sub1), false);
+        assert_eq!(layout2.subs_idx(0).unwrap().eq(&sub1), false);
+        assert_eq!(layout2.subs_idx(0).unwrap().eq(&sub2), false);
+        assert_eq!(layout2.subs_idx(1).unwrap().eq(&sub2), false);
+        assert_eq!(layout2.subs_idx(1).unwrap().eq(&sub1), false);
 
         // Check subs have new parent
-        assert_eq!(layout2.subs_idx(0).unwrap().get_parent().unwrap().rc_ref_eq(&layout2), true);
-        assert_eq!(layout2.subs_idx(1).unwrap().get_parent().unwrap().rc_ref_eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(0).unwrap().get_parent().unwrap().eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(1).unwrap().get_parent().unwrap().eq(&layout2), true);
     }
 
     #[test]
     fn rc_ref_eq() {
         // Same pointer
         let parent1 = Layout::new("parent1");
-        let layout1 = Layout::new("layout1").with_parent(&parent1);
+        let layout1 = Layout::new("layout1").parent(&parent1);
         let layout2 = layout1.layout_g();
-        assert_eq!(layout1.rc_ref_eq(&layout2), true);
-        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
-        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&layout1), false);
+        assert_eq!(layout1.eq(&layout2), true);
+        assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
+        assert_eq!(layout1.get_parent().unwrap().eq(&layout1), false);
 
         // Different pointer and no parent
         let layout2 = layout1.clone();
-        assert_eq!(layout1.rc_ref_eq(&layout2), false);
-        assert_eq!(layout1.get_parent().unwrap().rc_ref_eq(&parent1), true);
+        assert_eq!(layout1.eq(&layout2), false);
+        assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
         assert_eq!(layout2.get_parent().is_none(), true);
     }
 
@@ -1415,9 +1406,9 @@ mod tests {
         assert_eq!(layout.get_id(), "id2");
         layout.set_size(0., 2.);
         assert_eq!(layout.size(), vec2(0., 2.));
-        layout.set_fill_height();
+        layout.set_fill_h();
         assert_eq!(layout.get_fill_height(), true);
-        layout.set_fill_width();
+        layout.set_fill_w();
         assert_eq!(layout.get_fill_width(), true);
         layout.set_fill();
         assert_eq!(layout.get_fill(), true);
@@ -1437,15 +1428,15 @@ mod tests {
 
         // Builder functions
         let layout = layout
-            .with_id("id3")
-            .with_size_static(1., 2.)
-            .with_fill()
-            .with_no_expand()
-            .with_align(Align::CenterTop)
-            .with_mode(Mode::TopToBottom)
-            .with_spacing(10.)
-            .with_margins(1., 0., 0., 0.)
-            .with_parent(&Layout::new("parent2"));
+            .id("id3")
+            .size_s(1., 2.)
+            .fill()
+            .no_expand()
+            .align(Align::CenterTop)
+            .mode(Mode::TopToBottom)
+            .spacing(10.)
+            .margins(1., 0., 0., 0.)
+            .parent(&Layout::new("parent2"));
         assert_eq!(layout.get_id(), "id3");
         assert_eq!(layout.size(), vec2(1., 2.));
         assert_eq!(layout.get_fill(), true);
@@ -1460,11 +1451,11 @@ mod tests {
         assert_eq!(layout.get_parent().map(|x| x.get_id()).unwrap(), "parent2");
 
         // Test no fill builder functions
-        let layout = layout.with_no_fill_height();
+        let layout = layout.no_fill_h();
         assert_eq!(layout.get_fill_height(), false);
-        let layout = layout.with_no_fill_width();
+        let layout = layout.no_fill_w();
         assert_eq!(layout.get_fill_width(), false);
-        let layout = layout.with_fill().with_no_fill();
+        let layout = layout.fill().no_fill();
         assert_eq!(layout.get_fill(), false);
     }
 }

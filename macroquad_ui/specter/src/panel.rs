@@ -35,7 +35,7 @@ impl PanelBuilder {
     pub fn build<T: AsRef<str>>(&self, id: T) -> Panel {
         Panel {
             frame: self.frame.clone(),
-            layout: self.layout.clone().with_id(id.as_ref()),
+            layout: self.layout.clone().id(id.as_ref()),
         }
     }
 }
@@ -58,17 +58,17 @@ impl Panel {
     /// Create a horizontal panel
     /// * lays out sub-layouts using the left to right packing mode
     pub fn horz<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).layout(|x| x.with_mode(Mode::LeftToRight))
+        Self::new(id).layout(|x| x.mode(Mode::LeftToRight))
     }
 
     /// Create a vertical layout
     /// * lays out sub-layouts using the top to bottom packing mode
     pub fn vert<T: AsRef<str>>(id: T) -> Self {
-        Self::new(id).layout(|x| x.with_mode(Mode::TopToBottom))
+        Self::new(id).layout(|x| x.mode(Mode::TopToBottom))
     }
 
     /// Set the frame's properties
-    pub fn with_frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
+    pub fn frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
         Self {
             frame: f(self.frame),
             ..self
@@ -87,7 +87,7 @@ impl Panel {
 // Getters
 impl Panel {
     /// Get the frame's properties
-    pub fn frame(&self) -> &Frame {
+    pub fn get_frame(&self) -> &Frame {
         &self.frame
     }
 }

@@ -7,12 +7,12 @@ use crate::prelude::*;
 /// configuration
 #[derive(Debug, Clone)]
 pub struct LabelBuilder {
-    layout: Layout,                // layout
-    font: Option<&'static [u8]>,   // font to use for label
-    font_size: f32,                // font size to use for label
-    font_color: Color,             // font color to use for label
-    font_color_clk: Option<Color>, // font color to use for label when clicked
-    font_color_hov: Option<Color>, // font color to use for label when hovered
+    layout: Layout,              // layout
+    font: Option<&'static [u8]>, // font to use for label
+    size: f32,                   // font size to use for label
+    color: Color,                // font color to use for label
+    color_clk: Option<Color>,    // font color to use for label when clicked
+    color_hov: Option<Color>,    // font color to use for label when hovered
 }
 
 impl LabelBuilder {
@@ -21,17 +21,17 @@ impl LabelBuilder {
         Self {
             layout: Layout::new(""),
             font: None,
-            font_size: scale(DEFAULT_FONT_SIZE),
-            font_color: colors::BLACK,
-            font_color_clk: None,
-            font_color_hov: None,
+            size: scale(DEFAULT_FONT_SIZE),
+            color: colors::BLACK,
+            color_clk: None,
+            color_hov: None,
         }
     }
 
     /// Set the layout identifier
     pub fn id<T: AsRef<str>>(self, id: T) -> Self {
         Self {
-            layout: self.layout.with_id(id),
+            layout: self.layout.id(id),
             ..self
         }
     }
@@ -43,33 +43,27 @@ impl LabelBuilder {
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
-    pub fn font_size(self, size: f32) -> Self {
-        Self {
-            font_size: size,
-            ..self
-        }
+    pub fn size(self, size: f32) -> Self {
+        Self { size, ..self }
     }
 
     /// Set font color to use
-    pub fn font_color(self, color: Color) -> Self {
-        Self {
-            font_color: color,
-            ..self
-        }
+    pub fn color(self, color: Color) -> Self {
+        Self { color, ..self }
     }
 
     /// Set font color to use when clicked
-    pub fn font_color_clk(self, color: Color) -> Self {
+    pub fn color_clk(self, color: Color) -> Self {
         Self {
-            font_color_clk: Some(color),
+            color_clk: Some(color),
             ..self
         }
     }
 
     /// Set font color to use when hovered
-    pub fn font_color_hov(self, color: Color) -> Self {
+    pub fn color_hov(self, color: Color) -> Self {
         Self {
-            font_color_hov: Some(color),
+            color_hov: Some(color),
             ..self
         }
     }
@@ -84,7 +78,7 @@ impl LabelBuilder {
 
     /// Create a new button instance
     pub fn build<T: AsRef<str>>(&self, text: T) -> Label {
-        let conf = self.clone().layout(|x| x.with_id(text.as_ref()));
+        let conf = self.clone().layout(|x| x.id(text.as_ref()));
         Label {
             conf,
             dirty: true,
@@ -111,7 +105,7 @@ impl Label {
     }
 
     /// Set the layout's identifier
-    pub fn with_id<T: AsRef<str>>(self, id: T) -> Self {
+    pub fn id<T: AsRef<str>>(self, id: T) -> Self {
         Self {
             dirty: true,
             conf: self.conf.id(id),
@@ -120,7 +114,7 @@ impl Label {
     }
 
     /// Set font to use
-    pub fn with_font(self, font: Option<&'static [u8]>) -> Self {
+    pub fn font(self, font: Option<&'static [u8]>) -> Self {
         Self {
             dirty: true,
             conf: self.conf.font(font),
@@ -130,43 +124,43 @@ impl Label {
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
-    pub fn with_font_size(self, size: f32) -> Self {
+    pub fn size(self, size: f32) -> Self {
         Self {
             dirty: true,
-            conf: self.conf.font_size(size),
+            conf: self.conf.size(size),
             ..self
         }
     }
 
     /// Set font color to use
-    pub fn with_font_color(self, color: Color) -> Self {
+    pub fn color(self, color: Color) -> Self {
         Self {
             dirty: true,
-            conf: self.conf.font_color(color),
+            conf: self.conf.color(color),
             ..self
         }
     }
 
     /// Set font color to use when clicked
-    pub fn with_font_color_clk(self, color: Color) -> Self {
+    pub fn color_clk(self, color: Color) -> Self {
         Self {
             dirty: true,
-            conf: self.conf.font_color_clk(color),
+            conf: self.conf.color_clk(color),
             ..self
         }
     }
 
     /// Set font color to use when hovered
-    pub fn with_font_color_hov(self, color: Color) -> Self {
+    pub fn color_hov(self, color: Color) -> Self {
         Self {
             dirty: true,
-            conf: self.conf.font_color_hov(color),
+            conf: self.conf.color_hov(color),
             ..self
         }
     }
 
     /// Set layout properties to use
-    pub fn with_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
+    pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
             dirty: true,
             conf: self.conf.layout(f),
@@ -178,12 +172,12 @@ impl Label {
 // Getters
 impl Label {
     /// Get a reference to the layout
-    pub fn layout(&self) -> &Layout {
+    pub fn get_layout(&self) -> &Layout {
         &self.conf.layout
     }
 
     /// Get the widget's text value
-    pub fn text(&self) -> &str {
+    pub fn get_text(&self) -> &str {
         &self.text
     }
 }
@@ -211,11 +205,11 @@ impl Label {
         if !self.dirty {
             return;
         }
-        let mut style = ui.style_builder().text_color(self.conf.font_color).font_size(self.conf.font_size as u16);
-        if let Some(color) = self.conf.font_color_clk {
+        let mut style = ui.style_builder().text_color(self.conf.color).font_size(self.conf.size as u16);
+        if let Some(color) = self.conf.color_clk {
             style = style.text_color_clicked(color);
         }
-        if let Some(color) = self.conf.font_color_hov {
+        if let Some(color) = self.conf.color_hov {
             style = style.text_color_hovered(color);
         }
         if let Some(font) = self.conf.font {

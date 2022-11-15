@@ -18,7 +18,7 @@ async fn main() {
         clear_background(WHITE);
         fps.show(&mut *root_ui(), None);
 
-        Label::new("Test").with_layout(|x| x.with_align(Align::Center)).show(&mut *root_ui(), None);
+        Label::new("Test").layout(|x| x.align(Align::Center)).show(&mut *root_ui(), None);
 
         next_frame().await
     }

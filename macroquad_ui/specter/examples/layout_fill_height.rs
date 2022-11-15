@@ -16,18 +16,18 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let builder = PanelBuilder::new().layout(|x| x.with_size_static(100., 100.)).frame(|x| x.with_fill(GRAY));
+    let builder = PanelBuilder::new().layout(|x| x.size_s(100., 100.)).frame(|x| x.fill(GRAY));
 
     loop {
         clear_background(WHITE);
 
         let mut p1 = Panel::horz("0")
-            .layout(|x| x.with_size_full().with_spacing(10.).with_margins_all(10.).with_fill_height())
-            .with_frame(|x| x.with_fill(BLACK));
+            .layout(|x| x.size_f().spacing(10.).margins_all(10.).fill_h())
+            .frame(|x| x.fill(BLACK));
 
-        let mut c1 = builder.build("1").layout(|x| x.with_parent(&p1));
-        let mut c2 = builder.build("2").layout(|x| x.with_parent(&p1));
-        let mut c3 = builder.build("3").layout(|x| x.with_size_static(150., 100.).with_parent(&p1));
+        let mut c1 = builder.build("1").layout(|x| x.parent(&p1));
+        let mut c2 = builder.build("2").layout(|x| x.parent(&p1));
+        let mut c3 = builder.build("3").layout(|x| x.size_s(150., 100.).parent(&p1));
 
         p1.show(&mut *root_ui());
         c1.show(&mut *root_ui());

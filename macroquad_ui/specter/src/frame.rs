@@ -31,7 +31,7 @@ impl Frame {
     }
 
     /// Set the fill color
-    pub fn with_fill(self, color: Color) -> Self {
+    pub fn fill(self, color: Color) -> Self {
         Self {
             fill: color,
             ..self
@@ -39,7 +39,7 @@ impl Frame {
     }
 
     /// Set background image to use
-    pub fn with_image<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
         Self {
             image: image.into(),
             ..self
@@ -47,7 +47,7 @@ impl Frame {
     }
 
     /// Set background image to use
-    pub fn with_image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
         Self {
             image_clk: image.into(),
             ..self
@@ -55,7 +55,7 @@ impl Frame {
     }
 
     /// Set background image to use
-    pub fn with_image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
         Self {
             image_hov: image.into(),
             ..self
@@ -66,7 +66,7 @@ impl Frame {
 // Getters
 impl Frame {
     /// Get the fill color
-    pub fn fill(&self) -> Color {
+    pub fn get_fill(&self) -> Color {
         self.fill
     }
 }

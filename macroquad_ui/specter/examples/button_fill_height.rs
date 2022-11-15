@@ -21,7 +21,7 @@ async fn main() {
         clear_background(BLACK);
 
         let spacing = 10.;
-        let layout = Layout::horz("side_menu").with_size_full().with_fill_height().with_spacing(spacing);
+        let layout = Layout::horz("side_menu").size_f().fill_h().spacing(spacing);
         btn1.show(&mut *root_ui(), Some(&layout));
         btn2.show(&mut *root_ui(), Some(&layout));
         btn3.show(&mut *root_ui(), Some(&layout));

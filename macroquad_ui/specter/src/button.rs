@@ -29,7 +29,7 @@ impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         let layout = Layout::horz("");
-        let label = Label::new("").with_layout(|_| layout.sub_alloc_append(LABEL_ID, None));
+        let label = Label::new("").layout(|_| layout.sub_alloc_append(LABEL_ID, None));
 
         Self {
             layout,
@@ -50,8 +50,8 @@ impl ButtonBuilder {
     pub fn icon(icon: Texture2D) -> Self {
         ButtonBuilder::new()
             .icon_texture(icon)
-            .icon_layout(|x| x.with_align(Align::Center).with_margins(10., 10., 5., 5.))
-            .label_layout(|x| x.with_align(Align::Center).with_margins(10., 20., 0., 0.))
+            .icon_layout(|x| x.align(Align::Center).margins(10., 10., 5., 5.))
+            .label_layout(|x| x.align(Align::Center).margins(10., 20., 0., 0.))
     }
 
     /// Set background image to use
@@ -121,7 +121,7 @@ impl ButtonBuilder {
     /// Set font to use
     pub fn label_font(self, font: Option<&'static [u8]>) -> Self {
         Self {
-            label: self.label.with_font(font),
+            label: self.label.font(font),
             ..self
         }
     }
@@ -130,7 +130,7 @@ impl ButtonBuilder {
     /// * handles scaling for mobile
     pub fn label_size(self, size: f32) -> Self {
         Self {
-            label: self.label.with_font_size(size),
+            label: self.label.size(size),
             ..self
         }
     }
@@ -138,7 +138,7 @@ impl ButtonBuilder {
     /// Set font color to use
     pub fn label_color(self, color: Color) -> Self {
         Self {
-            label: self.label.with_font_color(color),
+            label: self.label.color(color),
             ..self
         }
     }
@@ -146,7 +146,7 @@ impl ButtonBuilder {
     /// Set label layout to use
     pub fn label_layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
-            label: self.label.with_layout(f),
+            label: self.label.layout(f),
             ..self
         }
     }
@@ -161,7 +161,7 @@ impl ButtonBuilder {
 
     /// Create a new button instance
     pub fn build<T: AsRef<str>>(&self, label: T) -> Button {
-        let mut conf = self.clone().layout(|x| x.with_id(label.as_ref()));
+        let mut conf = self.clone().layout(|x| x.id(label.as_ref()));
         conf.label.set_text(label.as_ref());
         Button {
             conf,
@@ -298,7 +298,7 @@ impl Button {
 impl Button {
     /// Button label
     pub fn label(&self) -> &str {
-        self.conf.label.text()
+        self.conf.label.get_text()
     }
 
     /// Returns true if button was clicked an odd number of times. 1st click will activate the
