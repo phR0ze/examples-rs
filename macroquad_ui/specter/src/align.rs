@@ -44,8 +44,8 @@ impl Align {
     /// ```
     /// use specter::prelude::*;
     ///
-    /// assert_eq!(Align::Center.is_static(), false);
-    /// assert_eq!(Align::Static(0., 0.).is_static(), true);
+    /// assert_eq!(Align::Center.is_absolute(), false);
+    /// assert_eq!(Align::Absolute(0., 0.).is_absolute(), true);
     /// ```
     pub fn is_absolute(&self) -> bool {
         match self {
@@ -101,7 +101,7 @@ impl From<Vec2> for Align {
     /// ```
     /// use specter::prelude::*;
     ///
-    /// assert_eq!(Align::from(vec2(1., 2.)), Align::Static(1., 2.));
+    /// assert_eq!(Align::from(vec2(1., 2.)), Align::Absolute(1., 2.));
     /// ```
     fn from(val: Vec2) -> Self {
         Align::Absolute(val.x, val.y)

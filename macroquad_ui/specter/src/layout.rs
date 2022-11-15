@@ -797,7 +797,7 @@ impl Layout {
             pos
         };
 
-        // Override controled linear direction with pre-calculated value but use
+        // Override controlled linear direction with pre-calculated value but use
         // centering alignment for non-controled linear direction.
         // Positional offset already handles margins and padding appropriately
         if p_mode != Mode::Align {
@@ -1080,7 +1080,7 @@ mod tests {
     }
 
     #[test]
-    fn layout_linear_combination_static() {
+    fn layout_combination() {
         let p1 = Layout::new("p1")
             .with_mode(Mode::TopToBottom)
             .with_size_full()
@@ -1122,18 +1122,20 @@ mod tests {
     }
 
     #[test]
-    fn top_to_bottom_expansion_no_align() {
-        let parent = Layout::new("0").with_mode(Mode::TopToBottom);
+    fn layout_vertical() {
+        let parent = Layout::vert("0");
+
+        // A linear layout in expansion mode will be empty until a child layout is added
         assert_eq!(parent.shape(), (empty(), empty()));
 
         // Check expanding parent size
-        let size = vec2(20., 20.);
+        let size = vec2(100., 100.);
         let layout1 = Layout::new("1").with_size_static(size.x, size.y).with_parent(&parent);
-        assert_eq!(parent.shape(), (empty(), vec2(20., 20.)));
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
         let layout2 = Layout::new("2").with_size_static(size.x, size.y).with_parent(&parent);
-        assert_eq!(parent.shape(), (empty(), vec2(20., 40.)));
-        let layout3 = Layout::new("3").with_size_static(30., size.y).with_parent(&parent);
-        assert_eq!(parent.shape(), (empty(), vec2(30., 60.)));
+        assert_eq!(parent.shape(), (empty(), vec2(100., 200.)));
+        let layout3 = Layout::new("3").with_size_static(150., size.y).with_parent(&parent);
+        assert_eq!(parent.shape(), (empty(), vec2(150., 300.)));
 
         // Check that sub-layouts are being appended to parent properly
         assert_eq!(parent.subs_len(), 3);
@@ -1146,75 +1148,76 @@ mod tests {
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
-        assert_eq!(layout2.shape(), (vec2(0., 20.), size));
-        assert_eq!(layout3.shape(), (vec2(0., 40.), vec2(30., 20.)));
-        assert_eq!(parent.shape(), (empty(), vec2(30., 60.)));
+        assert_eq!(layout2.shape(), (vec2(0., 100.), size));
+        assert_eq!(layout3.shape(), (vec2(0., 200.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (empty(), vec2(150., 300.)));
 
         // Set parent spacing and check
-        parent.set_spacing(5.);
+        parent.set_spacing(10.);
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
-        assert_eq!(layout2.shape(), (vec2(0., 25.), size));
-        assert_eq!(layout3.shape(), (vec2(0., 50.), vec2(30., 20.)));
-        assert_eq!(parent.shape(), (empty(), vec2(30., 70.)));
+        assert_eq!(layout2.shape(), (vec2(0., 110.), size));
+        assert_eq!(layout3.shape(), (vec2(0., 220.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (empty(), vec2(150., 320.)));
 
         // Set parent padding and check
         // Sub-layout positional offset will be affected but not parent
-        parent.set_padding(5., 5., 5., 5.);
-        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
-        assert_eq!(layout2.shape(), (vec2(5., 30.), size));
-        assert_eq!(layout3.shape(), (vec2(5., 55.), vec2(30., 20.)));
-        assert_eq!(parent.shape(), (empty(), vec2(40., 80.)));
+        parent.set_padding_all(20.);
+        assert_eq!(layout1.shape(), (vec2(20., 20.), size));
+        assert_eq!(layout2.shape(), (vec2(20., 130.), size));
+        assert_eq!(layout3.shape(), (vec2(20., 240.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (empty(), vec2(190., 360.)));
 
         // Set parent margins and check
         // Sub-layout positional offset will be affected and parent's
-        parent.set_margins(5., 5., 5., 5.);
-        assert_eq!(layout1.shape(), (vec2(10., 10.), size));
-        assert_eq!(layout2.shape(), (vec2(10., 35.), size));
-        assert_eq!(layout3.shape(), (vec2(10., 60.), vec2(30., 20.)));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(40., 80.)));
+        parent.set_margins_all(10.);
+        assert_eq!(layout1.shape(), (vec2(30., 30.), size));
+        assert_eq!(layout2.shape(), (vec2(30., 140.), size));
+        assert_eq!(layout3.shape(), (vec2(30., 250.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(190., 360.)));
 
         // Set sub-layout margins and check
         // Because calling shape will calculate the parent as is we need to ensure all changes are done
         // before it is called.
-        layout1.set_margins(5., 5., 5., 5.);
-        layout2.set_margins(5., 5., 5., 5.);
-        layout3.set_margins(5., 5., 5., 5.);
-        assert_eq!(layout1.shape(), (vec2(15., 15.), size));
-        assert_eq!(layout2.shape(), (vec2(15., 50.), size));
-        assert_eq!(layout3.shape(), (vec2(15., 85.), vec2(30., 20.)));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(50., 110.)));
+        layout1.set_margins_all(10.);
+        layout2.set_margins_all(10.);
+        layout3.set_margins_all(10.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(40., 170.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 300.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(210., 420.)));
 
         // Set parent static size bigger than needed
         // Nothing should change other than the parent's size
-        parent.set_size(50., 120.);
-        assert_eq!(layout1.shape(), (vec2(15., 15.), size));
-        assert_eq!(layout2.shape(), (vec2(15., 50.), size));
-        assert_eq!(layout3.shape(), (vec2(15., 85.), vec2(30., 20.)));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(50., 120.)));
+        parent.set_size(230., 450.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(40., 170.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 300.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(230., 450.)));
 
         // Set parent static size too small for content
         // Overflow control should kick in and push content in at the end
-        parent.set_size(50., 100.);
-        assert_eq!(layout1.shape(), (vec2(15., 15.), size));
-        assert_eq!(layout2.shape(), (vec2(15., 50.), size));
-        assert_eq!(layout3.shape(), (vec2(15., 75.), vec2(30., 20.))); // overflow control
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(50., 100.)));
+        parent.set_size(210., 410.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(40., 170.), size));
+        assert_eq!(layout3.shape(), (vec2(40., 290.), vec2(150., 100.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(210., 410.)));
     }
 
     #[test]
-    fn left_to_right_expansion_no_align() {
-        let parent = Layout::new("parent").with_mode(Mode::LeftToRight);
+    fn layout_horizontal() {
+        let parent = Layout::horz("0");
+
+        // A linear layout in expansion mode will be empty until a child layout is added
         assert_eq!(parent.shape(), (empty(), empty()));
 
         // Check expanding parent size
-        // widget = accumulation, height = largest
-        let size = vec2(20., 20.);
+        let size = vec2(100., 100.);
         let layout1 = Layout::new("1").with_size_static(size.x, size.y).with_parent(&parent);
-        assert_eq!(parent.shape(), (empty(), vec2(20., 20.)));
+        assert_eq!(parent.shape(), (empty(), vec2(100., 100.)));
         let layout2 = Layout::new("2").with_size_static(size.x, size.y).with_parent(&parent);
-        assert_eq!(parent.shape(), (empty(), vec2(40., 20.)));
-        let layout3 = Layout::new("3").with_size_static(size.x, 30.).with_parent(&parent);
-        assert_eq!(parent.shape(), (empty(), vec2(60., 30.)));
+        assert_eq!(parent.shape(), (empty(), vec2(200., 100.)));
+        let layout3 = Layout::new("3").with_size_static(size.x, 150.).with_parent(&parent);
+        assert_eq!(parent.shape(), (empty(), vec2(300., 150.)));
 
         // Check that sub-layouts are being appended to parent properly
         assert_eq!(parent.subs_len(), 3);
@@ -1227,59 +1230,59 @@ mod tests {
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
-        assert_eq!(layout2.shape(), (vec2(20., 0.), size));
-        assert_eq!(layout3.shape(), (vec2(40., 0.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (empty(), vec2(60., 30.)));
+        assert_eq!(layout2.shape(), (vec2(100., 0.), size));
+        assert_eq!(layout3.shape(), (vec2(200., 0.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (empty(), vec2(300., 150.)));
 
         // Set parent spacing and check
-        parent.set_spacing(5.);
+        parent.set_spacing(10.);
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
-        assert_eq!(layout2.shape(), (vec2(25., 0.), size));
-        assert_eq!(layout3.shape(), (vec2(50., 0.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (empty(), vec2(70., 30.)));
+        assert_eq!(layout2.shape(), (vec2(110., 0.), size));
+        assert_eq!(layout3.shape(), (vec2(220., 0.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (empty(), vec2(320., 150.)));
 
         // Set parent padding and check
         // Sub-layout positional offset will be affected but not parent
-        parent.set_padding(5., 5., 5., 5.);
-        assert_eq!(layout1.shape(), (vec2(5., 5.), size));
-        assert_eq!(layout2.shape(), (vec2(30., 5.), size));
-        assert_eq!(layout3.shape(), (vec2(55., 5.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (empty(), vec2(80., 40.)));
+        parent.set_padding_all(20.);
+        assert_eq!(layout1.shape(), (vec2(20., 20.), size));
+        assert_eq!(layout2.shape(), (vec2(130., 20.), size));
+        assert_eq!(layout3.shape(), (vec2(240., 20.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (empty(), vec2(360., 190.)));
 
         // Set parent margins and check
         // Sub-layout positional offset will be affected and parent's
-        parent.set_margins(5., 5., 5., 5.);
-        assert_eq!(layout1.shape(), (vec2(10., 10.), size));
-        assert_eq!(layout2.shape(), (vec2(35., 10.), size));
-        assert_eq!(layout3.shape(), (vec2(60., 10.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(80., 40.)));
+        parent.set_margins_all(10.);
+        assert_eq!(layout1.shape(), (vec2(30., 30.), size));
+        assert_eq!(layout2.shape(), (vec2(140., 30.), size));
+        assert_eq!(layout3.shape(), (vec2(250., 30.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(360., 190.)));
 
         // Set sub-layout margins and check
         // Because calling shape will calculate the parent as is we need to ensure all changes are done
         // before it is called.
-        layout1.set_margins(5., 5., 5., 5.);
-        layout2.set_margins(5., 5., 5., 5.);
-        layout3.set_margins(5., 5., 5., 5.);
-        assert_eq!(layout1.shape(), (vec2(15., 15.), size));
-        assert_eq!(layout2.shape(), (vec2(50., 15.), size));
-        assert_eq!(layout3.shape(), (vec2(85., 15.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(110., 50.)));
+        layout1.set_margins_all(10.);
+        layout2.set_margins_all(10.);
+        layout3.set_margins_all(10.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(170., 40.), size));
+        assert_eq!(layout3.shape(), (vec2(300., 40.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(420., 210.)));
 
         // Set parent static size bigger than needed
         // Nothing should change other than the parent's size
-        parent.set_size(120., 50.);
-        assert_eq!(layout1.shape(), (vec2(15., 15.), size));
-        assert_eq!(layout2.shape(), (vec2(50., 15.), size));
-        assert_eq!(layout3.shape(), (vec2(85., 15.), vec2(20., 30.)));
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(120., 50.)));
+        parent.set_size(430., 230.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(170., 40.), size));
+        assert_eq!(layout3.shape(), (vec2(300., 40.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(430., 230.)));
 
         // Set parent static size too small for content
         // Overflow control should kick in and push content in at the end
-        parent.set_size(100., 50.);
-        assert_eq!(layout1.shape(), (vec2(15., 15.), size));
-        assert_eq!(layout2.shape(), (vec2(50., 15.), size));
-        assert_eq!(layout3.shape(), (vec2(75., 15.), vec2(20., 30.))); // overflow control
-        assert_eq!(parent.shape(), (vec2(5., 5.), vec2(100., 50.)));
+        parent.set_size(410., 210.);
+        assert_eq!(layout1.shape(), (vec2(40., 40.), size));
+        assert_eq!(layout2.shape(), (vec2(170., 40.), size));
+        assert_eq!(layout3.shape(), (vec2(290., 40.), vec2(100., 150.)));
+        assert_eq!(parent.shape(), (vec2(10., 10.), vec2(410., 210.)));
     }
 
     #[test]

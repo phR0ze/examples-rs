@@ -2,6 +2,45 @@
 use crate::prelude::*;
 
 #[derive(Debug, Clone)]
+pub struct PanelBuilder {
+    frame: Frame,   // frame properties
+    layout: Layout, // layout properties
+}
+
+impl PanelBuilder {
+    pub fn new() -> Self {
+        Self {
+            frame: Frame::new(),
+            layout: Layout::new(""),
+        }
+    }
+
+    /// Set the frame's properties
+    pub fn frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
+        Self {
+            frame: f(self.frame),
+            ..self
+        }
+    }
+
+    /// Set layout to use
+    pub fn layout(self, f: impl FnOnce(Layout) -> Layout) -> Self {
+        Self {
+            layout: f(self.layout),
+            ..self
+        }
+    }
+
+    /// Create a new Panel instance
+    pub fn build<T: AsRef<str>>(&self, id: T) -> Panel {
+        Panel {
+            frame: self.frame,
+            layout: self.layout.clone().with_id(id.as_ref()),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Panel {
     frame: Frame,   // frame properties
     layout: Layout, // layout properties

@@ -1,9 +1,13 @@
-//! Demonstrating full screen horizontal layout
+//! Demonstrating visually layout::tests::layout_horizontal
+//! * Shows spacing, padding, margins affects
+//! * Child layouts also have marings taking affect
+//! * Third child layout shows expansion accounts for largest shape
+//! * Third child layout has overflow correction of -10 due to constrained parent size
 use specter::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
-        window_title: "layout".to_string(),
+        window_title: "horizontal".to_string(),
         window_width: 450,
         window_height: 800,
         high_dpi: true,
@@ -13,29 +17,32 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut btn1 = Button::icon("B1", icon).fill(GRAY);
-    let mut btn2 = Button::icon("B2", icon).fill(RED);
-    let mut btn3 = Button::icon("B3", icon).fill(BLUE);
+    let builder = PanelBuilder::new()
+        .layout(|x| x.with_size_static(100., 100.).with_margins_all(10.))
+        .frame(|x| x.with_fill(GRAY));
+
     loop {
-        clear_background(BLACK);
+        clear_background(WHITE);
 
-        let spacing = 5.;
-        let layout = Layout::horz("side_menu").with_size_full().with_spacing(spacing);
-        btn1.show(&mut *root_ui(), Some(&layout));
-        btn2.show(&mut *root_ui(), Some(&layout));
-        btn3.show(&mut *root_ui(), Some(&layout));
+        let mut p1 = Panel::new("0")
+            .with_layout(|x| {
+                x.with_size_static(410., 210.)
+                    .with_mode(Mode::LeftToRight)
+                    .with_spacing(10.)
+                    .with_padding_all(20.)
+                    .with_margins_all(10.)
+            })
+            .with_frame(|x| x.with_fill(BLACK));
 
-        let (pos, _) = btn1.shape();
-        if btn1.activated() {
-            draw_text("button1", pos.x + 350., pos.y + 30., 30., GRAY)
-        }
-        if btn2.activated() {
-            draw_text("button2", pos.x + 350., pos.y + 60., 30., RED)
-        }
-        if btn3.activated() {
-            draw_text("button3", pos.x + 350., pos.y + 90., 30., BLUE)
-        }
+        let mut c1 = builder.build("1").with_layout(|x| x.with_parent(&p1.layout()));
+        let mut c2 = builder.build("2").with_layout(|x| x.with_parent(&p1.layout()));
+        let mut c3 = builder.build("3").with_layout(|x| x.with_size_static(100., 150.).with_parent(&p1.layout()));
+
+        p1.show(&mut *root_ui());
+        c1.show(&mut *root_ui());
+        c2.show(&mut *root_ui());
+        c3.show(&mut *root_ui());
+
         next_frame().await
     }
 }

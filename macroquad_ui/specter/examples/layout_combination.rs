@@ -1,4 +1,4 @@
-//! Demonstrating visually layout::tests::layout_linear_combination_static
+//! Demonstrating visually layout::tests::layout_combination
 //! * Linear layouts and Align layouts are used here
 //! * Margins and padding are used in various layouts
 //! * Overflow control occurs below because the Panel p1 at full screen will be adjusted for padding
