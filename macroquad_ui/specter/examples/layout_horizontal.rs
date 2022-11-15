@@ -24,13 +24,9 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        let mut p1 = Panel::new("0")
+        let mut p1 = Panel::horz("0")
             .with_layout(|x| {
-                x.with_size_static(410., 210.)
-                    .with_mode(Mode::LeftToRight)
-                    .with_spacing(10.)
-                    .with_padding_all(20.)
-                    .with_margins_all(10.)
+                x.with_size_static(410., 210.).with_spacing(10.).with_padding_all(20.).with_margins_all(10.)
             })
             .with_frame(|x| x.with_fill(BLACK));
 

@@ -55,6 +55,18 @@ impl Panel {
         }
     }
 
+    /// Create a horizontal panel
+    /// * lays out sub-layouts using the left to right packing mode
+    pub fn horz<T: AsRef<str>>(id: T) -> Self {
+        Self::new(id).with_layout(|x| x.with_mode(Mode::LeftToRight))
+    }
+
+    /// Create a vertical layout
+    /// * lays out sub-layouts using the top to bottom packing mode
+    pub fn vert<T: AsRef<str>>(id: T) -> Self {
+        Self::new(id).with_layout(|x| x.with_mode(Mode::TopToBottom))
+    }
+
     /// Set the frame's properties
     pub fn with_frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
         Self {

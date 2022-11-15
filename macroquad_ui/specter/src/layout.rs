@@ -1000,8 +1000,36 @@ mod tests {
     }
 
     #[test]
+    fn layout_fill_height() {
+        let p1 = Layout::horz("0").with_size_full().with_margins_all(10.).with_fill_height().with_spacing(10.);
+        let layout1 = Layout::new("0").with_size_static(100., 100.).with_parent(&p1);
+        let layout2 = Layout::new("1").with_size_static(100., 100.).with_parent(&p1);
+        let layout3 = Layout::new("2").with_size_static(150., 100.).with_parent(&p1);
+
+        assert_eq!(layout1.shape(), (vec2(10., 10.), vec2(100., 780.)));
+        assert_eq!(layout2.shape(), (vec2(120., 10.), vec2(100., 780.)));
+        assert_eq!(layout3.shape(), (vec2(230., 10.), vec2(150., 780.)));
+    }
+
+    #[test]
+    fn layout_fill_width() {
+        let p1 = Layout::vert("0")
+            .with_size_percent(0.75, 1.)
+            .with_margins_all(10.)
+            .with_fill_width()
+            .with_spacing(10.);
+        let layout1 = Layout::new("0").with_size_static(100., 100.).with_parent(&p1);
+        let layout2 = Layout::new("1").with_size_static(100., 100.).with_parent(&p1);
+        let layout3 = Layout::new("2").with_size_static(100., 150.).with_parent(&p1);
+
+        assert_eq!(layout1.shape(), (vec2(10., 10.), vec2(337.5, 100.)));
+        assert_eq!(layout2.shape(), (vec2(10., 120.), vec2(337.5, 100.)));
+        assert_eq!(layout3.shape(), (vec2(10., 230.), vec2(337.5, 150.)));
+    }
+
+    #[test]
     fn layout_alignment() {
-        let p1 = Layout::new("p1").with_size_full();
+        let p1 = Layout::new("0").with_size_full();
         assert_eq!(p1.shape(), (vec2(0., 0.), vec2(450., 800.)));
 
         let size = vec2(100., 100.);
