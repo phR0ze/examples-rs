@@ -26,14 +26,17 @@ async fn main() {
             .layout(|x| x.size_s(210., 410.).spacing(10.).padding_all(20.).margins_all(10.))
             .frame(|x| x.fill(BLACK));
 
-        let mut c1 = builder.build("1").layout(|x| x.parent(&p1));
-        let mut c2 = builder.build("2").layout(|x| x.parent(&p1));
-        let mut c3 = builder.build("3").layout(|x| x.size_s(150., 100.).parent(&p1));
+        p1.append(builder.build("1"));
+        p1.append(builder.build("2"));
+        p1.append(builder.build("3"));
+        // let mut c1 = builder.build("1").layout(|x| x.parent(&p1));
+        // let mut c2 = builder.build("2").layout(|x| x.parent(&p1));
+        // let mut c3 = builder.build("3").layout(|x| x.size_s(150., 100.).parent(&p1));
 
         p1.show(&mut *root_ui());
-        c1.show(&mut *root_ui());
-        c2.show(&mut *root_ui());
-        c3.show(&mut *root_ui());
+        // c1.show(&mut *root_ui());
+        // c2.show(&mut *root_ui());
+        // c3.show(&mut *root_ui());
 
         next_frame().await
     }

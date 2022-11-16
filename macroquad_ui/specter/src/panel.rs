@@ -36,14 +36,15 @@ impl PanelBuilder {
         Panel {
             frame: self.frame.clone(),
             layout: self.layout.clone().id(id.as_ref()),
+            widgets: vec![],
         }
     }
 }
 
-#[derive(Debug, Clone)]
 pub struct Panel {
-    frame: Frame,   // frame properties
-    layout: Layout, // layout properties
+    frame: Frame,                  // frame properties
+    layout: Layout,                // layout properties
+    widgets: Vec<Box<dyn Widget>>, // Widgets
 }
 
 // Constructors and builders
@@ -52,6 +53,7 @@ impl Panel {
         Self {
             frame: Frame::new(),
             layout: Layout::new(id),
+            widgets: vec![],
         }
     }
 
@@ -102,6 +104,13 @@ impl Panel {
 
 // Utility functions
 impl Panel {
+    /// Adds the widget to this widget's layout management
+    /// * `widget` is the widget being added
+    pub fn append(&mut self, widget: impl Widget + 'static) {
+        self.layout.subs_append(&widget.layout_ref());
+        self.widgets.push(Box::new(widget));
+    }
+
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
     /// * returns true when clicked in the current frame
@@ -112,7 +121,7 @@ impl Panel {
 
         // Draw widgets
         for x in self.layout.iter() {
-            x.show(ui);
+            // x.show(ui);
         }
     }
 
@@ -153,15 +162,21 @@ impl Panel {
 
 impl Widget for Panel {
     /// Get the widget's layout as a cloned reference
-    fn layout_g(&self) -> Layout {
-        self.layout.layout_g()
+    fn layout_ref(&self) -> Layout {
+        self.layout.ptr()
     }
-}
 
-impl Widget for &Panel {
-    /// Get the widget's layout as a cloned reference
-    fn layout_g(&self) -> Layout {
-        self.layout.layout_g()
+    /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
+    fn show(&mut self, ui: &mut Ui) {
+        // Draw panel
+        let (pos, size) = self.layout.shape();
+        draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
+
+        // Draw widgets
+        for x in self.widgets.iter_mut() {
+            x.show(ui);
+        }
     }
 }
 

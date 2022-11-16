@@ -383,8 +383,7 @@ impl Layout {
 
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
-    pub fn parent(self, widget: impl Widget) -> Self {
-        let parent = widget.layout_g();
+    pub fn parent(self, parent: &Layout) -> Self {
         parent.subs_append(&self);
         self
     }
@@ -630,6 +629,16 @@ impl Layout {
         Rc::ptr_eq(&self.0, &other.0)
     }
 
+    /// Get a cloned reference
+    pub fn ptr(&self) -> Layout {
+        Layout(self.0.clone())
+    }
+
+    /// Get an iterator over the sub-layouts
+    pub fn iter(&self) -> impl Iterator<Item = Layout> {
+        self.0.borrow().subs.iter().map(|x| Layout(x.clone())).collect::<Vec<Layout>>().into_iter()
+    }
+
     /// Get sub-layout by id
     pub fn sub(&self, id: &str) -> Option<Layout> {
         self.0.borrow().subs.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
@@ -693,11 +702,6 @@ impl Layout {
         self.sub(id).map(|x| x.set_size(width, height));
     }
 
-    /// Get an iterator over the sub-layouts
-    pub fn iter(&self) -> impl Iterator<Item = Layout> {
-        self.0.borrow().subs.iter().map(|x| Layout(x.clone())).collect::<Vec<Layout>>().into_iter()
-    }
-
     /// Append the given sub-layout to this layout
     /// * Adds the sub-layout to the end of the sub-layout list if it doesn't already exist
     /// * Calls update if the sub-layout was appended
@@ -749,9 +753,9 @@ impl Layout {
     /// * re-calculates the entire layout stack associated with this layout
     /// * returns (pos, size)
     pub fn shape(&self) -> (Vec2, Vec2) {
-        let mut layout = self.layout_g();
+        let mut layout = self.ptr();
         while let Some(parent) = layout.get_parent() {
-            layout = parent.layout_g();
+            layout = parent.ptr();
         }
         // if self.dirty {
         layout.update_size();
@@ -961,20 +965,6 @@ impl Layout {
         }
 
         value
-    }
-}
-
-impl Widget for Layout {
-    /// Get the widget's layout as a cloned reference
-    fn layout_g(&self) -> Layout {
-        Layout(self.0.clone())
-    }
-}
-
-impl Widget for &Layout {
-    /// Get the widget's layout as a cloned reference
-    fn layout_g(&self) -> Layout {
-        Layout(self.0.clone())
     }
 }
 
@@ -1378,7 +1368,7 @@ mod tests {
         // Same pointer
         let parent1 = Layout::new("parent1");
         let layout1 = Layout::new("layout1").parent(&parent1);
-        let layout2 = layout1.layout_g();
+        let layout2 = layout1.ptr();
         assert_eq!(layout1.eq(&layout2), true);
         assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
         assert_eq!(layout1.get_parent().unwrap().eq(&layout1), false);
