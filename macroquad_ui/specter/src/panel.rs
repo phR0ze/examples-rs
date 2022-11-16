@@ -44,7 +44,7 @@ impl PanelBuilder {
 pub struct Panel {
     frame: Frame,                  // frame properties
     layout: Layout,                // layout properties
-    widgets: Vec<Box<dyn Widget>>, // Widgets
+    widgets: Vec<Box<dyn Widget>>, // widgets to draw
 }
 
 // Constructors and builders
@@ -103,60 +103,12 @@ impl Panel {
 }
 
 // Utility functions
-impl Panel {
+impl LayoutManager for Panel {
     /// Adds the widget to this widget's layout management
     /// * `widget` is the widget being added
-    pub fn append(&mut self, widget: impl Widget + 'static) {
+    fn append(&mut self, widget: impl Widget + 'static) {
         self.layout.subs_append(&widget.layout_ref());
         self.widgets.push(Box::new(widget));
-    }
-
-    /// Draw the widget on the screen
-    /// * `ui` is the Macroquad Ui engine
-    /// * returns true when clicked in the current frame
-    pub fn show(&mut self, ui: &mut Ui) {
-        // Draw panel
-        let (pos, size) = self.layout.shape();
-        draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
-
-        // Draw widgets
-        for x in self.layout.iter() {
-            // x.show(ui);
-        }
-    }
-
-    /// Draw the widget on the screen
-    /// * `ui` is the Macroquad Ui engine
-    /// * `f` is a lambda for child layout creation
-    /// * returns true when clicked in the current frame
-    pub fn show_f(&mut self, ui: &mut Ui, f: impl FnOnce(&mut Ui, &Layout)) {
-        self.show_pf(ui, None, f)
-    }
-
-    /// Draw the widget on the screen
-    /// * `ui` is the Macroquad Ui engine
-    /// * `layout` parent layout to draw button within
-    /// * returns true when clicked in the current frame
-    pub fn show_p(&mut self, ui: &mut Ui, layout: &Layout) {
-        self.show_pf(ui, Some(layout), |_, _| {})
-    }
-
-    /// Draw the widget on the screen
-    /// * `ui` is the Macroquad Ui engine
-    /// * `layout` parent layout to draw button within
-    /// * `f` is a lambda for child layout creation
-    /// * returns true when clicked in the current frame
-    pub fn show_pf(&mut self, ui: &mut Ui, layout: Option<&Layout>, f: impl FnOnce(&mut Ui, &Layout)) {
-        if let Some(parent) = layout {
-            parent.subs_append(&self.layout);
-        }
-
-        // Draw panel
-        let (pos, size) = self.layout.shape();
-        draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
-
-        // Draw widgets
-        f(ui, &self.layout)
     }
 }
 

@@ -17,6 +17,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
+    let mut fps = Fps::new().layout(|x| x.align(Align::RightTop).margins_all(5.));
     let builder = PanelBuilder::new().layout(|x| x.size_s(100., 100.).margins_all(10.)).frame(|x| x.fill(GRAY));
 
     loop {
@@ -28,15 +29,10 @@ async fn main() {
 
         p1.append(builder.build("1"));
         p1.append(builder.build("2"));
-        p1.append(builder.build("3"));
-        // let mut c1 = builder.build("1").layout(|x| x.parent(&p1));
-        // let mut c2 = builder.build("2").layout(|x| x.parent(&p1));
-        // let mut c3 = builder.build("3").layout(|x| x.size_s(150., 100.).parent(&p1));
+        p1.append(builder.build("3").layout(|x| x.size_s(150., 100.)));
 
         p1.show(&mut *root_ui());
-        // c1.show(&mut *root_ui());
-        // c2.show(&mut *root_ui());
-        // c3.show(&mut *root_ui());
+        fps.show(&mut *root_ui(), None);
 
         next_frame().await
     }
