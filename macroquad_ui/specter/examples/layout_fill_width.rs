@@ -21,18 +21,13 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        let mut p1 = Panel::vert("0")
+        Panel::vert(id!())
             .layout(|x| x.size_p(0.75, 1.).spacing(10.).margins_all(10.).fill_w())
-            .frame(|x| x.fill(BLACK));
-
-        let mut c1 = builder.build("1").layout(|x| x.parent(&p1));
-        let mut c2 = builder.build("2").layout(|x| x.parent(&p1));
-        let mut c3 = builder.build("3").layout(|x| x.size_s(100., 150.).parent(&p1));
-
-        p1.show(&mut *root_ui());
-        c1.show(&mut *root_ui());
-        c2.show(&mut *root_ui());
-        c3.show(&mut *root_ui());
+            .frame(|x| x.fill(BLACK))
+            .add(builder.build(id!()))
+            .add(builder.build(id!()))
+            .add(builder.build(id!()).layout(|x| x.size_s(100., 150.)))
+            .show(&mut *root_ui());
 
         next_frame().await
     }

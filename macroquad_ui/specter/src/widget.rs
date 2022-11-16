@@ -1,7 +1,7 @@
 use crate::prelude::*;
 
 pub trait Widget {
-    /// Get the widget's layout as a cloned reference
+    /// Returns a reference clone to the Widget's layout
     fn layout_ref(&self) -> Layout;
 
     /// Draw the widget on the screen
@@ -10,6 +10,11 @@ pub trait Widget {
 }
 
 pub trait LayoutManager {
+    /// Adds the widget to this widget's layout management
+    /// * alias for `append` that consumes the caller
+    /// * `widget` is the widget being added
+    fn add(self, widget: impl Widget + 'static) -> Self;
+
     /// Adds the widget to this widget's layout management
     /// * `widget` is the widget being added
     fn append(&mut self, widget: impl Widget + 'static);

@@ -384,7 +384,7 @@ impl Layout {
     /// Add a parent layout for relative alignment
     /// * when align is set the LayoutMode won't take affect
     pub fn parent(self, parent: &Layout) -> Self {
-        parent.subs_append(&self);
+        parent.append(&self);
         self
     }
 
@@ -624,64 +624,60 @@ impl Layout {
 
 // Utility functions
 impl Layout {
-    /// Returns true if the `other` layout is a pointer to this layout
-    pub fn eq(&self, other: &Layout) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+    /// Append the given sub-layout to this layout if it doesn't already exist
+    /// * `layout` is the sub-layout to append
+    pub fn append(&self, layout: &Layout) {
+        if self.sub_idx(&layout.get_id()).is_none() {
+            {
+                // Set parent on layout
+                let sub = &mut *layout.0.borrow_mut();
+                sub.parent = Some(self.0.clone());
+                sub.dirty = true;
+
+                // Append sub-layout to parent
+                let inner = &mut *self.0.borrow_mut();
+                inner.subs.push(layout.0.clone());
+                inner.dirty = true;
+            }
+        }
     }
 
-    /// Get a cloned reference
+    /// Returns an iterator over the sub-layouts
+    pub fn iter(&self) -> impl Iterator<Item = Layout> {
+        self.0.borrow().subs.iter().map(|x| Layout(x.clone())).collect::<Vec<Layout>>().into_iter()
+    }
+
+    /// Prepend the given sub-layout to this layout if it doesn't already exist
+    /// * `layout` is the sub-layout to prepend
+    pub fn prepend(&self, layout: &Layout) {
+        if self.sub_idx(&layout.get_id()).is_none() {
+            {
+                // Set parent on layout
+                let sub = &mut *layout.0.borrow_mut();
+                sub.parent = Some(self.0.clone());
+                sub.dirty = true;
+
+                // Append sub-layout to parent
+                let inner = &mut *self.0.borrow_mut();
+                inner.subs.insert(0, layout.0.clone());
+                inner.dirty = true;
+            }
+        }
+    }
+
+    /// Returns a reference clone of this layout
     pub fn ptr(&self) -> Layout {
         Layout(self.0.clone())
     }
 
-    /// Get an iterator over the sub-layouts
-    pub fn iter(&self) -> impl Iterator<Item = Layout> {
-        self.0.borrow().subs.iter().map(|x| Layout(x.clone())).collect::<Vec<Layout>>().into_iter()
+    /// Returns true if the `other` layout is a pointer to this layout
+    pub fn ptr_eq(&self, other: &Layout) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
     }
 
     /// Get sub-layout by id
     pub fn sub(&self, id: &str) -> Option<Layout> {
         self.0.borrow().subs.iter().find(|x| x.borrow().id == id).map(|x| Layout(x.clone()))
-    }
-
-    // Create a new layout inside this layout
-    fn sub_alloc<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let layout = Layout::new(id);
-        {
-            // Set parent on layout
-            let sub = &mut *layout.0.borrow_mut();
-            sub.parent = Some(self.0.clone());
-            sub.dirty = true;
-
-            // Set optional size
-            if let Some(size) = size {
-                sub.size = size;
-            }
-
-            // Ensure expand is set
-            sub.expand = true;
-        }
-        layout
-    }
-
-    /// Create a new sub-layout inside this layout
-    /// * Adds the new sub-layout to the end of the sub-layout list
-    pub fn sub_alloc_append<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let sub = self.sub_alloc(id.as_ref(), size);
-        let inner = &mut *self.0.borrow_mut();
-        inner.subs.push(sub.0.clone());
-        inner.dirty = true;
-        sub
-    }
-
-    /// Create a new sub-layout inside this layout
-    /// * Adds the new sub-layout to the begining of the sub-layout list
-    pub fn sub_alloc_prepend<T: AsRef<str>>(&self, id: T, size: Option<Vec2>) -> Layout {
-        let layout = self.sub_alloc(id.as_ref(), size);
-        let inner = &mut *self.0.borrow_mut();
-        inner.subs.insert(0, layout.0.clone());
-        inner.dirty = true;
-        layout
     }
 
     /// Get sub-layout's index in this layout
@@ -700,26 +696,6 @@ impl Layout {
     /// * `size` is the sub-layout's size to set
     pub fn sub_set_size(&self, id: &str, width: f32, height: f32) {
         self.sub(id).map(|x| x.set_size(width, height));
-    }
-
-    /// Append the given sub-layout to this layout
-    /// * Adds the sub-layout to the end of the sub-layout list if it doesn't already exist
-    /// * Calls update if the sub-layout was appended
-    /// * `layout` is the sub-layout to append
-    pub fn subs_append(&self, layout: &Layout) {
-        if self.sub_idx(&layout.get_id()).is_none() {
-            {
-                // Set parent on layout
-                let sub = &mut *layout.0.borrow_mut();
-                sub.parent = Some(self.0.clone());
-                sub.dirty = true;
-
-                // Append sub-layout to parent
-                let inner = &mut *self.0.borrow_mut();
-                inner.subs.push(layout.0.clone());
-                inner.dirty = true;
-            }
-        }
     }
 
     /// Get sub-layout by index
@@ -1164,12 +1140,12 @@ mod tests {
 
         // Check that sub-layouts are being appended to parent properly
         assert_eq!(parent.subs_len(), 3);
-        assert_eq!(parent.subs_idx(0).unwrap().eq(&layout1), true);
-        assert_eq!(parent.subs_idx(1).unwrap().eq(&layout2), true);
-        assert_eq!(parent.subs_idx(2).unwrap().eq(&layout3), true);
-        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().eq(&parent), true);
-        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().eq(&parent), true);
-        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().eq(&parent), true);
+        assert_eq!(parent.subs_idx(0).unwrap().ptr_eq(&layout1), true);
+        assert_eq!(parent.subs_idx(1).unwrap().ptr_eq(&layout2), true);
+        assert_eq!(parent.subs_idx(2).unwrap().ptr_eq(&layout3), true);
+        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().ptr_eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().ptr_eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().ptr_eq(&parent), true);
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
@@ -1246,12 +1222,12 @@ mod tests {
 
         // Check that sub-layouts are being appended to parent properly
         assert_eq!(parent.subs_len(), 3);
-        assert_eq!(parent.subs_idx(0).unwrap().eq(&layout1), true);
-        assert_eq!(parent.subs_idx(1).unwrap().eq(&layout2), true);
-        assert_eq!(parent.subs_idx(2).unwrap().eq(&layout3), true);
-        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().eq(&parent), true);
-        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().eq(&parent), true);
-        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().eq(&parent), true);
+        assert_eq!(parent.subs_idx(0).unwrap().ptr_eq(&layout1), true);
+        assert_eq!(parent.subs_idx(1).unwrap().ptr_eq(&layout2), true);
+        assert_eq!(parent.subs_idx(2).unwrap().ptr_eq(&layout3), true);
+        assert_eq!(parent.subs_idx(0).unwrap().get_parent().unwrap().ptr_eq(&parent), true);
+        assert_eq!(parent.subs_idx(1).unwrap().get_parent().unwrap().ptr_eq(&parent), true);
+        assert_eq!(parent.subs_idx(2).unwrap().get_parent().unwrap().ptr_eq(&parent), true);
 
         // Check shape
         assert_eq!(layout1.shape(), (vec2(0., 0.), size));
@@ -1326,14 +1302,14 @@ mod tests {
         let sub2 = Layout::new("sub2").parent(&layout1);
 
         // Test layout1 original values
-        assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
+        assert_eq!(layout1.get_parent().unwrap().ptr_eq(&parent1), true);
         assert_eq!(layout1.subs_len(), 2);
-        assert_eq!(layout1.subs_idx(0).unwrap().eq(&sub1), true);
-        assert_eq!(layout1.subs_idx(0).unwrap().eq(&sub2), false);
-        assert_eq!(layout1.subs_idx(1).unwrap().eq(&sub2), true);
-        assert_eq!(layout1.subs_idx(1).unwrap().eq(&sub1), false);
-        assert_eq!(layout1.subs_idx(0).unwrap().get_parent().unwrap().eq(&layout1), true);
-        assert_eq!(layout1.subs_idx(1).unwrap().get_parent().unwrap().eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(0).unwrap().ptr_eq(&sub1), true);
+        assert_eq!(layout1.subs_idx(0).unwrap().ptr_eq(&sub2), false);
+        assert_eq!(layout1.subs_idx(1).unwrap().ptr_eq(&sub2), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().ptr_eq(&sub1), false);
+        assert_eq!(layout1.subs_idx(0).unwrap().get_parent().unwrap().ptr_eq(&layout1), true);
+        assert_eq!(layout1.subs_idx(1).unwrap().get_parent().unwrap().ptr_eq(&layout1), true);
 
         // Test layout2 clone values
         let layout2 = layout1.clone().id("layout2");
@@ -1353,14 +1329,14 @@ mod tests {
 
         // Check subs we're actually cloned
         assert_eq!(layout2.subs_len(), 2);
-        assert_eq!(layout2.subs_idx(0).unwrap().eq(&sub1), false);
-        assert_eq!(layout2.subs_idx(0).unwrap().eq(&sub2), false);
-        assert_eq!(layout2.subs_idx(1).unwrap().eq(&sub2), false);
-        assert_eq!(layout2.subs_idx(1).unwrap().eq(&sub1), false);
+        assert_eq!(layout2.subs_idx(0).unwrap().ptr_eq(&sub1), false);
+        assert_eq!(layout2.subs_idx(0).unwrap().ptr_eq(&sub2), false);
+        assert_eq!(layout2.subs_idx(1).unwrap().ptr_eq(&sub2), false);
+        assert_eq!(layout2.subs_idx(1).unwrap().ptr_eq(&sub1), false);
 
         // Check subs have new parent
-        assert_eq!(layout2.subs_idx(0).unwrap().get_parent().unwrap().eq(&layout2), true);
-        assert_eq!(layout2.subs_idx(1).unwrap().get_parent().unwrap().eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(0).unwrap().get_parent().unwrap().ptr_eq(&layout2), true);
+        assert_eq!(layout2.subs_idx(1).unwrap().get_parent().unwrap().ptr_eq(&layout2), true);
     }
 
     #[test]
@@ -1369,14 +1345,14 @@ mod tests {
         let parent1 = Layout::new("parent1");
         let layout1 = Layout::new("layout1").parent(&parent1);
         let layout2 = layout1.ptr();
-        assert_eq!(layout1.eq(&layout2), true);
-        assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
-        assert_eq!(layout1.get_parent().unwrap().eq(&layout1), false);
+        assert_eq!(layout1.ptr_eq(&layout2), true);
+        assert_eq!(layout1.get_parent().unwrap().ptr_eq(&parent1), true);
+        assert_eq!(layout1.get_parent().unwrap().ptr_eq(&layout1), false);
 
         // Different pointer and no parent
         let layout2 = layout1.clone();
-        assert_eq!(layout1.eq(&layout2), false);
-        assert_eq!(layout1.get_parent().unwrap().eq(&parent1), true);
+        assert_eq!(layout1.ptr_eq(&layout2), false);
+        assert_eq!(layout1.get_parent().unwrap().ptr_eq(&parent1), true);
         assert_eq!(layout2.get_parent().is_none(), true);
     }
 

@@ -29,7 +29,8 @@ impl ButtonBuilder {
     /// Create a new builder instance
     pub fn new() -> Self {
         let layout = Layout::horz("");
-        let label = Label::new("").layout(|_| layout.sub_alloc_append(LABEL_ID, None));
+        let label = Label::new("").layout(|x| x.id(LABEL_ID));
+        layout.append(label.layout_ref());
 
         Self {
             layout,
@@ -104,7 +105,7 @@ impl ButtonBuilder {
 
     /// Set icon to use
     pub fn icon_texture<T: Into<Option<Texture2D>>>(self, icon: T) -> Self {
-        self.layout.sub_alloc_prepend(ICON_ID, None);
+        self.layout.prepend(&Layout::new(ICON_ID));
         Self {
             icon: icon.into(),
             ..self
@@ -375,7 +376,7 @@ impl Button {
 
         // Set parent if given
         if let Some(parent) = layout {
-            parent.subs_append(&self.conf.layout);
+            parent.append(&self.conf.layout);
         }
 
         // Draw button

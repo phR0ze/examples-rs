@@ -172,7 +172,7 @@ impl Label {
 // Getters
 impl Label {
     /// Get a reference to the layout
-    pub fn get_layout(&self) -> &Layout {
+    pub fn layout_ref(&self) -> &Layout {
         &self.conf.layout
     }
 
@@ -239,7 +239,7 @@ impl Label {
 
         // Set parent if given
         if let Some(parent) = layout {
-            parent.subs_append(&self.conf.layout);
+            parent.append(&self.conf.layout);
         }
 
         let (pos, size) = self.conf.layout.shape();

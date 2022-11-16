@@ -17,21 +17,20 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let mut fps = Fps::new().layout(|x| x.align(Align::RightTop).margins_all(5.));
+    let mut fps = Fps::new().layout(|x| x.align(Align::LeftBottom).margins_all(5.));
     let builder = PanelBuilder::new().layout(|x| x.size_s(100., 100.).margins_all(10.)).frame(|x| x.fill(GRAY));
 
     loop {
         clear_background(WHITE);
 
-        let mut p1 = Panel::vert("0")
+        Panel::vert(id!())
             .layout(|x| x.size_s(210., 410.).spacing(10.).padding_all(20.).margins_all(10.))
-            .frame(|x| x.fill(BLACK));
+            .frame(|x| x.fill(BLACK))
+            .add(builder.build(id!()))
+            .add(builder.build(id!()))
+            .add(builder.build(id!()).layout(|x| x.size_s(150., 100.)))
+            .show(&mut *root_ui());
 
-        p1.append(builder.build("1"));
-        p1.append(builder.build("2"));
-        p1.append(builder.build("3").layout(|x| x.size_s(150., 100.)));
-
-        p1.show(&mut *root_ui());
         fps.show(&mut *root_ui(), None);
 
         next_frame().await

@@ -14,6 +14,8 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
+    let mut fps = Fps::dark().layout(|x| x.align(Align::Center).margins(0., 0., 100., 0.));
+
     loop {
         clear_background(WHITE);
 
@@ -32,19 +34,16 @@ async fn main() {
             Align::RightTop,
             Align::Absolute(175., 150.),
         ];
-        let mut shapes = vec![];
         for i in 0..=9 {
-            shapes.push(
+            p1.append(
                 Panel::new(format!("{}", i))
-                    .layout(|x| x.size_s(100., 100.).align(align[i]).parent(&p1))
+                    .layout(|x| x.size_s(100., 100.).align(align[i]))
                     .frame(|x| x.fill(GRAY)),
             );
         }
 
         p1.show(&mut *root_ui());
-        for x in shapes.iter_mut() {
-            x.show(&mut *root_ui());
-        }
+        fps.show(&mut *root_ui(), None);
 
         next_frame().await
     }

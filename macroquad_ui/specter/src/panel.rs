@@ -105,15 +105,23 @@ impl Panel {
 // Utility functions
 impl LayoutManager for Panel {
     /// Adds the widget to this widget's layout management
+    /// * alias for `append` that consumes the caller
+    /// * `widget` is the widget being added
+    fn add(mut self, widget: impl Widget + 'static) -> Self {
+        self.append(widget);
+        self
+    }
+
+    /// Adds the widget to this widget's layout management
     /// * `widget` is the widget being added
     fn append(&mut self, widget: impl Widget + 'static) {
-        self.layout.subs_append(&widget.layout_ref());
+        self.layout.append(&widget.layout_ref());
         self.widgets.push(Box::new(widget));
     }
 }
 
 impl Widget for Panel {
-    /// Get the widget's layout as a cloned reference
+    /// Returns a reference clone to the Widget's layout
     fn layout_ref(&self) -> Layout {
         self.layout.ptr()
     }
