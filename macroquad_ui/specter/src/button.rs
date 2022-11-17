@@ -385,6 +385,7 @@ impl Button {
             self.activated = !self.activated;
             self.clicked = true;
         }
+        ui.pop_skin();
 
         // Draw icon
         if let Some(icon) = &self.conf.icon {
@@ -393,9 +394,7 @@ impl Button {
         }
 
         // Draw label
-        self.conf.label.show(ui, None);
-
-        ui.pop_skin();
+        self.conf.label.show(ui);
 
         self.clicked
     }

@@ -1,6 +1,6 @@
 //! Fps provides a simple frames per second widget to be displayed for debug purposes.
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
-use crate::{layout::Layout, prelude::Label};
+use crate::{layout::Layout, prelude::Label, widget::*};
 use macroquad::{prelude::*, ui::Ui};
 use std::time::Instant;
 
@@ -76,7 +76,7 @@ impl Fps {
 
         // Update label and show
         self.label.set_text(format!("FPS: {}", self.fps));
-        self.label.show(ui, layout);
+        self.label.show(ui);
     }
 }
 

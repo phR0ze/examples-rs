@@ -229,22 +229,35 @@ impl Label {
         self.skin = Some(skin);
         self.dirty = false;
     }
+}
+
+impl LayoutManager for Label {
+    /// Add the given widget to this widget's layout management
+    /// * similar to `append` but consumes and returns self
+    fn add(mut self, widget: impl Widget + 'static) -> Self {
+        // Do nothing for labels
+        self
+    }
+
+    /// Add the given widget to this widget's layout management
+    fn append(&mut self, widget: impl Widget + 'static) {
+        // Do nothing for labels
+    }
+}
+
+impl Widget for Label {
+    /// Returns a reference clone to the Widget's layout
+    fn layout_ref(&self) -> Layout {
+        self.conf.layout.ptr()
+    }
 
     /// Draw the widget on the screen
-    /// * `layout` parent layout to draw button within
-    /// * returns true when clicked in the current frame
-    pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>) {
+    /// * `ui` is the Macroquad Ui engine
+    fn show(&mut self, ui: &mut Ui) {
         self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
-
-        // Set parent if given
-        if let Some(parent) = layout {
-            parent.append(&self.conf.layout);
-        }
-
         let (pos, size) = self.conf.layout.shape();
         widgets::Label::new(self.text.as_str()).size(size).position(pos).ui(ui);
-
         ui.pop_skin();
     }
 }

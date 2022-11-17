@@ -10,13 +10,11 @@ pub trait Widget {
 }
 
 pub trait LayoutManager {
-    /// Adds the widget to this widget's layout management
-    /// * alias for `append` that consumes the caller
-    /// * `widget` is the widget being added
+    /// Add the given widget to this widget's layout management
+    /// * similar to `append` but consumes and returns self
     fn add(self, widget: impl Widget + 'static) -> Self;
 
-    /// Adds the widget to this widget's layout management
-    /// * `widget` is the widget being added
+    /// Add the given widget to this widget's layout management
     fn append(&mut self, widget: impl Widget + 'static);
 }
 
