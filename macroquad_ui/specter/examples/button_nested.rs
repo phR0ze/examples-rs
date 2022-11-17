@@ -21,25 +21,25 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        menu.show_f(&mut *root_ui(), |ui, layout| {
-            btn1.show(ui, Some(layout));
-            btn2.show(ui, Some(layout));
-            btn3.show(ui, Some(layout));
-        });
+        // menu.show_f(&mut *root_ui(), |ui, layout| {
+        //     btn1.show(ui, Some(layout));
+        //     btn2.show(ui, Some(layout));
+        //     btn3.show(ui, Some(layout));
+        // });
 
-        // Check button results
-        if btn1.activated() {
-            let (pos, _) = btn1.shape();
-            draw_rectangle(pos.x + 380., pos.y + 2., 40., 40., RED);
-        }
-        if btn2.activated() {
-            let (pos, _) = btn2.shape();
-            draw_rectangle(pos.x + 380., pos.y + 2., 40., 40., BLUE);
-        }
-        if btn3.activated() {
-            let (pos, _) = btn3.shape();
-            draw_rectangle(pos.x + 380., pos.y + 2., 40., 40., GREEN);
-        }
+        // // Check button results
+        // if btn1.activated() {
+        //     let (pos, _) = btn1.shape();
+        //     draw_rectangle(pos.x + 380., pos.y + 2., 40., 40., RED);
+        // }
+        // if btn2.activated() {
+        //     let (pos, _) = btn2.shape();
+        //     draw_rectangle(pos.x + 380., pos.y + 2., 40., 40., BLUE);
+        // }
+        // if btn3.activated() {
+        //     let (pos, _) = btn3.shape();
+        //     draw_rectangle(pos.x + 380., pos.y + 2., 40., 40., GREEN);
+        // }
 
         next_frame().await
     }

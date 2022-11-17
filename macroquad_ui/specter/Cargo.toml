@@ -20,4 +20,5 @@ exclude = [
 ]
 
 [dependencies]
-macroquad = "0.3.24"
+#macroquad = "0.3.24"
+macroquad = { path = "../../../macroquad" }

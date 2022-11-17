@@ -1,7 +1,6 @@
 //! Fps provides a simple frames per second widget to be displayed for debug purposes.
 //! * Fps value is averaged over the last 10 seconds for a smoother appearance
-use crate::{layout::Layout, prelude::Label, widget::*};
-use macroquad::{prelude::*, ui::Ui};
+use crate::prelude::*;
 use std::time::Instant;
 
 const FPS_ID: &'static str = "fps";
@@ -59,15 +58,16 @@ impl Widget for Fps {
 
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn show_p(&mut self, ui: &mut Ui) {
+    fn show_p(&mut self, ui: &mut Ui) -> Response {
         self.label.ui(ui);
+        let response = Response::default();
 
         // Calculate fps averaging over last 10sec
         self.frames += 1;
         let us = self.start.elapsed().as_micros();
         if us == 0 {
             // nothing to do
-            return;
+            return response;
         }
         self.fps = ((self.frames * 1000000) as u128 / us) as u16;
 
@@ -80,6 +80,8 @@ impl Widget for Fps {
         // Update label and show
         self.label.set_text(format!("FPS: {}", self.fps));
         self.label.show_p(ui);
+
+        response
     }
 }
 

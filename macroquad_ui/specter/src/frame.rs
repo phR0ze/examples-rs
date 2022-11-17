@@ -12,7 +12,7 @@ pub struct Frame {
     //pub rounding: Rounding,
     //pub shadow: Shadow,
     /// Color to fill the frame with
-    pub(crate) fill: Color,
+    pub(crate) fill: Option<Color>,
     //pub stroke: Stroke,
     pub(crate) image: Option<Texture2D>,     // background image to use
     pub(crate) image_clk: Option<Texture2D>, // background image to use when clicked
@@ -23,7 +23,7 @@ pub struct Frame {
 impl Frame {
     pub fn new() -> Self {
         Frame {
-            fill: GRAY,
+            fill: Some(GRAY),
             image: None,
             image_clk: None,
             image_hov: None,
@@ -33,7 +33,7 @@ impl Frame {
     /// Set the fill color
     pub fn fill(self, color: Color) -> Self {
         Self {
-            fill: color,
+            fill: Some(color),
             ..self
         }
     }
@@ -66,7 +66,7 @@ impl Frame {
 // Getters
 impl Frame {
     /// Get the fill color
-    pub fn get_fill(&self) -> Color {
+    pub fn get_fill(&self) -> Option<Color> {
         self.fill
     }
 }
@@ -75,7 +75,7 @@ impl Frame {
 impl Frame {
     /// Set the fill color
     pub fn set_fill(&mut self, color: Color) -> &mut Self {
-        self.fill = color;
+        self.fill = Some(color);
         self
     }
 }

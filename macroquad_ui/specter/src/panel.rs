@@ -86,19 +86,39 @@ impl Panel {
     }
 }
 
-// Getters
+// Utility functions
 impl Panel {
-    /// Get the frame's properties
-    pub fn get_frame(&self) -> &Frame {
-        &self.frame
-    }
-}
+    /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
+    fn ui(&mut self, ui: &mut Ui) -> Response {
+        let mut context = ui.get_active_window_context();
 
-// Setters
-impl Panel {
-    /// Set the frame's properties
-    pub fn set_frame(&mut self, f: impl FnOnce(Frame) -> Frame) {
-        self.frame = f(self.frame.clone());
+        // Get panel position and size
+        let (pos, size) = self.layout.shape();
+
+        // Register click intention for the panel
+        let rect = Rect::new(pos.x, pos.y, size.x as f32, size.y as f32);
+        let (hovered, clicked) = context.register_click_intention(rect);
+
+        // Draw background based on click intention
+        if hovered && self.frame.image_hov.is_some() {
+            let image = self.frame.image_hov.unwrap();
+            widgets::Texture::new(image).size(size.x, size.y).position(pos).ui(ui);
+        } else if clicked && self.frame.image_clk.is_some() {
+            let image = self.frame.image_clk.unwrap();
+            widgets::Texture::new(image).size(size.x, size.y).position(pos).ui(ui);
+        } else if let Some(image) = self.frame.image {
+            widgets::Texture::new(image).size(size.x, size.y).position(pos).ui(ui);
+        } else if let Some(color) = self.frame.fill {
+            draw_rectangle(pos.x, pos.y, size.x, size.y, color);
+        }
+
+        // Draw widgets
+        for x in self.widgets.iter_mut() {
+            x.show_p(ui);
+        }
+
+        Response { clicked, hovered }
     }
 }
 
@@ -125,19 +145,8 @@ impl Widget for Panel {
 
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn show_p(&mut self, ui: &mut Ui) {
-        // Draw panel
-        let (pos, size) = self.layout.shape();
-        if let Some(image) = self.frame.image {
-            widgets::Texture::new(image).size(size.x, size.y).position(pos).ui(ui);
-        } else {
-            draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
-        }
-
-        // Draw widgets
-        for x in self.widgets.iter_mut() {
-            x.show_p(ui);
-        }
+    fn show_p(&mut self, ui: &mut Ui) -> Response {
+        self.ui(ui)
     }
 }
 

@@ -234,12 +234,14 @@ impl Widget for Label {
 
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn show_p(&mut self, ui: &mut Ui) {
+    fn show_p(&mut self, ui: &mut Ui) -> Response {
         self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
         let (pos, size) = self.conf.layout.shape();
         widgets::Label::new(self.text.as_str()).size(size).position(pos).ui(ui);
         ui.pop_skin();
+
+        Response::default()
     }
 }
 
