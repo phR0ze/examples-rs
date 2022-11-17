@@ -27,7 +27,7 @@ async fn main() {
             .add(builder.build(id!()))
             .add(builder.build(id!()))
             .add(builder.build(id!()).layout(|x| x.size_s(100., 150.)))
-            .show(&mut *root_ui());
+            .show();
 
         next_frame().await
     }

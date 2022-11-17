@@ -19,7 +19,7 @@ async fn main() {
     let mut fps = Fps::dark();
     loop {
         clear_background(WHITE);
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
         button.show(&mut *root_ui(), None);
         if button.activated() {

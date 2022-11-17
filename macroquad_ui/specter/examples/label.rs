@@ -16,9 +16,13 @@ async fn main() {
     let mut fps = Fps::new();
     loop {
         clear_background(WHITE);
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
-        Label::new("Test").layout(|x| x.align(Align::Center)).show(&mut *root_ui());
+        Panel::new(id!())
+            .layout(|x| x.size_s(100., 100.).align(Align::Center))
+            .frame(|x| x.fill(GRAY))
+            .add(Label::new("Test").layout(|x| x.align(Align::Center)))
+            .show();
 
         next_frame().await
     }

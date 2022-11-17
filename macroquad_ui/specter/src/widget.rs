@@ -5,8 +5,13 @@ pub trait Widget {
     fn layout_ref(&self) -> Layout;
 
     /// Draw the widget on the screen
+    fn show(&mut self) {
+        self.show_p(&mut *root_ui())
+    }
+
+    /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn show(&mut self, ui: &mut Ui);
+    fn show_p(&mut self, ui: &mut Ui);
 }
 
 pub trait LayoutManager {

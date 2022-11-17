@@ -125,14 +125,18 @@ impl Widget for Panel {
 
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn show(&mut self, ui: &mut Ui) {
+    fn show_p(&mut self, ui: &mut Ui) {
         // Draw panel
         let (pos, size) = self.layout.shape();
-        draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
+        if let Some(image) = self.frame.image {
+            widgets::Texture::new(image).size(size.x, size.y).position(pos).ui(ui);
+        } else {
+            draw_rectangle(pos.x, pos.y, size.x, size.y, self.frame.fill);
+        }
 
         // Draw widgets
         for x in self.widgets.iter_mut() {
-            x.show(ui);
+            x.show_p(ui);
         }
     }
 }

@@ -49,15 +49,18 @@ impl Fps {
             ..self
         }
     }
+}
 
-    // Update the skin
-    pub fn ui(&mut self, ui: &mut Ui) {
-        self.label.ui(ui);
+impl Widget for Fps {
+    /// Returns a reference clone to the Widget's layout
+    fn layout_ref(&self) -> Layout {
+        self.label.layout_ref()
     }
 
-    /// Draw the frames per second as directed
-    pub fn show(&mut self, ui: &mut Ui, layout: Option<&Layout>) {
-        self.ui(ui);
+    /// Draw the widget on the screen
+    /// * `ui` is the Macroquad Ui engine
+    fn show_p(&mut self, ui: &mut Ui) {
+        self.label.ui(ui);
 
         // Calculate fps averaging over last 10sec
         self.frames += 1;
@@ -76,7 +79,7 @@ impl Fps {
 
         // Update label and show
         self.label.set_text(format!("FPS: {}", self.fps));
-        self.label.show(ui);
+        self.label.show_p(ui);
     }
 }
 

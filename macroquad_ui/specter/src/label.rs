@@ -171,13 +171,8 @@ impl Label {
 
 // Getters
 impl Label {
-    /// Get a reference to the layout
-    pub fn layout_ref(&self) -> &Layout {
-        &self.conf.layout
-    }
-
     /// Get the widget's text value
-    pub fn get_text(&self) -> &str {
+    pub fn text(&self) -> &str {
         &self.text
     }
 }
@@ -231,20 +226,6 @@ impl Label {
     }
 }
 
-impl LayoutManager for Label {
-    /// Add the given widget to this widget's layout management
-    /// * similar to `append` but consumes and returns self
-    fn add(mut self, widget: impl Widget + 'static) -> Self {
-        // Do nothing for labels
-        self
-    }
-
-    /// Add the given widget to this widget's layout management
-    fn append(&mut self, widget: impl Widget + 'static) {
-        // Do nothing for labels
-    }
-}
-
 impl Widget for Label {
     /// Returns a reference clone to the Widget's layout
     fn layout_ref(&self) -> Layout {
@@ -253,7 +234,7 @@ impl Widget for Label {
 
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn show(&mut self, ui: &mut Ui) {
+    fn show_p(&mut self, ui: &mut Ui) {
         self.ui(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
         let (pos, size) = self.conf.layout.shape();

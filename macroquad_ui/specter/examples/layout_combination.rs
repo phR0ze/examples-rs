@@ -42,9 +42,9 @@ async fn main() {
                     .add(Panel::new(id!()).layout(|x| x.size_s(100., 100.)).frame(|x| x.fill(GRAY)))
                     .add(Panel::new(id!()).layout(|x| x.size_s(100., 100.)).frame(|x| x.fill(BLUE))),
             )
-            .show(&mut *root_ui());
+            .show();
 
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
         next_frame().await
     }

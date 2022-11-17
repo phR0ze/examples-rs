@@ -26,7 +26,7 @@ async fn main() {
     let mut btn9 = Button::icon("Button9", icon).fill(PINK);
     loop {
         clear_background(BLACK);
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
         let spacing = 10.;
         let layout = Layout::vert("side_menu").size_p(0.75, 1.0).spacing(spacing).margins(0., 0., 50., 0.);

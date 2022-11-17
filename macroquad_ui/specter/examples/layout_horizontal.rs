@@ -29,9 +29,9 @@ async fn main() {
             .add(builder.build(id!()))
             .add(builder.build(id!()))
             .add(builder.build(id!()).layout(|x| x.size_s(100., 150.)))
-            .show(&mut *root_ui());
+            .show();
 
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
         next_frame().await
     }

@@ -18,7 +18,7 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
         next_frame().await
     }

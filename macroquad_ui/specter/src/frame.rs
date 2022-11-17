@@ -12,11 +12,11 @@ pub struct Frame {
     //pub rounding: Rounding,
     //pub shadow: Shadow,
     /// Color to fill the frame with
-    pub fill: Color,
+    pub(crate) fill: Color,
     //pub stroke: Stroke,
-    image: Option<Image>,     // background image to use
-    image_clk: Option<Image>, // background image to use when clicked
-    image_hov: Option<Image>, // background image to use when hovered
+    pub(crate) image: Option<Texture2D>,     // background image to use
+    pub(crate) image_clk: Option<Texture2D>, // background image to use when clicked
+    pub(crate) image_hov: Option<Texture2D>, // background image to use when hovered
 }
 
 // Constructors and builders
@@ -39,25 +39,25 @@ impl Frame {
     }
 
     /// Set background image to use
-    pub fn image<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image<T: Into<Texture2D>>(self, image: T) -> Self {
         Self {
-            image: image.into(),
+            image: Some(image.into()),
             ..self
         }
     }
 
     /// Set background image to use
-    pub fn image_clk<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image_clk<T: Into<Texture2D>>(self, image: T) -> Self {
         Self {
-            image_clk: image.into(),
+            image_clk: Some(image.into()),
             ..self
         }
     }
 
     /// Set background image to use
-    pub fn image_hov<T: Into<Option<Image>>>(self, image: T) -> Self {
+    pub fn image_hov<T: Into<Texture2D>>(self, image: T) -> Self {
         Self {
-            image_hov: image.into(),
+            image_hov: Some(image.into()),
             ..self
         }
     }

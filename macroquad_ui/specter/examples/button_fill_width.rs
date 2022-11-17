@@ -26,7 +26,7 @@ async fn main() {
     let mut btn9 = Button::icon("Button9", icon).fill(PINK);
     loop {
         clear_background(BLACK);
-        fps.show(&mut *root_ui(), None);
+        fps.show();
 
         let spacing = 10.;
         let layout =

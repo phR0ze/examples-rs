@@ -42,8 +42,8 @@ async fn main() {
             );
         }
 
-        p1.show(&mut *root_ui());
-        fps.show(&mut *root_ui(), None);
+        p1.show();
+        fps.show();
 
         next_frame().await
     }

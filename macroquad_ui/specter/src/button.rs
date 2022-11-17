@@ -30,7 +30,7 @@ impl ButtonBuilder {
     pub fn new() -> Self {
         let layout = Layout::horz("");
         let label = Label::new("").layout(|x| x.id(LABEL_ID));
-        layout.append(label.layout_ref());
+        layout.append(&label.layout_ref());
 
         Self {
             layout,
@@ -299,7 +299,7 @@ impl Button {
 impl Button {
     /// Button label
     pub fn label(&self) -> &str {
-        self.conf.label.get_text()
+        self.conf.label.text()
     }
 
     /// Returns true if button was clicked an odd number of times. 1st click will activate the
@@ -394,7 +394,7 @@ impl Button {
         }
 
         // Draw label
-        self.conf.label.show(ui);
+        self.conf.label.show_p(ui);
 
         self.clicked
     }
