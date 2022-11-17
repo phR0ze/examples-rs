@@ -52,8 +52,8 @@ impl Fps {
 
 impl Widget for Fps {
     /// Returns a reference clone to the Widget's layout
-    fn layout_ref(&self) -> Layout {
-        self.label.layout_ref()
+    fn layout_ptr(&self) -> Layout {
+        self.label.layout_ptr()
     }
 
     /// Draw the widget on the screen

@@ -8,9 +8,10 @@
 mod macros;
 
 mod align;
-mod button;
+// mod button;
 mod fps;
 mod frame;
+mod image;
 mod label;
 mod layout;
 mod panel;
@@ -27,9 +28,12 @@ mod widget;
 pub mod prelude {
     // Re-exports
     pub use macroquad::{
-        color::colors,
-        prelude::*,
+        color::*,
+        math::*,
+        shapes::*,
+        texture::Texture2D,
         ui::{hash, root_ui, widgets, Drag, Id, Skin, Style, Ui},
+        window::*,
     };
 
     // Export macros by name
@@ -37,9 +41,10 @@ pub mod prelude {
 
     // Export internal types
     pub use crate::align::*;
-    pub use crate::button::*;
+    // pub use crate::button::*;
     pub use crate::fps::*;
     pub use crate::frame::*;
+    pub use crate::image::*;
     pub use crate::label::*;
     pub use crate::layout::*;
     pub use crate::macros::*;

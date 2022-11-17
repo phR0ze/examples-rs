@@ -3,7 +3,7 @@ use specter::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
-        window_title: "panel image".to_string(),
+        window_title: "image".to_string(),
         window_width: 450,
         window_height: 800,
         high_dpi: true,
@@ -21,12 +21,19 @@ async fn main() {
         clear_background(WHITE);
         fps.show();
 
-        let res = Panel::new(id!())
-            .layout(|x| x.size_s(200., 50.).align(Align::Center))
-            .frame(|x| x.image(image.clone()).image_clk(image_clk.clone()))
+        let button = Image::new(id!(), image)
+            .layout(|x| x.size_s(200., 50.).align(Align::LeftTop).margins(20., 0., 100., 0.))
+            .image_clk(image_clk)
             .show();
-        if res.clicked {
-            println!("clicked");
+        if button.clicked {
+            println!("image clicked");
+        }
+
+        let button = Image::new(id!(), image)
+            .layout(|x| x.size_s(200., 50.).align(Align::LeftTop).margins(20., 0., 200., 0.))
+            .show();
+        if button.clicked {
+            println!("disabled");
         }
 
         next_frame().await

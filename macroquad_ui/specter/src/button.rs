@@ -30,7 +30,7 @@ impl ButtonBuilder {
     pub fn new() -> Self {
         let layout = Layout::horz("");
         let label = Label::new("").layout(|x| x.id(LABEL_ID));
-        layout.append(&label.layout_ref());
+        layout.append(&label.layout_ptr());
 
         Self {
             layout,

@@ -228,7 +228,7 @@ impl Label {
 
 impl Widget for Label {
     /// Returns a reference clone to the Widget's layout
-    fn layout_ref(&self) -> Layout {
+    fn layout_ptr(&self) -> Layout {
         self.conf.layout.ptr()
     }
 

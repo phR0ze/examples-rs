@@ -1,8 +1,10 @@
+//! Widgeet
+//!
 use crate::prelude::*;
 
 pub trait Widget {
     /// Returns a reference clone to the Widget's layout
-    fn layout_ref(&self) -> Layout;
+    fn layout_ptr(&self) -> Layout;
 
     /// Draw the widget on the screen
     fn show(&mut self) -> Response {
@@ -28,10 +30,10 @@ pub trait LayoutManager {
 #[cfg(test)]
 mod tests {
 
-    use super::*;
+    //use super::*;
 
     #[test]
-    fn test_widget() {
+    fn test() {
         //
     }
 }

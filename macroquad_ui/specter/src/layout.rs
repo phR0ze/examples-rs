@@ -304,6 +304,46 @@ impl Layout {
         self
     }
 
+    /// Space reserved outside the boundaries of the layout
+    pub fn margins_left(self, margin: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.margins = RectOffset::new(margin, 0., 0., 0.);
+        }
+        self
+    }
+
+    /// Space reserved outside the boundaries of the layout
+    pub fn margins_right(self, margin: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.margins = RectOffset::new(0., margin, 0., 0.);
+        }
+        self
+    }
+
+    /// Space reserved outside the boundaries of the layout
+    pub fn margins_top(self, margin: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.margins = RectOffset::new(0., 0., margin, 0.);
+        }
+        self
+    }
+
+    /// Space reserved outside the boundaries of the layout
+    pub fn margins_bottom(self, margin: f32) -> Self {
+        {
+            let inner = &mut *self.0.borrow_mut();
+            inner.dirty = true;
+            inner.margins = RectOffset::new(0., 0., 0., margin);
+        }
+        self
+    }
+
     /// Set layout packing mode
     /// * lays out sub-layouts using the given mode
     pub fn mode(self, mode: Mode) -> Self {
@@ -752,9 +792,9 @@ impl Layout {
         };
 
         // Extract layout values
-        let (mut size, align, offset, margins, mode) = {
+        let (mut size, align, offset, margins) = {
             let inner = self.0.borrow();
-            (inner.size, inner.align, inner.offset, inner.margins, inner.mode)
+            (inner.size, inner.align, inner.offset, inner.margins)
         };
 
         // Calculate position for alignment
