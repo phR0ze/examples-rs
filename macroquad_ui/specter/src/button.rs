@@ -52,6 +52,14 @@ impl Button {
         self.clone().id(id).label(|x| x.text(text))
     }
 
+    /// Set the widget's frame properties
+    pub fn frame(self, f: impl FnOnce(Frame) -> Frame) -> Self {
+        Self {
+            panel: self.panel.frame(f),
+            ..self
+        }
+    }
+
     /// Set the widget's id
     pub fn id<T: AsRef<str>>(self, id: T) -> Self {
         Self {
