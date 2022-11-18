@@ -5,6 +5,10 @@ pub struct Response {
     /// Widget id that generated this response
     pub id: String,
 
+    /// Toggles the clicked result
+    /// * this only works if your persisting the widget outside the game loop
+    pub activated: bool,
+
     /// Mouse clicked this widget i.e. mouse down then back up
     pub clicked: bool,
 

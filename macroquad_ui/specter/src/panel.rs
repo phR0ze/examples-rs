@@ -4,29 +4,53 @@
 //! * Layout management with nested child widget layout activation
 //! * Frame support for background images, colors and border manipulation
 //! * Capability to listen for user click interactions
+//! * Uses the background image's size when no size is calculated
+//!
+//! ### Background images
+//! Background images can be set via the underlying `Frame` which if no size is calculated for the
+//! panel will be used as the size of the panel. If a size is calculated based on content or
+//! manually set then that size will be used instead.
 //!
 //! ### Interactive
 //! Listening for user click interactions can be manually manipulated with the interact functions
 //! or if any interactive options are selected and interact hasn't been manually disabled it will be
-//! automatically enabled.
+//! automatically enabled. For example if a image is set for the click or hovered options and
+//! interact hasn't been explicitely disabled then it will be automatically enabled. The same is
+//! true for the color clicked and hovered options.
+use std::ops::Index;
+
 use crate::prelude::*;
 
 pub struct Panel {
     frame: Frame,                  // frame properties
     layout: Layout,                // layout properties
+    activated: bool,               // track clicks when in interactive mode
     interact: Option<bool>,        // enable/disable click intention activation
     interact_auto: bool,           // enable/disable click intention activation automatically
     widgets: Vec<Box<dyn Widget>>, // widgets to draw
 }
 
-/// Default implementation for Panel
 impl Default for Panel {
     fn default() -> Self {
         Self {
             frame: Frame::new(),
             layout: Layout::new(""),
+            activated: false,
             interact: None,
             interact_auto: false,
+            widgets: vec![],
+        }
+    }
+}
+
+impl Clone for Panel {
+    fn clone(&self) -> Self {
+        Self {
+            frame: self.frame.clone(),
+            layout: self.layout.clone(),
+            activated: self.activated,
+            interact: self.interact,
+            interact_auto: self.interact_auto,
             widgets: vec![],
         }
     }
@@ -102,6 +126,12 @@ impl Panel {
 
 // Utility functions
 impl Panel {
+    /// Returns true if this widget has been clicked to toggle it on
+    /// * only works when the widget is persisted outside the main loop
+    pub fn activated(&self) -> bool {
+        self.activated
+    }
+
     /// Returns true if the panel was configured to be interactive or not
     /// disabled and automatically determined to be interactive.
     pub fn interactive(&self) -> bool {
@@ -118,12 +148,22 @@ impl Panel {
         let mut context = ui.get_active_window_context();
 
         // Get panel position and size
-        let (pos, size) = self.layout.shape();
+        let (pos, mut size) = self.layout.shape();
+
+        // If panel size is zero use the background image's size if it exists
+        if size == Vec2::default() {
+            if let Some(image) = self.frame.image {
+                size = vec2(image.width(), image.height());
+            }
+        }
 
         // Register click intention for the panel
         let (hovered, clicked, mouse_down) = if self.interactive() {
             let rect = Rect::new(pos.x, pos.y, size.x as f32, size.y as f32);
             let (hovered, clicked) = context.register_click_intention(rect);
+            if clicked {
+                self.activated = !self.activated;
+            }
             (hovered, clicked, context.input.is_mouse_down())
         } else {
             (false, false, false)
@@ -167,6 +207,7 @@ impl Panel {
 
         Response {
             id: self.layout.get_id(),
+            activated: self.activated,
             clicked,
             hovered,
             mouse_down,
@@ -175,17 +216,13 @@ impl Panel {
     }
 }
 
-impl Clone for Panel {
-    fn clone(&self) -> Self {
-        Self {
-            frame: self.frame.clone(),
-            layout: self.layout.clone(),
-            interact: self.interact,
-            interact_auto: self.interact_auto,
-            widgets: vec![],
-        }
-    }
-}
+// impl Index<Panel> for Panel {
+//     type Output = dyn Widget;
+
+//     fn index(&self, panel: Panel) -> &Self::Output {
+//         &panel
+//     }
+// }
 
 impl LayoutManager for Panel {
     /// Add the given widget to this widget's layout management
@@ -223,7 +260,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_foo() {
+    fn widgets_ref() {
+        let vec = vec![Panel::new("0")];
+        let foo = &vec[0];
         assert_eq!(vec2(2., 2.), vec2(2., 2.));
     }
 }

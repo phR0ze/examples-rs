@@ -1,4 +1,6 @@
-//! Demonstrate frame properties
+//! Demonstrate image capabilities
+//! * button 1 demonstrates using the image's size directly
+//! * button 2 demonstrates using a custome size for the image
 use specter::prelude::*;
 
 fn main_conf() -> Conf {
@@ -21,19 +23,27 @@ async fn main() {
         clear_background(WHITE);
         fps.show();
 
-        let button = Image::new(id!(), image)
-            .layout(|x| x.size_s(200., 50.).align(Align::LeftTop).margins(20., 0., 100., 0.))
+        let button1 = Image::new(id!(), image)
+            .layout(|x| x.align(Align::LeftTop).margins(20., 0., 100., 0.))
             .image_clk(image_clk)
             .show();
-        if button.clicked {
-            println!("image clicked");
+        if button1.clicked {
+            println!("auto enabled because of clk background");
         }
 
-        let button = Image::new(id!(), image)
+        let button2 = Image::new(id!(), image)
             .layout(|x| x.size_s(200., 50.).align(Align::LeftTop).margins(20., 0., 200., 0.))
             .show();
-        if button.clicked {
+        if button2.clicked {
             println!("disabled");
+        }
+
+        let button3 = Image::new(id!(), image)
+            .layout(|x| x.align(Align::LeftTop).margins(20., 0., 300., 0.))
+            .image_hov(image_clk)
+            .show();
+        if button3.clicked {
+            println!("auto enabled because of hoverable background");
         }
 
         next_frame().await

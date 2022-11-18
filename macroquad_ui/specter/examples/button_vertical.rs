@@ -15,37 +15,28 @@ fn main_conf() -> Conf {
 async fn main() {
     let mut fps = Fps::dark();
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut btn1 = Button::icon(id!(), "Button1", icon).frame(|x| x.fill(GRAY));
-    let mut btn2 = Button::icon(id!(), "Button2", icon).frame(|x| x.fill(RED));
-    let mut btn3 = Button::icon(id!(), "Button3", icon).frame(|x| x.fill(BLUE));
-    let mut btn4 = Button::icon(id!(), "Button4", icon).frame(|x| x.fill(GREEN));
-    let mut btn5 = Button::icon(id!(), "Button5", icon).frame(|x| x.fill(ORANGE));
-    let mut btn6 = Button::icon(id!(), "Button6", icon).frame(|x| x.fill(YELLOW));
-    let mut btn7 = Button::icon(id!(), "Button7", icon).frame(|x| x.fill(BROWN));
-    let mut btn8 = Button::icon(id!(), "Button8", icon).frame(|x| x.fill(PURPLE));
-    let mut btn9 = Button::icon(id!(), "Button9", icon).frame(|x| x.fill(PINK));
+
+    let spacing = 10.;
+    let mut panel = Panel::vert(id!())
+        .layout(|x| x.spacing(spacing).padding_all(20.).margins(0., 0., 50., 0.))
+        .add(Button::icon(id!(), "Button1", icon).frame(|x| x.fill(DARKGRAY)))
+        .add(Button::icon(id!(), "Button2", icon).frame(|x| x.fill(RED)))
+        .add(Button::icon(id!(), "Button3", icon).frame(|x| x.fill(BLUE)))
+        .add(Button::icon(id!(), "Button4", icon).frame(|x| x.fill(GREEN)))
+        .add(Button::icon(id!(), "Button5", icon).frame(|x| x.fill(ORANGE)))
+        .add(Button::icon(id!(), "Button6", icon).frame(|x| x.fill(YELLOW)))
+        .add(Button::icon(id!(), "Button7", icon).frame(|x| x.fill(BROWN)))
+        .add(Button::icon(id!(), "Button8", icon).frame(|x| x.fill(PURPLE)))
+        .add(Button::icon(id!(), "Button9", icon).frame(|x| x.fill(PINK)));
     loop {
         clear_background(BLACK);
         fps.show();
+        let res = panel.show();
 
-        let spacing = 10.;
-        Panel::vert(id!())
-            .layout(|x| x.size_p(0.75, 1.0).spacing(spacing).margins(0., 0., 50., 0.))
-            .add(btn1)
-            .add(btn2)
-            .add(btn3)
-            .add(btn4)
-            .add(btn5)
-            .add(btn6)
-            .add(btn7)
-            .add(btn8)
-            .add(btn9)
-            .show();
-
-        // if btn1.activated() {
-        //     let (pos, _) = btn1.shape();
-        //     draw_text("button1", pos.x + 350., pos.y + 30., 30., GRAY)
-        // }
+        if res.responses[0].activated {
+            //let (pos, _) = panel[0].shape();
+            //draw_text("button1", pos.x + 350., pos.y + 30., 30., GRAY)
+        }
         // if btn2.activated() {
         //     let (pos, _) = btn2.shape();
         //     draw_text("button2", pos.x + 350., pos.y + 30., 30., RED)

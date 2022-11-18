@@ -1,3 +1,8 @@
+//! Image widget is composed from the Panel widget
+//!
+//! ## Features
+//! * Calculated sizing and positioning relative to containing widget
+//! * Image, clicked image and hovered image options
 use crate::prelude::*;
 
 #[derive(Clone)]
@@ -5,7 +10,6 @@ pub struct Image {
     panel: Panel, // underlying panel
 }
 
-/// Default implementation for Image
 impl Default for Image {
     fn default() -> Self {
         Self {

@@ -6,6 +6,11 @@ pub trait Widget {
     /// Returns a reference clone to the Widget's layout
     fn layout_ptr(&self) -> Layout;
 
+    /// Get the widget's shape as a (position, size) tuple
+    fn shape(&self) -> (Vec2, Vec2) {
+        self.layout_ptr().shape()
+    }
+
     /// Draw the widget on the screen
     fn show(&mut self) -> Response {
         self.show_p(&mut *root_ui())

@@ -1,10 +1,10 @@
-//! Button widget provides:
-//! * Border color for regular, clicked and hovered states
-//! * Label positioning and sizing inside the button
-//! * Icon support with positioning and sizing inside button
-//! * Button activated toggle
+//! Button widget is composed of a Panel, Label and optional Image widgets.
+//!
+//! ## Features
+//! * Independent Label and Image positioning and sizing inside the button panel
+//! * Button activated toggle and clicked persistent tracking
 //! * Calculated sizing and positioning relative to containing widget
-//! * Builder for reusable layout but also direct modification
+//! * `build` function for reusable layout templating
 use crate::prelude::*;
 
 const ICON_ID: &'static str = "icon";

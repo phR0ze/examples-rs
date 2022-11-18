@@ -98,24 +98,18 @@ impl Label {
     }
 }
 
-// Getters
+// Utility functions
 impl Label {
     /// Get the widget's text value
     pub fn get_text(&self) -> &str {
         &self.text
     }
-}
 
-// Setters
-impl Label {
     /// Set the widget's text value
     pub fn set_text<T: AsRef<str>>(&mut self, text: T) {
         self.text = text.as_ref().to_string();
     }
-}
 
-// Utility functions
-impl Label {
     /// Make layout, styling and shape calculation updates in prepartion for showing
     /// * Note: will be called automatically in most cases. Only useful to call when composing
     /// other widgets from this widget
