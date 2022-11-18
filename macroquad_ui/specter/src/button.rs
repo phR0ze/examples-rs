@@ -13,7 +13,6 @@ const LABEL_ID: &'static str = "label";
 /// Button encapsulates and extends Macroquad's button
 #[derive(Clone)]
 pub struct Button {
-    dirty: bool,          // track if the widget needs styling and shape calculation updates
     clicked: bool,        // track button clicked state
     activated: bool,      // track button activation i.e. odd clicks
     panel: Panel,         // underlying panel
@@ -23,12 +22,15 @@ pub struct Button {
 
 impl Default for Button {
     fn default() -> Self {
+        let label = Label::default().layout(|x| x.id(LABEL_ID).align(Align::Center).margins(5., 10., 6., 5.));
+        let panel = Panel::default().layout(|x| x.mode(Mode::LeftToRight)).interact();
+        panel.layout_ptr().append(&label.layout_ptr());
+
         Self {
-            dirty: true,
             clicked: false,
             activated: false,
-            panel: Panel::default(),
-            label: Label::default(),
+            panel,
+            label,
             image: None,
         }
     }
@@ -70,9 +72,12 @@ impl Button {
 
     /// Set the widget's image properties
     pub fn image<F: FnOnce(Image) -> Image>(self, f: F) -> Self {
+        let image =
+            self.image.unwrap_or_default().layout(|x| x.id(ICON_ID).align(Align::Center).margins(10., 5., 0., 0.));
+        self.panel.layout_ptr().prepend(&image.layout_ptr());
+
         Self {
-            dirty: true,
-            image: Some(f(self.image.unwrap_or_default())),
+            image: Some(f(image)),
             ..self
         }
     }
@@ -80,7 +85,6 @@ impl Button {
     /// Set the widget's label properties
     pub fn label<F: FnOnce(Label) -> Label>(self, f: F) -> Self {
         Self {
-            dirty: true,
             label: f(self.label),
             ..self
         }
@@ -89,7 +93,6 @@ impl Button {
     /// Set the widget's layout properties
     pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
-            dirty: true,
             panel: self.panel.layout(f),
             ..self
         }
@@ -109,8 +112,14 @@ impl Button {
 
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
-    fn ui(&mut self, ui: &mut Ui) -> Response {
+    pub fn ui(&mut self, ui: &mut Ui) -> Response {
         self.clicked = false; // reset clicked
+
+        // Make pre-calculations which will impact panel size
+        let size = self.label.pre_calc(ui);
+        if let Some(image) = &self.image {
+            image.layout_ptr().set_size(size.y, size.y);
+        }
 
         // Draw button panel
         let response = self.panel.ui(ui);
@@ -119,14 +128,13 @@ impl Button {
             self.clicked = true;
         }
 
-        // // Draw icon
-        // if let Some(icon) = &self.conf.icon {
-        //     let (icon_pos, icon_size) = self.conf.layout.sub_shape(ICON_ID).unwrap();
-        //     widgets::Texture::new(*icon).size(icon_size.x, icon_size.y).position(icon_pos).ui(ui);
-        // }
+        // Draw label
+        self.label.show_p(ui);
 
-        // // Draw label
-        // self.conf.label.show_p(ui);
+        // Draw icon
+        if let Some(image) = &mut self.image {
+            image.show_p(ui);
+        }
 
         // self.clicked
         response

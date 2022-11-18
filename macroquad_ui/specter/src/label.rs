@@ -5,7 +5,6 @@ use crate::prelude::*;
 
 #[derive(Debug, Clone)]
 pub struct Label {
-    dirty: bool,                 // track if a skin update is needed
     skin: Option<Skin>,          // skin to use
     text: String,                // actual text to display
     layout: Layout,              // layout
@@ -19,7 +18,6 @@ pub struct Label {
 impl Default for Label {
     fn default() -> Self {
         Self {
-            dirty: true,
             skin: None,
             text: "".to_string(),
             layout: Layout::new(""),
@@ -53,36 +51,23 @@ impl Label {
 
     /// Set font to use
     pub fn font(self, font: Option<&'static [u8]>) -> Self {
-        Self {
-            dirty: true,
-            font,
-            ..self
-        }
+        Self { font, ..self }
     }
 
     /// Set font size to use for the button label
     /// * handles scaling for mobile
     pub fn size(self, size: f32) -> Self {
-        Self {
-            dirty: true,
-            size,
-            ..self
-        }
+        Self { size, ..self }
     }
 
     /// Set font color to use
     pub fn color(self, color: Color) -> Self {
-        Self {
-            dirty: true,
-            color,
-            ..self
-        }
+        Self { color, ..self }
     }
 
     /// Set font color to use when clicked
     pub fn color_clk(self, color: Color) -> Self {
         Self {
-            dirty: true,
             color_clk: Some(color),
             ..self
         }
@@ -91,7 +76,6 @@ impl Label {
     /// Set font color to use when hovered
     pub fn color_hov(self, color: Color) -> Self {
         Self {
-            dirty: true,
             color_hov: Some(color),
             ..self
         }
@@ -100,7 +84,6 @@ impl Label {
     /// Set the widget's layout properties
     pub fn layout<F: FnOnce(Layout) -> Layout>(self, f: F) -> Self {
         Self {
-            dirty: true,
             layout: f(self.layout),
             ..self
         }
@@ -109,7 +92,6 @@ impl Label {
     /// Set the widget's text value
     pub fn text<T: AsRef<str>>(self, text: T) -> Self {
         Self {
-            dirty: true,
             text: text.as_ref().to_string(),
             ..self
         }
@@ -128,7 +110,6 @@ impl Label {
 impl Label {
     /// Set the widget's text value
     pub fn set_text<T: AsRef<str>>(&mut self, text: T) {
-        self.dirty = true;
         self.text = text.as_ref().to_string();
     }
 }
@@ -138,33 +119,24 @@ impl Label {
     /// Make layout, styling and shape calculation updates in prepartion for showing
     /// * Note: will be called automatically in most cases. Only useful to call when composing
     /// other widgets from this widget
-    pub fn ui(&mut self, ui: &mut Ui) {
-        if !self.dirty {
-            return;
-        }
+    pub fn pre_calc(&mut self, ui: &mut Ui) -> Vec2 {
+        // Create skin
         let mut style = ui.style_builder().text_color(self.color).font_size(self.size as u16);
-        if let Some(color) = self.color_clk {
-            style = style.text_color_clicked(color);
-        }
-        if let Some(color) = self.color_hov {
-            style = style.text_color_hovered(color);
-        }
         if let Some(font) = self.font {
             style = style.font(font).unwrap();
         }
         let label_style = style.build();
-
-        // Create the skin based on the two override styles
         let skin = Skin {
             label_style,
             ..ui.default_skin()
         };
 
-        // Calculate text size and include margin
+        // Calculate text size
         let size = text_size(ui, &skin, Some(&self.text));
         self.layout.set_size(size.x, size.y);
         self.skin = Some(skin);
-        self.dirty = false;
+
+        size
     }
 }
 
@@ -177,7 +149,7 @@ impl Widget for Label {
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
     fn show_p(&mut self, ui: &mut Ui) -> Response {
-        self.ui(ui);
+        self.pre_calc(ui);
         ui.push_skin(self.skin.as_ref().unwrap());
         let (pos, size) = self.layout.shape();
         widgets::Label::new(self.text.as_str()).size(size).position(pos).ui(ui);

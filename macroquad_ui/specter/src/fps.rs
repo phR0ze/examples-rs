@@ -59,7 +59,7 @@ impl Widget for Fps {
     /// Draw the widget on the screen
     /// * `ui` is the Macroquad Ui engine
     fn show_p(&mut self, ui: &mut Ui) -> Response {
-        self.label.ui(ui);
+        self.label.pre_calc(ui);
         let response = Response::default();
 
         // Calculate fps averaging over last 10sec
