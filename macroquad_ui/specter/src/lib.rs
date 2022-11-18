@@ -8,7 +8,7 @@
 mod macros;
 
 mod align;
-// mod button;
+mod button;
 mod fps;
 mod frame;
 mod image;
@@ -41,7 +41,7 @@ pub mod prelude {
 
     // Export internal types
     pub use crate::align::*;
-    // pub use crate::button::*;
+    pub use crate::button::*;
     pub use crate::fps::*;
     pub use crate::frame::*;
     pub use crate::image::*;

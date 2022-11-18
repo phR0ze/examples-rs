@@ -21,7 +21,7 @@ async fn main() {
         Panel::new(id!())
             .layout(|x| x.size_s(100., 100.).align(Align::Center))
             .frame(|x| x.fill(GRAY))
-            .add(Label::new("Test").layout(|x| x.align(Align::Center)))
+            .add(Label::new(id!(), "Test").layout(|x| x.align(Align::Center)))
             .show();
 
         next_frame().await

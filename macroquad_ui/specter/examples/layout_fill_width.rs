@@ -16,7 +16,7 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let builder = PanelBuilder::new().layout(|x| x.size_s(100., 100.)).frame(|x| x.fill(GRAY));
+    let builder = Panel::default().layout(|x| x.size_s(100., 100.)).frame(|x| x.fill(GRAY));
 
     loop {
         clear_background(WHITE);

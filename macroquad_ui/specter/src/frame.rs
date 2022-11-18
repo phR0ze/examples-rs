@@ -18,18 +18,25 @@ pub struct Frame {
     pub image_hov: Option<Texture2D>, // background image to use when hovered
 }
 
-// Constructors and builders
-impl Frame {
-    pub fn new() -> Self {
+/// Default implementation for Frame
+impl Default for Frame {
+    fn default() -> Self {
         Frame {
             interact: false,
-            fill: Some(GRAY),
+            fill: None,
             fill_clk: None,
             fill_hov: None,
             image: None,
             image_clk: None,
             image_hov: None,
         }
+    }
+}
+
+// Constructors and builders
+impl Frame {
+    pub fn new() -> Self {
+        Self::default().fill(GRAY)
     }
 
     /// Set the fill color

@@ -18,7 +18,7 @@ fn main_conf() -> Conf {
 #[macroquad::main(main_conf)]
 async fn main() {
     let mut fps = Fps::new().layout(|x| x.align(Align::LeftBottom).margins_all(5.));
-    let builder = PanelBuilder::new().layout(|x| x.size_s(100., 100.).margins_all(10.)).frame(|x| x.fill(GRAY));
+    let builder = Panel::default().layout(|x| x.size_s(100., 100.).margins_all(10.)).frame(|x| x.fill(GRAY));
 
     loop {
         clear_background(WHITE);

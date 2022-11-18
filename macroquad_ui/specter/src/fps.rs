@@ -19,7 +19,7 @@ impl Fps {
             fps: 0,
             frames: 0,
             start: Instant::now(),
-            label: Label::new("").id(FPS_ID).color(BLACK).layout(|x| x.margins(10., 0., 0., 0.)),
+            label: Label::new(FPS_ID, "").color(BLACK).layout(|x| x.margins(10., 0., 0., 0.)),
         }
     }
 

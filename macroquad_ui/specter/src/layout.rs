@@ -119,7 +119,7 @@ struct LayoutInner {
 pub struct Layout(SharedLayout);
 
 impl Clone for Layout {
-    /// Clone this layout not just the reference counter
+    /// Clone this layout not just the reference counter pointer
     /// * sub-layouts will be deep copies and NOT references of the originals
     /// * sub-layout parent references will be updated to point to new clones
     /// * all cloned layouts will be marked to perform `update_size_and_offset`

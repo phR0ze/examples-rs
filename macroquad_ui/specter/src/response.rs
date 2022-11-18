@@ -5,11 +5,14 @@ pub struct Response {
     /// Widget id that generated this response
     pub id: String,
 
-    /// Mouse clicked this widget
+    /// Mouse clicked this widget i.e. mouse down then back up
     pub clicked: bool,
 
     /// Mouse is hovering over the widget
     pub hovered: bool,
+
+    /// Mouse is in a click down but not yet back up state
+    pub mouse_down: bool,
 
     /// Responses gathered from child widgets
     pub responses: Vec<Response>,
