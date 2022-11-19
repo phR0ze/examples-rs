@@ -89,24 +89,20 @@ impl Image {
     }
 }
 
-impl LayoutManager for Image {
-    /// Add the given widget to this widget's layout management
-    /// * similar to `append` but consumes and returns self
-    fn add(mut self, widget: impl Widget + 'static) -> Self {
-        self.append(widget);
+impl Widget for Image {
+    /// Cast the concreate type as an any
+    fn as_any(&self) -> &dyn Any {
         self
     }
 
-    /// Add the given widget to this widget's layout management
-    fn append(&mut self, widget: impl Widget + 'static) {
-        self.panel.append(widget);
+    /// Get widget's frame
+    fn get_frame(&self) -> &Frame {
+        &self.panel.get_frame()
     }
-}
 
-impl Widget for Image {
     /// Returns a reference clone to the Widget's layout
-    fn layout_ptr(&self) -> Layout {
-        self.panel.layout_ptr()
+    fn get_layout(&self) -> Layout {
+        self.panel.get_layout()
     }
 
     /// Draw the widget on the screen

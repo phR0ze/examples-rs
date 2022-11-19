@@ -211,7 +211,7 @@ impl Panel {
             clicked,
             hovered,
             mouse_down,
-            responses,
+            items: responses,
         }
     }
 }
@@ -234,14 +234,29 @@ impl LayoutManager for Panel {
 
     /// Add the given widget to this widget's layout management
     fn append(&mut self, widget: impl Widget + 'static) {
-        self.layout.append(&widget.layout_ptr());
+        self.layout.append(&widget.get_layout());
         self.widgets.push(Box::new(widget));
+    }
+
+    /// Get a reference to the widget by id
+    fn get<T: AsRef<str>>(&self, id: T) -> Option<&Box<dyn Widget>> {
+        self.widgets.iter().find(|x| x.get_id() == id.as_ref().to_string())
     }
 }
 
 impl Widget for Panel {
+    /// Cast the concreate type as an any
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    /// Get widget's frame
+    fn get_frame(&self) -> &Frame {
+        &self.frame
+    }
+
     /// Returns a reference clone to the Widget's layout
-    fn layout_ptr(&self) -> Layout {
+    fn get_layout(&self) -> Layout {
         self.layout.ptr()
     }
 
@@ -263,6 +278,5 @@ mod tests {
     fn widgets_ref() {
         let vec = vec![Panel::new("0")];
         let foo = &vec[0];
-        assert_eq!(vec2(2., 2.), vec2(2., 2.));
     }
 }

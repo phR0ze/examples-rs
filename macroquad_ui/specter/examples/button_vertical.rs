@@ -19,56 +19,27 @@ async fn main() {
     let spacing = 10.;
     let mut panel = Panel::vert(id!())
         .layout(|x| x.spacing(spacing).padding_all(20.).margins(0., 0., 50., 0.))
-        .add(Button::icon(id!(), "Button1", icon).frame(|x| x.fill(DARKGRAY)))
-        .add(Button::icon(id!(), "Button2", icon).frame(|x| x.fill(RED)))
-        .add(Button::icon(id!(), "Button3", icon).frame(|x| x.fill(BLUE)))
-        .add(Button::icon(id!(), "Button4", icon).frame(|x| x.fill(GREEN)))
-        .add(Button::icon(id!(), "Button5", icon).frame(|x| x.fill(ORANGE)))
-        .add(Button::icon(id!(), "Button6", icon).frame(|x| x.fill(YELLOW)))
-        .add(Button::icon(id!(), "Button7", icon).frame(|x| x.fill(BROWN)))
-        .add(Button::icon(id!(), "Button8", icon).frame(|x| x.fill(PURPLE)))
-        .add(Button::icon(id!(), "Button9", icon).frame(|x| x.fill(PINK)));
+        .add(Button::icon("Button1", "Button1", icon).frame(|x| x.fill(DARKGRAY)))
+        .add(Button::icon("Button2", "Button2", icon).frame(|x| x.fill(RED)))
+        .add(Button::icon("Button3", "Button3", icon).frame(|x| x.fill(BLUE)))
+        .add(Button::icon("Button4", "Button4", icon).frame(|x| x.fill(GREEN)))
+        .add(Button::icon("Button5", "Button5", icon).frame(|x| x.fill(ORANGE)))
+        .add(Button::icon("Button6", "Button6", icon).frame(|x| x.fill(YELLOW)))
+        .add(Button::icon("Button7", "Button7", icon).frame(|x| x.fill(BROWN)))
+        .add(Button::icon("Button8", "Button8", icon).frame(|x| x.fill(PURPLE)))
+        .add(Button::icon("Button9", "Button9", icon).frame(|x| x.fill(PINK)));
     loop {
         clear_background(BLACK);
         fps.show();
         let res = panel.show();
 
-        if res.responses[0].activated {
-            //let (pos, _) = panel[0].shape();
-            //draw_text("button1", pos.x + 350., pos.y + 30., 30., GRAY)
+        for x in res.items.iter() {
+            if x.activated {
+                let widget = panel.get(&x.id).unwrap();
+                let (pos, _) = widget.shape();
+                draw_text(&x.id, pos.x + 320., pos.y + 27., 30., GRAY);
+            }
         }
-        // if btn2.activated() {
-        //     let (pos, _) = btn2.shape();
-        //     draw_text("button2", pos.x + 350., pos.y + 30., 30., RED)
-        // }
-        // if btn3.activated() {
-        //     let (pos, _) = btn3.shape();
-        //     draw_text("button3", pos.x + 350., pos.y + 30., 30., BLUE)
-        // }
-        // if btn4.activated() {
-        //     let (pos, _) = btn4.shape();
-        //     draw_text("button4", pos.x + 350., pos.y + 30., 30., GREEN)
-        // }
-        // if btn5.activated() {
-        //     let (pos, _) = btn5.shape();
-        //     draw_text("button5", pos.x + 350., pos.y + 30., 30., ORANGE)
-        // }
-        // if btn6.activated() {
-        //     let (pos, _) = btn6.shape();
-        //     draw_text("button6", pos.x + 350., pos.y + 30., 30., YELLOW)
-        // }
-        // if btn7.activated() {
-        //     let (pos, _) = btn7.shape();
-        //     draw_text("button7", pos.x + 350., pos.y + 30., 30., BROWN)
-        // }
-        // if btn8.activated() {
-        //     let (pos, _) = btn8.shape();
-        //     draw_text("button8", pos.x + 350., pos.y + 30., 30., PURPLE)
-        // }
-        // if btn9.activated() {
-        //     let (pos, _) = btn9.shape();
-        //     draw_text("button9", pos.x + 350., pos.y + 30., 30., PINK)
-        // }
         next_frame().await
     }
 }

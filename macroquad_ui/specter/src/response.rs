@@ -19,7 +19,7 @@ pub struct Response {
     pub mouse_down: bool,
 
     /// Responses gathered from child widgets
-    pub responses: Vec<Response>,
+    pub items: Vec<Response>,
 }
 
 // Unit tests

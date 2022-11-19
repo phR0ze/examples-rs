@@ -30,11 +30,13 @@ pub mod prelude {
     pub use macroquad::{
         color::*,
         math::*,
+        prelude::draw_text,
         shapes::*,
         texture::Texture2D,
         ui::{hash, root_ui, widgets, Drag, Id, Skin, Style, Ui},
         window::*,
     };
+    pub use std::any::Any;
 
     // Export macros by name
     pub use crate::id;

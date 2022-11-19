@@ -3,7 +3,7 @@
 //! * Builder for reusable layout but also direct modification
 use crate::prelude::*;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Label {
     skin: Option<Skin>,          // skin to use
     text: String,                // actual text to display
@@ -13,6 +13,7 @@ pub struct Label {
     color: Color,                // font color to use for label
     color_clk: Option<Color>,    // font color to use for label when clicked
     color_hov: Option<Color>,    // font color to use for label when hovered
+    panel: Panel,                // panel for background colors
 }
 
 impl Default for Label {
@@ -26,6 +27,7 @@ impl Default for Label {
             color: colors::BLACK,
             color_clk: None,
             color_hov: None,
+            panel: Panel::default().frame(|x| x.no_fill()),
         }
     }
 }
@@ -135,8 +137,18 @@ impl Label {
 }
 
 impl Widget for Label {
+    /// Cast the concreate type as an any
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    /// Get widget's frame
+    fn get_frame(&self) -> &Frame {
+        &self.panel.get_frame()
+    }
+
     /// Returns a reference clone to the Widget's layout
-    fn layout_ptr(&self) -> Layout {
+    fn get_layout(&self) -> Layout {
         self.layout.ptr()
     }
 

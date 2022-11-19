@@ -2,13 +2,24 @@
 //!
 use crate::prelude::*;
 
-pub trait Widget {
+pub trait Widget: Any {
+    /// Cast the concreate type as an any
+    fn as_any(&self) -> &dyn Any;
+
+    /// Get widget id
+    fn get_id(&self) -> String {
+        self.get_layout().get_id()
+    }
+
+    /// Get widget's frame
+    fn get_frame(&self) -> &Frame;
+
     /// Returns a reference clone to the Widget's layout
-    fn layout_ptr(&self) -> Layout;
+    fn get_layout(&self) -> Layout;
 
     /// Get the widget's shape as a (position, size) tuple
     fn shape(&self) -> (Vec2, Vec2) {
-        self.layout_ptr().shape()
+        self.get_layout().shape()
     }
 
     /// Draw the widget on the screen
@@ -28,6 +39,9 @@ pub trait LayoutManager {
 
     /// Add the given widget to this widget's layout management
     fn append(&mut self, widget: impl Widget + 'static);
+
+    /// Get a reference to the widget by id
+    fn get<T: AsRef<str>>(&self, id: T) -> Option<&Box<dyn Widget>>;
 }
 
 // Unit tests

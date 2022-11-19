@@ -24,7 +24,7 @@ impl Default for Button {
     fn default() -> Self {
         let label = Label::default().layout(|x| x.id(LABEL_ID).align(Align::Center).margins(5., 10., 6., 5.));
         let panel = Panel::default().layout(|x| x.mode(Mode::LeftToRight)).interact();
-        panel.layout_ptr().append(&label.layout_ptr());
+        panel.get_layout().append(&label.get_layout());
 
         Self {
             clicked: false,
@@ -74,7 +74,7 @@ impl Button {
     pub fn image<F: FnOnce(Image) -> Image>(self, f: F) -> Self {
         let image =
             self.image.unwrap_or_default().layout(|x| x.id(ICON_ID).align(Align::Center).margins(10., 5., 0., 0.));
-        self.panel.layout_ptr().prepend(&image.layout_ptr());
+        self.panel.get_layout().prepend(&image.get_layout());
 
         Self {
             image: Some(f(image)),
@@ -118,7 +118,7 @@ impl Button {
         // Make pre-calculations which will impact panel size
         let size = self.label.pre_calc(ui);
         if let Some(image) = &self.image {
-            image.layout_ptr().set_size(size.y, size.y);
+            image.get_layout().set_size(size.y, size.y);
         }
 
         // Draw button panel
@@ -142,9 +142,19 @@ impl Button {
 }
 
 impl Widget for Button {
+    /// Cast the concreate type as an any
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    /// Get widget's frame
+    fn get_frame(&self) -> &Frame {
+        &self.panel.get_frame()
+    }
+
     /// Returns a reference clone to the Widget's layout
-    fn layout_ptr(&self) -> Layout {
-        self.panel.layout_ptr()
+    fn get_layout(&self) -> Layout {
+        self.panel.get_layout()
     }
 
     /// Draw the widget on the screen

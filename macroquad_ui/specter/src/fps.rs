@@ -51,9 +51,19 @@ impl Fps {
 }
 
 impl Widget for Fps {
+    /// Cast the concreate type as an any
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    /// Get widget's frame
+    fn get_frame(&self) -> &Frame {
+        &self.label.get_frame()
+    }
+
     /// Returns a reference clone to the Widget's layout
-    fn layout_ptr(&self) -> Layout {
-        self.label.layout_ptr()
+    fn get_layout(&self) -> Layout {
+        self.label.get_layout()
     }
 
     /// Draw the widget on the screen

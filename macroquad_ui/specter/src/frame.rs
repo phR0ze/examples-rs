@@ -90,6 +90,55 @@ impl Frame {
             ..self
         }
     }
+
+    /// Remove the fill color
+    pub fn no_fill(self) -> Self {
+        Self { fill: None, ..self }
+    }
+
+    /// Remove the fill color when clicked
+    pub fn no_fill_clk(self) -> Self {
+        Self {
+            interact: self.image_clk.is_some() || self.image_hov.is_some() || self.fill_hov.is_some(),
+            fill_clk: None,
+            ..self
+        }
+    }
+
+    /// Remove the fill color when hovered
+    pub fn no_fill_hov(self) -> Self {
+        Self {
+            interact: self.image_clk.is_some() || self.image_hov.is_some() || self.fill_clk.is_some(),
+            fill_hov: None,
+            ..self
+        }
+    }
+
+    /// Remove background image to use
+    pub fn no_image(self) -> Self {
+        Self {
+            image: None,
+            ..self
+        }
+    }
+
+    /// Remove background image to use
+    pub fn no_image_clk(self) -> Self {
+        Self {
+            interact: self.image_hov.is_some() || self.fill_hov.is_some() || self.fill_clk.is_some(),
+            image_clk: None,
+            ..self
+        }
+    }
+
+    /// Remove background image to use
+    pub fn no_image_hov(self) -> Self {
+        Self {
+            interact: self.image_clk.is_some() || self.fill_hov.is_some() || self.fill_clk.is_some(),
+            image_hov: None,
+            ..self
+        }
+    }
 }
 
 // Utility functions
@@ -111,10 +160,17 @@ impl Frame {
 #[cfg(test)]
 mod tests {
 
-    //use super::*;
+    use super::*;
 
     #[test]
-    fn test() {
-        //
+    fn interact() {
+        let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
+
+        // Enabling
+        // assert_eq!(Frame::new().interact, false);
+        // assert_eq!(Frame::new().fill_clk(BLACK).interact, true);
+        // assert_eq!(Frame::new().fill_hov(BLACK).interact, true);
+        // assert_eq!(Frame::new().image_clk(icon.clone()).interact, true);
+        // assert_eq!(Frame::new().image_hov(icon.clone()).interact, true);
     }
 }
