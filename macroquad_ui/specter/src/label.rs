@@ -142,6 +142,11 @@ impl Widget for Label {
         self
     }
 
+    /// Cast the concreate type as an any
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
     /// Get widget's frame
     fn get_frame(&self) -> &Frame {
         &self.panel.get_frame()

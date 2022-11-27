@@ -1031,6 +1031,8 @@ mod tests {
         assert_eq!(layout1.shape(), (vec2(10., 10.), vec2(100., 780.)));
         assert_eq!(layout2.shape(), (vec2(120., 10.), vec2(100., 780.)));
         assert_eq!(layout3.shape(), (vec2(230., 10.), vec2(150., 780.)));
+
+        // Constrain size with size_p(0.65, 0.85)
     }
 
     #[test]

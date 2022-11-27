@@ -242,11 +242,24 @@ impl LayoutManager for Panel {
     fn get<T: AsRef<str>>(&self, id: T) -> Option<&Box<dyn Widget>> {
         self.widgets.iter().find(|x| x.get_id() == id.as_ref().to_string())
     }
+
+    /// Get a reference to the widget by id as the given type
+    fn get_as<T: Any>(&self, id: &str) -> Option<&T> {
+        match self.widgets.iter().find(|x| x.get_id() == id) {
+            Some(x) => x.as_any().downcast_ref::<T>(),
+            None => None,
+        }
+    }
 }
 
 impl Widget for Panel {
     /// Cast the concreate type as an any
     fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    /// Cast the concreate type as an any
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 

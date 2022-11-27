@@ -35,9 +35,9 @@ async fn main() {
 
         for x in res.items.iter() {
             if x.activated {
-                let widget = panel.get(&x.id).unwrap();
+                let widget = panel.get_as::<Button>(&x.id).unwrap();
                 let (pos, _) = widget.shape();
-                draw_text(&x.id, pos.x + 320., pos.y + 27., 30., GRAY);
+                draw_text(&x.id, pos.x + 320., pos.y + 27., 30., widget.get_frame().fill.unwrap());
             }
         }
         next_frame().await

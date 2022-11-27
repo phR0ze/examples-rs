@@ -1,10 +1,20 @@
 //! Widgeet
 //!
+use std::any::TypeId;
+
 use crate::prelude::*;
 
 pub trait Widget: Any {
     /// Cast the concreate type as an any
     fn as_any(&self) -> &dyn Any;
+
+    /// Cast the concreate type as an any
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+
+    /// Return the underlying widget type
+    fn type_id(&self) -> TypeId {
+        TypeId::of::<Self>()
+    }
 
     /// Get widget id
     fn get_id(&self) -> String {
@@ -42,6 +52,9 @@ pub trait LayoutManager {
 
     /// Get a reference to the widget by id
     fn get<T: AsRef<str>>(&self, id: T) -> Option<&Box<dyn Widget>>;
+
+    /// Get a reference to the widget by id as the given type
+    fn get_as<T: Any>(&self, id: &str) -> Option<&T>;
 }
 
 // Unit tests
