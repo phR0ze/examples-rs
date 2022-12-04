@@ -1,10 +1,10 @@
-//! Demonstrating widget alignment to parent and sub-layout alignment with labels in a button
-//! * Also includes the usage of margins with alignment for relative adjustments
+//! Demonstrating button alignment
+//! * Align examples of the 10 permutations
 use specter::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
-        window_title: "button_align".to_string(),
+        window_title: "button align".to_string(),
         window_width: 450,
         window_height: 800,
         high_dpi: true,
@@ -14,56 +14,37 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
-    let builder =
-        ButtonBuilder::new().fill(GRAY).label_size(20.).layout(|x| x.mode(Mode::Align).size_s(130., 50.));
+    let mut fps = Fps::dark().layout(|x| x.align(Align::Center).margins(0., 0., 100., 0.));
+    let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
 
     loop {
-        clear_background(BLACK);
+        clear_background(WHITE);
 
-        builder
-            .build("Left Top")
-            .layout(|x| x.align(Align::LeftTop).margins(5., 0., 5., 0.).padding(5., 0., 5., 0.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Center Top")
-            .layout(|x| x.align(Align::CenterTop).margins(0., 0., 5., 0.))
-            .label_layout(|x| x.align(Align::CenterTop).margins(5., 0., 5., 0.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Right Top")
-            .layout(|x| x.align(Align::RightTop).margins(0., 5., 5., 0.))
-            .label_layout(|x| x.align(Align::RightTop).margins(0., 5., 5., 0.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Left Center")
-            .layout(|x| x.align(Align::LeftCenter).margins(10., 5., 0., 0.))
-            .label_layout(|x| x.align(Align::LeftCenter).margins(10., 5., 0., 0.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Center")
-            .layout(|x| x.align(Align::Center))
-            .label_layout(|x| x.align(Align::Center))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Right Center")
-            .layout(|x| x.align(Align::RightCenter).margins(0., 5., 0., 0.))
-            .label_layout(|x| x.align(Align::RightCenter).margins(0., 5., 0., 0.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Left Bottom")
-            .layout(|x| x.align(Align::LeftBottom).margins(5., 0., 0., 5.))
-            .label_layout(|x| x.align(Align::LeftBottom).margins(5., 0., 0., 5.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Bottom Center")
-            .layout(|x| x.align(Align::CenterBottom).margins(0., 0., 0., 5.))
-            .label_layout(|x| x.align(Align::CenterBottom).margins(0., 0., 0., 5.))
-            .show(&mut *root_ui(), None);
-        builder
-            .build("Right Bottom")
-            .layout(|x| x.align(Align::RightBottom).margins(0., 5., 0., 5.))
-            .label_layout(|x| x.align(Align::RightBottom).margins(0., 5., 0., 5.))
-            .show(&mut *root_ui(), None);
+        let mut p1 =
+            Panel::new("p1").layout(|x| x.size_f().padding_all(30.).margins_all(10.)).frame(|x| x.fill(BLACK));
+
+        let align = vec![
+            Align::Center,
+            Align::CenterBottom,
+            Align::CenterTop,
+            Align::LeftBottom,
+            Align::LeftCenter,
+            Align::LeftTop,
+            Align::RightBottom,
+            Align::RightCenter,
+            Align::RightTop,
+            Align::Absolute(175., 150.),
+        ];
+        for i in 0..=9 {
+            p1.append(
+                Button::icon(format!("B{}", i), format!("B{}", i), icon)
+                    .layout(|x| x.size_s(100., 100.).align(align[i]))
+                    .frame(|x| x.fill(GRAY)),
+            );
+        }
+
+        p1.show();
+        fps.show();
 
         next_frame().await
     }

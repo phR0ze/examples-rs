@@ -1,9 +1,9 @@
-//! Demonstrating full screen horizontal layout
+//! Demonstrating full screen horizontal layout with margin and spacing
 use specter::prelude::*;
 
 fn main_conf() -> Conf {
     Conf {
-        window_title: "layout".to_string(),
+        window_title: "horizontal".to_string(),
         window_width: 450,
         window_height: 800,
         high_dpi: true,
@@ -13,28 +13,27 @@ fn main_conf() -> Conf {
 
 #[macroquad::main(main_conf)]
 async fn main() {
+    let mut fps = Fps::dark();
     let icon = Texture2D::from_file_with_format(include_bytes!("../assets/options_icon.png"), None);
-    let mut btn1 = Button::icon("B1", icon).fill(GRAY);
-    let mut btn2 = Button::icon("B2", icon).fill(RED);
-    let mut btn3 = Button::icon("B3", icon).fill(BLUE);
+
+    let spacing = 10.;
+    let mut panel = Panel::horz(id!())
+        .layout(|x| x.spacing(spacing).padding_all(20.).margins(0., 0., 50., 0.))
+        .add(Button::icon("B1", "B1", icon).frame(|x| x.fill(DARKGRAY)))
+        .add(Button::icon("B2", "B2", icon).frame(|x| x.fill(RED)))
+        .add(Button::icon("B3", "B3", icon).frame(|x| x.fill(BLUE)))
+        .add(Button::icon("B4", "B4", icon).frame(|x| x.fill(GREEN)));
     loop {
         clear_background(BLACK);
+        fps.show();
+        let res = panel.show();
 
-        let spacing = 5.;
-        let layout = Layout::horz("side_menu").size_f().spacing(spacing);
-        btn1.show(&mut *root_ui(), Some(&layout));
-        btn2.show(&mut *root_ui(), Some(&layout));
-        btn3.show(&mut *root_ui(), Some(&layout));
-
-        let (pos, _) = btn1.shape();
-        if btn1.activated() {
-            draw_text("button1", pos.x + 350., pos.y + 30., 30., GRAY)
-        }
-        if btn2.activated() {
-            draw_text("button2", pos.x + 350., pos.y + 60., 30., RED)
-        }
-        if btn3.activated() {
-            draw_text("button3", pos.x + 350., pos.y + 90., 30., BLUE)
+        for x in res.items.iter() {
+            if x.activated {
+                let widget = panel.get_as::<Button>(&x.id).unwrap();
+                let (pos, _) = widget.shape();
+                draw_text(&x.id, pos.x + 20., pos.y + 100., 30., widget.get_frame().fill.unwrap());
+            }
         }
         next_frame().await
     }
