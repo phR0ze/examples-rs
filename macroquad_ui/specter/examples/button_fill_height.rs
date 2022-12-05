@@ -29,11 +29,11 @@ async fn main() {
         fps.show();
         let res = panel.show();
 
-        for x in res.items.iter() {
+        for (i, x) in res.items.iter().enumerate() {
             if x.activated {
                 let widget = panel.get_as::<Button>(&x.id).unwrap();
                 let (pos, _) = widget.shape();
-                draw_text(&x.id, 320., pos.y + 27., 35., widget.get_frame().fill.unwrap());
+                draw_text(&x.id, 320., pos.y + 27. + (50. * i as f32), 35., widget.get_frame().fill.unwrap());
             }
         }
         next_frame().await
