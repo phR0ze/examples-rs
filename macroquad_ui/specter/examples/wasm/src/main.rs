@@ -19,11 +19,10 @@ async fn main() {
         //     ..Default::default()
         // });
 
-        draw_line(0., 0., 0.8, 0.9, 0.05, BLUE);
-        draw_rectangle(-0.1, 0.1, 0.2, 0.2, GREEN);
-        draw_circle(0., 0., 0.1, RED);
         draw_text("what up dog?", 40., 40., 32., ORANGE);
         draw_rectangle(100., 100., 100., 100., GREEN);
+        draw_circle(150., 150., 10., RED);
+        draw_line(100., 250., 200., 100., 2., BLUE);
 
         next_frame().await
     }
