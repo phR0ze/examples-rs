@@ -42,9 +42,7 @@ impl Component for App {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            navbar_active: false,
-        }
+        Self { navbar_active: false }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -52,7 +50,7 @@ impl Component for App {
             Msg::ToggleNavbar => {
                 self.navbar_active = !self.navbar_active;
                 true
-            }
+            },
         }
     }
 
@@ -115,6 +113,12 @@ impl App {
                                 <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
                                     { "Meet the authors" }
                                 </Link<Route>>
+                                <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
+                                    { "Meet the authors 2" }
+                                </Link<Route>>
+                                <Link<Route> classes={classes!("navbar-item")} to={Route::Authors}>
+                                    { "Meet the authors 3" }
+                                </Link<Route>>
                             </div>
                         </div>
                     </div>
@@ -128,22 +132,22 @@ fn switch(routes: Route) -> Html {
     match routes {
         Route::Post { id } => {
             html! { <Post seed={id} /> }
-        }
+        },
         Route::Posts => {
             html! { <PostList /> }
-        }
+        },
         Route::Author { id } => {
             html! { <Author seed={id} /> }
-        }
+        },
         Route::Authors => {
             html! { <AuthorList /> }
-        }
+        },
         Route::Home => {
             html! { <Home /> }
-        }
+        },
         Route::NotFound => {
             html! { <PageNotFound /> }
-        }
+        },
     }
 }
 

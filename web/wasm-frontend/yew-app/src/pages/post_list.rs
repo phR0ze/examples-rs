@@ -5,8 +5,9 @@ use crate::components::pagination::{PageQuery, Pagination};
 use crate::components::post_card::PostCard;
 use crate::Route;
 
-const ITEMS_PER_PAGE: u64 = 15;
-const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
+const TOTAL_PAGES: u64 = 1000;
+const ITEMS_PER_PAGE: u64 = 16;
+const COLUMNS_PER_PAGE: u64 = 4;
 
 pub enum Msg {
     PageUpdated,
@@ -68,11 +69,22 @@ impl PostList {
                 </li>
             }
         });
+
         html! {
             <div class="columns">
                 <div class="column">
                     <ul class="list">
-                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / 2) }
+                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / COLUMNS_PER_PAGE as usize) }
+                    </ul>
+                </div>
+                <div class="column">
+                    <ul class="list">
+                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / COLUMNS_PER_PAGE as usize) }
+                    </ul>
+                </div>
+                <div class="column">
+                    <ul class="list">
+                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / COLUMNS_PER_PAGE as usize) }
                     </ul>
                 </div>
                 <div class="column">
