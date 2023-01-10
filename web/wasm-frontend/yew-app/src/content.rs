@@ -12,12 +12,7 @@ impl Generated for Author {
         let name = gen.human_name();
         let keywords = gen.keywords();
         let image_url = gen.face_image_url((600, 600));
-        Self {
-            seed: gen.seed,
-            name,
-            keywords,
-            image_url,
-        }
+        Self { seed: gen.seed, name, keywords, image_url }
     }
 }
 
@@ -36,13 +31,7 @@ impl Generated for PostMeta {
         let keywords = gen.keywords();
         let image_url = gen.image_url((1000, 500), &keywords);
 
-        Self {
-            seed: gen.seed,
-            title,
-            author,
-            keywords,
-            image_url,
-        }
+        Self { seed: gen.seed, title, author, keywords, image_url }
     }
 }
 
@@ -73,7 +62,7 @@ pub enum PostPart {
 impl Generated for PostPart {
     fn generate(gen: &mut Generator) -> Self {
         // Because we pass the same (already used) generator down,
-        // the resulting `Section` and `Quote` aren't be reproducible with just the seed.
+        // the resulting `Section` and `Quote` aren't reproducible with just the seed.
         // This doesn't matter here though, because we don't need it.
         if gen.chance(1, 10) {
             Self::Quote(Quote::generate(gen))
@@ -99,11 +88,7 @@ impl Generated for Section {
         let paragraphs = (0..n_paragraphs).map(|_| gen.paragraph()).collect();
         let image_url = gen.image_url((600, 300), &[]);
 
-        Self {
-            title,
-            paragraphs,
-            image_url,
-        }
+        Self { title, paragraphs, image_url }
     }
 }
 

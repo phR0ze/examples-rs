@@ -1,26 +1,21 @@
-# Router Example
-
-[![Demo](https://img.shields.io/website?label=demo&url=https%3A%2F%2Fexamples.yew.rs%2Frouter)](https://examples.yew.rs/router)
-
-A blog all about yew.
-The best way to figure out what this example is about is to just open it up.
-It's mobile friendly too!
+# Yew App
+This is a modified version of the Yew Router Example
 
 ## Running
-
-While not strictly necessary, this example should be built in release mode:
+Content generation can take up quite a bit of time in debug builds
 
 ```bash
-trunk serve --release
+$ trunk serve --release
 ```
 
-Content generation can take up quite a bit of time in debug builds.
+## Inspiration
+* [Mels kitchen cafe](https://www.melskitchencafe.com/)
+* [Lets dish recipes](https://letsdishrecipes.com/)
 
 ## Concepts
-
 This example involves many different parts, here are just the Yew specific things:
 
-- Uses [`yew-router`] to render and switch between multiple pages.
+* Uses [`yew-router`] to render and switch between multiple pages and give a SPA feel
 
 The example automatically adapts to the `--public-url` value passed to Trunk.
 This allows it to be hosted on any path, not just at the root.

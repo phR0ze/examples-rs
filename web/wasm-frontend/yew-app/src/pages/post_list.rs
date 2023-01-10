@@ -5,7 +5,7 @@ use crate::components::pagination::{PageQuery, Pagination};
 use crate::components::post_card::PostCard;
 use crate::Route;
 
-const ITEMS_PER_PAGE: u64 = 10;
+const ITEMS_PER_PAGE: u64 = 15;
 const TOTAL_PAGES: u64 = u64::MAX / ITEMS_PER_PAGE;
 
 pub enum Msg {
@@ -29,15 +29,9 @@ impl Component for PostList {
 
     fn create(ctx: &Context<Self>) -> Self {
         let link = ctx.link().clone();
-        let listener = ctx
-            .link()
-            .add_location_listener(link.callback(move |_| Msg::PageUpdated))
-            .unwrap();
+        let listener = ctx.link().add_location_listener(link.callback(move |_| Msg::PageUpdated)).unwrap();
 
-        Self {
-            page: current_page(ctx),
-            _listener: listener,
-        }
+        Self { page: current_page(ctx), _listener: listener }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -53,7 +47,7 @@ impl Component for PostList {
         html! {
             <div class="section container">
                 <h1 class="title">{ "Posts" }</h1>
-                <h2 class="subtitle">{ "All of our quality writing in one place" }</h2>
+                <h2 class="subtitle">{ "All of our quality writing in one place - awesome sauce!" }</h2>
                 { self.view_posts(ctx) }
                 <Pagination
                     {page}
