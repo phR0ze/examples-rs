@@ -18,9 +18,7 @@ impl Component for Post {
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
-        Self {
-            post: content::Post::generate_from_seed(ctx.props().seed),
-        }
+        Self { post: content::Post::generate_from_seed(ctx.props().seed) }
     }
 
     fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
@@ -31,11 +29,8 @@ impl Component for Post {
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let Self { post } = self;
 
-        let keywords = post
-            .meta
-            .keywords
-            .iter()
-            .map(|keyword| html! { <span class="tag is-info">{ keyword }</span> });
+        let keywords =
+            post.meta.keywords.iter().map(|keyword| html! { <span class="tag is-info">{ keyword }</span> });
 
         html! {
             <>
@@ -130,12 +125,12 @@ impl Post {
                 // show hero between sections
                 show_hero = true;
                 html
-            }
+            },
             PostPart::Quote(quote) => {
                 // don't show hero after a quote
                 show_hero = false;
                 self.render_quote(quote)
-            }
+            },
         });
         html! { for parts }
     }

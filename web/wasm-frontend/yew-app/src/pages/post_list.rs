@@ -6,8 +6,8 @@ use crate::components::post_card::PostCard;
 use crate::Route;
 
 const TOTAL_PAGES: u64 = 1000;
-const ITEMS_PER_PAGE: u64 = 16;
-const COLUMNS_PER_PAGE: u64 = 4;
+const ITEMS_PER_PAGE: u64 = 15;
+const COLUMNS_PER_PAGE: u64 = 3;
 
 pub enum Msg {
     PageUpdated,
@@ -72,11 +72,6 @@ impl PostList {
 
         html! {
             <div class="columns">
-                <div class="column">
-                    <ul class="list">
-                        { for cards.by_ref().take(ITEMS_PER_PAGE as usize / COLUMNS_PER_PAGE as usize) }
-                    </ul>
-                </div>
                 <div class="column">
                     <ul class="list">
                         { for cards.by_ref().take(ITEMS_PER_PAGE as usize / COLUMNS_PER_PAGE as usize) }
