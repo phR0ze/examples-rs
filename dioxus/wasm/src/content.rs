@@ -29,8 +29,7 @@ impl Generated for PostMeta {
         let title = gen.title();
         let author = Author::generate_from_seed(gen.new_seed());
         let keywords = gen.keywords();
-        //let image_url = gen.image_url((1000, 500), &keywords);
-        let image_url = gen.image_url((1000, 500), &["turtles".to_string()]);
+        let image_url = gen.image_url((1000, 500), &keywords);
 
         Self { seed: gen.seed, title, author, keywords, image_url }
     }
