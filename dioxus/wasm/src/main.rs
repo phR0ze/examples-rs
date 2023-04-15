@@ -26,7 +26,7 @@ fn main() {
             .with_window(
                 dioxus_desktop::WindowBuilder::new()
                     .with_title("diper")
-                    .with_decorations(false)
+                    .with_decorations(true)
                     .with_inner_size(dioxus_desktop::LogicalSize::new(300.0, 300.0)),
             )
             .with_custom_head(r#"<link rel="stylesheet" href="./assets/css/tailwind.css">"#.to_string()),
@@ -54,11 +54,9 @@ fn App(cx: Scope) -> Element {
             titlebar,
             Router {
                 NavBar{},
-
-            // Router {
-            //     Route { to: "/", Home { } }
-            //     Route { to: "/posts", Post {} }
-            //     Route { to: "", NotFound {} }
+                Route { to: "/", Home { } }
+                Route { to: "/posts", Post {} }
+                Route { to: "", NotFound {} }
             },
         }
     })

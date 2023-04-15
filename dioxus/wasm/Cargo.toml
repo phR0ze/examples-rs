@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "gui",
+    "kit",
     "icons",
 ] 
 
@@ -9,5 +9,26 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace.dependencies]
-gui = { path = "gui" }
+kit = { path = "kit" }
 icons = { path = "icons" }
+
+[package]
+name = "wasm"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+icons.workspace = true
+once_cell = "1"
+lipsum = "0.9.0"
+dioxus = "0.3.2"
+dioxus-router = "0.3.0"
+#dioxus-free-icons = { version = "0.6.0", features = ["hero-icons-outline"] }
+getrandom = { version = "0.2", features = ["js"] }
+rand = { version = "0.8", features = ["small_rng"] }
+
+[target.'cfg(any(unix, windows))'.dependencies]
+dioxus-desktop = { version = "0.3.0" }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+dioxus-web = { version = "0.3.1" }
