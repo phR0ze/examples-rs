@@ -6,7 +6,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-// Build the SCSS
+// Recursively build out the top level compiled_styles.css from the various *.scss files
 // -------------------------------------------------------------------------------------------------
 use glob::glob;
 use rsass::output;
@@ -29,7 +29,6 @@ fn build_css() -> Result<(), Box<dyn Error>> {
     }
 
     let format = output::Format { style: output::Style::Compressed, ..Default::default() };
-
     let css = rsass::compile_scss(contents.as_bytes(), format)?;
 
     scss.write_all(&css)?;

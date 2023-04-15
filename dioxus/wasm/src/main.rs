@@ -9,6 +9,10 @@ use kit::icons::Icon;
 mod components;
 mod generator;
 
+use kit::STYLE as KIT_STYLE;
+pub const APP_STYLE: &str = include_str!("./compiled_styles.css");
+pub static OPEN_DYSLEXIC: &str = include_str!("./open-dyslexic.css");
+
 // Shared state object
 struct State {
     count: i32,
@@ -28,7 +32,7 @@ fn main() {
             .with_window(
                 dioxus_desktop::WindowBuilder::new()
                     .with_title("diper")
-                    .with_decorations(true)
+                    .with_decorations(false)
                     .with_inner_size(dioxus_desktop::LogicalSize::new(300.0, 300.0)),
             )
             .with_custom_head(r#"<link rel="stylesheet" href="./assets/css/tailwind.css">"#.to_string()),
@@ -40,7 +44,7 @@ fn App(cx: Scope) -> Element {
     let mut titlebar: Option<VNode> = None;
     use_shared_state_provider(cx, || State { count: 0 });
 
-    // Resize the window
+    // Desktop window titlebar and controls
     #[cfg(any(windows, unix))]
     {
         let win = dioxus_desktop::use_window(cx);
@@ -50,7 +54,9 @@ fn App(cx: Scope) -> Element {
         })
     }
 
+    // Core app page router
     cx.render(rsx! {
+        style { "{KIT_STYLE} {APP_STYLE}" },
         div {
             id: "root" ,
             titlebar,
@@ -64,6 +70,7 @@ fn App(cx: Scope) -> Element {
     })
 }
 
+// Desktop titlebar with window controls
 #[cfg(any(windows, unix))]
 fn TitleBar(cx: Scope) -> Element {
     let win = dioxus_desktop::use_window(cx);
@@ -79,6 +86,18 @@ fn TitleBar(cx: Scope) -> Element {
                 icon: outline::Shape::Minus,
                 appearance: Appearance::Transparent,
                 onpress: move |_| win.set_minimized(true),
+            },
+            Button {
+                aria_label: "square-button".into(),
+                icon: outline::Shape::Square2Stack,
+                appearance: Appearance::Transparent,
+                onpress: move |_| win.set_maximized(!win.is_maximized()),
+            },
+            Button {
+                aria_label: "close-button".into(),
+                icon: outline::Shape::XMark,
+                appearance: Appearance::Transparent,
+                onpress: move |_| win.close(),
             },
         }
     })

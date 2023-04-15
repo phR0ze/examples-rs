@@ -74,15 +74,18 @@ pub fn Button<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
     let small = cx.props.small.unwrap_or_default();
     let text2 = text.clone();
 
-    let eval = dioxus_desktop::use_eval(cx);
-    // only run this after the component has been mounted
-    use_effect(cx, (UUID,), move |(UUID,)| {
-        to_owned![eval];
-        async move {
-            let script = get_script(SCRIPT, &UUID);
-            eval(script);
-        }
-    });
+    #[cfg(any(windows, unix))]
+    {
+        let eval = dioxus_desktop::use_eval(cx);
+        // only run this after the component has been mounted
+        use_effect(cx, (UUID,), move |(UUID,)| {
+            to_owned![eval];
+            async move {
+                let script = get_script(SCRIPT, &UUID);
+                eval(script);
+            }
+        });
+    }
 
     cx.render(
         rsx!(
