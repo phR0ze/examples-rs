@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
-use dioxus_free_icons::icons::hi_outline_icons::HiBeaker;
-use dioxus_free_icons::Icon;
 use dioxus_router::*;
+use icons::outline;
+use icons::Icon;
 
 mod components;
 mod generator;
@@ -70,25 +70,8 @@ fn TitleBar(cx: Scope) -> Element {
             id: "titlebar",
             onmousedown: move |_| { win.drag(); },
             Icon {
-                fill: "white"
-                icon: HiBeaker,
+                icon: outline::Shape::Beaker,
             },
-        }
-    })
-}
-
-fn LoginMessage(cx: Scope) -> Element {
-    let msg = "foobar";
-
-    cx.render(rsx! {
-        div {
-            Icon {
-                fill: "white"
-                icon: HiBeaker,
-            },
-            p {
-                "{msg}"
-            }
         }
     })
 }
