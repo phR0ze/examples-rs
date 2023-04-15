@@ -5,9 +5,9 @@ use rand::rngs::SmallRng;
 use rand::seq::IteratorRandom;
 use rand::{Rng, SeedableRng};
 
-const KEYWORDS: &str = include_str!("../data/keywords.txt");
-const SYLLABLES: &str = include_str!("../data/syllables.txt");
-const YEW_CONTENT: &str = include_str!("../data/yew.txt");
+const KEYWORDS: &str = include_str!("../../data/keywords.txt");
+const SYLLABLES: &str = include_str!("../../data/syllables.txt");
+const YEW_CONTENT: &str = include_str!("../../data/yew.txt");
 
 static YEW_CHAIN: Lazy<MarkovChain<'static>> = Lazy::new(|| {
     let mut chain = MarkovChain::new();

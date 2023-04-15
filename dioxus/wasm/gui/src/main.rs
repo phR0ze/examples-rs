@@ -35,6 +35,7 @@ fn main() {
 
 // create a component that renders a div with the text "Hello, world!"
 fn App(cx: Scope) -> Element {
+    let mut titlebar: Option<VNode> = None;
     use_shared_state_provider(cx, || State { count: 0 });
 
     // Resize the window
@@ -42,24 +43,28 @@ fn App(cx: Scope) -> Element {
     {
         let win = dioxus_desktop::use_window(cx);
         win.set_inner_size(dioxus_desktop::LogicalSize::new(500.0, 350.0));
+        titlebar = cx.render(rsx! {
+            TitleBar{}
+        })
     }
 
     cx.render(rsx! {
         div {
             id: "root" ,
-            TitleBar{},
-            //NavBar{},
+            titlebar,
+            Router {
+                NavBar{},
 
-            // // Router
             // Router {
             //     Route { to: "/", Home { } }
             //     Route { to: "/posts", Post {} }
             //     Route { to: "", NotFound {} }
-            // },
+            },
         }
     })
 }
 
+#[cfg(any(windows, unix))]
 fn TitleBar(cx: Scope) -> Element {
     let win = dioxus_desktop::use_window(cx);
 
