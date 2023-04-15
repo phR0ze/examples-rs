@@ -1,4 +1,5 @@
 pub mod elements;
+pub mod icons;
 
 pub const STYLE: &str = include_str!("./compiled_styles.css");
 

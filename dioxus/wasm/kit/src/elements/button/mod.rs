@@ -4,8 +4,8 @@ use dioxus::{events::MouseEvent, prelude::*};
 
 use crate::{elements::Appearance, get_script};
 
-use icons::outline::Shape as Icon;
-use icons::IconButton;
+use crate::icons::outline::Shape as Icon;
+use crate::icons::IconButton;
 
 const SCRIPT: &str = include_str!("./script.js");
 

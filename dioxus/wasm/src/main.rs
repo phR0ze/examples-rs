@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
 use dioxus::prelude::*;
 use dioxus_router::*;
-use icons::outline;
-use icons::Icon;
 use kit::elements::button::Button;
 use kit::elements::Appearance;
+use kit::icons::outline;
+use kit::icons::Icon;
 
 mod components;
 mod generator;
@@ -76,7 +76,7 @@ fn TitleBar(cx: Scope) -> Element {
             onmousedown: move |_| { win.drag(); },
             Button {
                 aria_label: "minimize-button".into(),
-                icon: outline::Shape::Beaker,
+                icon: outline::Shape::Minus,
                 appearance: Appearance::Transparent,
                 onpress: move |_| win.set_minimized(true),
             },

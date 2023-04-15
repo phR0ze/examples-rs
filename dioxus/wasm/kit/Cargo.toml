@@ -4,8 +4,8 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-icons.workspace = true
 dioxus = "0.3.2"
+dioxus-html = "0.3.1" 
 dioxus-router = "0.3.0"
 #dioxus-free-icons = { version = "0.6.0", features = ["hero-icons-outline"] }
 
@@ -21,3 +21,7 @@ dioxus-web = { version = "0.3.1" }
 [build-dependencies]
 glob = "0.3.0"
 rsass = "0.27.0"
+heck = "~0.4"
+itertools = "~0.10"
+scraper = "~0.12"
+walkdir = "~2"
