@@ -19,6 +19,7 @@ version = "0.1.0"
 
 [dependencies]
 icons.workspace = true
+kit.workspace = true
 once_cell = "1"
 lipsum = "0.9.0"
 dioxus = "0.3.2"

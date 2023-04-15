@@ -3,6 +3,8 @@ use dioxus::prelude::*;
 use dioxus_router::*;
 use icons::outline;
 use icons::Icon;
+use kit::elements::button::Button;
+use kit::elements::Appearance;
 
 mod components;
 mod generator;
@@ -72,8 +74,11 @@ fn TitleBar(cx: Scope) -> Element {
         div {
             id: "titlebar",
             onmousedown: move |_| { win.drag(); },
-            Icon {
+            Button {
+                aria_label: "minimize-button".into(),
                 icon: outline::Shape::Beaker,
+                appearance: Appearance::Transparent,
+                onpress: move |_| win.set_minimized(true),
             },
         }
     })
