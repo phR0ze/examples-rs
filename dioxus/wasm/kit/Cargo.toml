@@ -9,6 +9,7 @@ dioxus-html = "0.3.1"
 dioxus-router = "0.3.0"
 #dioxus-free-icons = { version = "0.6.0", features = ["hero-icons-outline"] }
 
+anyhow = "1.0.70"
 derive_more = "0.99"
 uuid = { version = "1", features = ["serde", "v4"] }
 

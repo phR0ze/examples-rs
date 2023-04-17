@@ -1,6 +1,8 @@
 use derive_more::Display;
 
 pub mod button;
+pub mod input;
+pub mod label;
 
 #[derive(Clone, PartialEq, Eq, Copy, Display)]
 /// Decides the look and feel of a button, also modifies some functionality.

@@ -8,6 +8,7 @@ use kit::icons::Icon;
 
 mod components;
 mod generator;
+mod layouts;
 
 use kit::STYLE as KIT_STYLE;
 pub const APP_STYLE: &str = include_str!("./compiled_styles.css");
