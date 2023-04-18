@@ -1,18 +1,31 @@
 #![allow(non_snake_case)]
+
+mod components;
+mod generator;
+mod layouts;
+
 use dioxus::prelude::*;
 use dioxus_router::*;
 use kit::elements::button::Button;
 use kit::elements::Appearance;
 use kit::icons::outline;
 use kit::icons::Icon;
-
-mod components;
-mod generator;
-mod layouts;
-
 use kit::STYLE as KIT_STYLE;
+use once_cell::sync::Lazy;
+use std::path::PathBuf;
+
+use crate::layouts::unlock::*;
+
 pub const APP_STYLE: &str = include_str!("./compiled_styles.css");
 pub static OPEN_DYSLEXIC: &str = include_str!("./open-dyslexic.css");
+
+#[derive(Debug)]
+pub struct Config {
+    /// Assets bundled with uplink, such as themes, fonts, and images
+    pub assets_path: PathBuf,
+}
+
+pub static CONFIG: Lazy<Config> = Lazy::new(|| Config { assets_path: PathBuf::from("") });
 
 // Shared state object
 struct State {
@@ -55,18 +68,21 @@ fn App(cx: Scope) -> Element {
         })
     }
 
-    // Core app page router
+    let page = use_state(cx, || AuthPages::Unlock);
+    let pin = use_ref(cx, String::new);
     cx.render(rsx! {
         style { "{KIT_STYLE} {APP_STYLE}" },
         div {
             id: "root" ,
             titlebar,
-            Router {
-                NavBar{},
-                Route { to: "/", Home { } }
-                Route { to: "/posts", Post {} }
-                Route { to: "", NotFound {} }
-            },
+            Content {}
+            //UnlockLayout { page: page.clone(), pin: pin.clone() }
+            // Router {
+            //     NavBar{},
+            //     Route { to: "/", Home { } }
+            //     Route { to: "/posts", Post {} }
+            //     Route { to: "", NotFound {} }
+            // },
         }
     })
 }
@@ -100,6 +116,16 @@ fn TitleBar(cx: Scope) -> Element {
                 appearance: Appearance::Transparent,
                 onpress: move |_| win.close(),
             },
+        }
+    })
+}
+
+fn Content(cx: Scope) -> Element {
+    cx.render(rsx! {
+        div {
+            span {
+                "this is a test"
+            }
         }
     })
 }

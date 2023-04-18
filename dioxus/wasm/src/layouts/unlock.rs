@@ -1,15 +1,21 @@
 use dioxus::prelude::*;
-use futures::channel::oneshot;
-use futures::StreamExt;
 use kit::elements::{
     button::Button,
     input::{Input, Options, Validation},
     label::LabelWithEllipsis,
 };
+use std::default::Default;
 
 use kit::icons::outline::Shape as Icon;
 
-use crate::AuthPages;
+// serve as a sort of router while the user logs in]
+#[allow(clippy::large_enum_variant)]
+#[derive(PartialEq, Eq)]
+pub enum AuthPages {
+    Unlock,
+    CreateAccount,
+    Success,
+}
 
 enum UnlockError {
     ValidationError,
@@ -58,10 +64,10 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
 
     let loading = account_exists.current().is_none();
 
-    let image_path = STATIC_ARGS
-        .extras_path
+    let image_path = crate::CONFIG
+        .assets_path
         .join("images")
-        .join("mascot")
+        .join("misc")
         .join("idle_alt.png")
         .to_str()
         .map(|x| x.to_string())
@@ -83,10 +89,10 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
                 )
             } else {
                 rsx! (
-                    img {
-                        class: "idle",
-                        src: "{image_path}"
-                    },
+                    // img {
+                    //     class: "idle",
+                    //     src: "{image_path}"
+                    // },
                     Input {
                         id: "unlock-input".to_owned(),
                         focus: true,
@@ -95,14 +101,11 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
                         disable_onblur: !account_exists.current().unwrap_or(true),
                         aria_label: "pin-input".into(),
                         disabled: loading,
-                        placeholder: get_local_text("unlock.enter-pin"),
+                        placeholder: "unlock.Enter Pin".into(),
                         options: Options {
                             with_validation: Some(pin_validation),
                             with_clear_btn: true,
-                            with_label: if STATIC_ARGS.cache_path.exists()
-                            {Some(get_welcome_message(&state.current()))}
-                            else
-                                {Some(get_local_text("unlock.create-password"))}, // TODO: Implement this.
+                            with_label: Some("Welcome back, poobear".into()),
                             ellipsis_on_label: Some(LabelWithEllipsis {
                                 apply_ellipsis: true,
                                 padding_rigth_for_ellipsis: 105,
@@ -117,7 +120,6 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
                             }
                             if validation_passed {
                                 cmd_in_progress.set(true);
-                                ch.send(val);
                                 validation_failure.set(None);
                             } else {
                                 validation_failure.set(Some(UnlockError::ValidationError));
@@ -142,13 +144,13 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
                     div {
                         class: "unlock-details",
                         span {
-                            get_local_text("unlock.notice")
+                            "this is used to encrypt all of the data Uplink stores on your computer when you're not using it so nobody can read your data"
                         }
                     }
                     Button {
                             text: match account_exists.current().unwrap_or(true) {
-                                true => get_local_text("unlock.unlock-account"),
-                                false => get_local_text("unlock.create-account"),
+                                true => "Unlock Account".to_string(),
+                                false => "Create Account".to_string(),
                             },
                             aria_label: "create-account-button".into(),
                             appearance: kit::elements::Appearance::Primary,
@@ -168,22 +170,4 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
             }
         }
     ))
-}
-
-fn update_theme_colors(state: &State) -> String {
-    match state.ui.theme.as_ref() {
-        Some(theme) => theme.styles.clone(),
-        None => String::new(),
-    }
-}
-
-fn get_welcome_message(state: &State) -> String {
-    let name = match state.ui.cached_username.as_ref() {
-        Some(name) => name.clone(),
-        None => String::from("UNKNOWN"),
-    };
-
-    get_local_text_args_builder("unlock.welcome", |m| {
-        m.insert("name", name.into());
-    })
 }
