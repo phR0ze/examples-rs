@@ -75,8 +75,7 @@ fn App(cx: Scope) -> Element {
         div {
             id: "root" ,
             titlebar,
-            Content {}
-            //UnlockLayout { page: page.clone(), pin: pin.clone() }
+            UnlockLayout { page: page.clone(), pin: pin.clone() }
             // Router {
             //     NavBar{},
             //     Route { to: "/", Home { } }
@@ -116,16 +115,6 @@ fn TitleBar(cx: Scope) -> Element {
                 appearance: Appearance::Transparent,
                 onpress: move |_| win.close(),
             },
-        }
-    })
-}
-
-fn Content(cx: Scope) -> Element {
-    cx.render(rsx! {
-        div {
-            span {
-                "this is a test"
-            }
         }
     })
 }

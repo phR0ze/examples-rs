@@ -1,0 +1,99 @@
+.file {
+	width: 100%;
+	display: inline-flex;
+	flex-direction: column;
+	align-content: center;
+	justify-content: center;
+	max-width: 100px;
+	transition: background-color var(--animation-time);
+	align-self: flex-start;
+	margin: 5px;
+	border-radius: var(--border-radius-less);
+	transition: background-color var(--animation-time) ease;
+	.icon {
+		svg {
+			transition: stroke var(--animation-time);
+			fill: transparent;
+			stroke: var(--warning-light);
+			width: 100%;
+			height: 100%;
+		}
+	}
+	.input-group {
+		width: 100%;
+	}
+	.input {
+		height: auto;
+		font-size: var(--text-size-less);
+		padding: var(--padding-less) var(--gap);
+	}
+	&.disabled {
+		.icon {
+			cursor: not-allowed;
+		}
+	}
+}
+
+
+.thumbnail-container {
+	border-radius: 8px;
+	max-height: var(--icon-size-more);
+	max-width: var(--icon-size-more);
+  }
+
+  .play-button {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	pointer-events: none;
+	appearance: none;
+	padding: 0;
+  }
+
+.alignment {
+	width: var(--icon-size-more);
+	height: var(--icon-size-more);
+	display: inline-flex;
+	align-content: center;
+	align-self: center;
+	cursor: pointer;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.file-name {
+	text-transform: none;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.file-type {
+	text-transform: none;
+	text-align: center;
+	position: absolute;
+	right: 3px;
+	bottom: 3px;
+	padding:2px;
+	background-color: var(--warning-light);
+	border-radius: 4px;
+}
+
+.file-name:hover {
+	overflow:visible;
+	white-space: pre-wrap;
+	word-break: break-all;
+}
+
+.file-name:hover {
+	white-space: normal;
+	word-break: break-all;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+}
