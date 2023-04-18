@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 mod components;
-mod generator;
 mod layouts;
 
 use dioxus::prelude::*;
