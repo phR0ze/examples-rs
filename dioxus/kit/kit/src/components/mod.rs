@@ -16,6 +16,8 @@ pub mod message_group;
 pub mod message_reply;
 pub mod message_typing;
 
+pub mod section;
+
 pub mod file_embed;
 
 pub mod context_menu;

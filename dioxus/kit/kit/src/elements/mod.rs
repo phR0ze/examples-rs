@@ -13,8 +13,8 @@ pub mod switch;
 pub mod textarea;
 pub mod tooltip;
 
-#[derive(Clone, PartialEq, Eq, Copy, Display)]
 /// Decides the look and feel of a button, also modifies some functionality.
+#[derive(Clone, PartialEq, Eq, Copy, Display)]
 pub enum Appearance {
     #[display(fmt = "default")]
     Default,

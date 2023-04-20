@@ -1,0 +1,36 @@
+.section {
+  display: inline-flex;
+  gap: var(--gap);
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+  padding: var(--padding-less);
+
+  .section-info {
+    flex: 1;
+    min-width: 0;
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--gap-less);
+  }
+
+  .section-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    width: 20%;
+    min-width: fit-content;
+  }
+}
+
+// TODO: This should just be included in  dynamically rendered css depending on the screen size
+@media only screen and (max-width: 600px) {
+  .section {
+    flex-direction: column;
+
+    .section-control {
+      width: 100%;
+      justify-content: center;
+      padding: var(--gap) 0;
+    }
+  }
+}
