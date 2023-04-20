@@ -1,9 +1,8 @@
 use common::language::get_local_text;
 use dioxus::prelude::*;
-use kit::elements::switch::Switch;
+use kit::{components::section::Section, elements::switch::Switch};
 use warp::logging::tracing::log;
 
-use crate::components::settings::SettingSection;
 use common::sounds;
 use common::state::{action::ConfigAction, Action, State};
 
@@ -16,7 +15,7 @@ pub fn AudioSettings(cx: Scope) -> Element {
         div {
             id: "settings-audio",
             aria_label: "settings-audio",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-audio.interface-sounds"),
                 section_description: get_local_text("settings-audio.interface-sounds-description"),
                 Switch {
@@ -29,7 +28,7 @@ pub fn AudioSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-audio.media-sounds"),
                 section_description: get_local_text("settings-audio.media-sounds-description"),
                 Switch {
@@ -42,7 +41,7 @@ pub fn AudioSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-audio.message-sounds"),
                 section_description: get_local_text("settings-audio.message-sounds-description"),
                 Switch {
@@ -55,7 +54,7 @@ pub fn AudioSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-audio.call-timer"),
                 section_description: get_local_text("settings-audio.call-timer-description"),
                 Switch {}

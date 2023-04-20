@@ -1,12 +1,13 @@
 use common::language::get_local_text;
 use dioxus::prelude::*;
-use kit::elements::{button::Button, switch::Switch};
+use kit::{
+    components::section::Section,
+    elements::{button::Button, switch::Switch},
+};
 
 use common::icons::outline::Shape as Icon;
 use common::sounds;
 use common::state::{action::ConfigAction, Action, State};
-
-use crate::components::settings::SettingSection;
 
 #[allow(non_snake_case)]
 pub fn NotificationSettings(cx: Scope) -> Element {
@@ -16,7 +17,7 @@ pub fn NotificationSettings(cx: Scope) -> Element {
         div {
             id: "settings-notifications",
             aria_label: "settings-notifications",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-notifications.grant-permissions"),
                 section_description: get_local_text("settings-notifications.grant-permissions-description"),
                 Button {
@@ -28,7 +29,7 @@ pub fn NotificationSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-notifications.enabled"),
                 section_description: get_local_text("settings-notifications.enabled-description"),
                 Switch {
@@ -43,7 +44,7 @@ pub fn NotificationSettings(cx: Scope) -> Element {
             },
             div {
                 class: format_args!("{}", if state.read().configuration.notifications.enabled { "enabled" } else { "disabled" }),
-                SettingSection {
+                Section {
                     section_label: get_local_text("friends"),
                     section_description: get_local_text("settings-notifications.friends-description"),
                     Switch {
@@ -57,7 +58,7 @@ pub fn NotificationSettings(cx: Scope) -> Element {
                         }
                     }
                 },
-                SettingSection {
+                Section {
                     section_label: get_local_text("messages"),
                     section_description: get_local_text("settings-notifications.messages-description"),
                     Switch {
@@ -71,7 +72,7 @@ pub fn NotificationSettings(cx: Scope) -> Element {
                         }
                     }
                 },
-                SettingSection {
+                Section {
                     section_label: get_local_text("settings"),
                     section_description: get_local_text("settings-notifications.settings-description"),
                     Switch {

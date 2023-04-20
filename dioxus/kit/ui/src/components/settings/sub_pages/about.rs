@@ -6,17 +6,15 @@ use common::{icons::outline::Shape as Icon, state::State};
 use dioxus::prelude::*;
 use dioxus_desktop::use_window;
 use futures::StreamExt;
-use kit::elements::{button::Button, Appearance};
+use kit::{
+    components::section::Section,
+    elements::{button::Button, Appearance},
+};
 
 use warp::logging::tracing::log;
 
-use crate::utils::auto_updater::{
-    get_download_dest, DownloadProgress, DownloadState, SoftwareDownloadCmd,
-};
-use crate::{
-    components::settings::SettingSection,
-    utils::{self, auto_updater::GitHubRelease},
-};
+use crate::utils::auto_updater::{get_download_dest, DownloadProgress, DownloadState, SoftwareDownloadCmd};
+use crate::utils::{self, auto_updater::GitHubRelease};
 
 #[allow(non_snake_case)]
 pub fn AboutPage(cx: Scope) -> Element {
@@ -35,10 +33,10 @@ pub fn AboutPage(cx: Scope) -> Element {
                 match utils::auto_updater::check_for_release().await {
                     Ok(opt) => {
                         download_available.set(opt);
-                    }
+                    },
                     Err(e) => {
                         log::error!("failed to check for updates: {e}");
-                    }
+                    },
                 }
                 update_button_loading.set(false);
             }
@@ -66,7 +64,7 @@ pub fn AboutPage(cx: Scope) -> Element {
                     ch.send(());
                 }
             })
-        }
+        },
         _ => match stage {
             DownloadProgress::Idle => {
                 rsx!(Button {
@@ -85,7 +83,7 @@ pub fn AboutPage(cx: Scope) -> Element {
                         }
                     }
                 })
-            }
+            },
             DownloadProgress::Pending => {
                 rsx!(Button {
                     key: "{pending_key}",
@@ -95,7 +93,7 @@ pub fn AboutPage(cx: Scope) -> Element {
                     appearance: Appearance::Secondary,
                     icon: Icon::ArrowDown,
                 })
-            }
+            },
             DownloadProgress::Finished => {
                 rsx!(Button {
                     key: "btn-finished",
@@ -129,25 +127,25 @@ pub fn AboutPage(cx: Scope) -> Element {
                         download_state.write().stage = DownloadProgress::Idle;
                     }
                 })
-            }
+            },
         },
     }));
 
     cx.render(rsx!(
         div {
             id: "settings-about",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-about.info"),
                 section_description: app_name.into(),
             },
-            SettingSection {
+            Section {
                 section_label:  get_local_text("settings-about.version"),
                 section_description: version.into(),
                 div {
                     about_button
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-about.open-website"),
                 section_description: get_local_text("settings-about.open-website-description"),
                 Button {
@@ -160,7 +158,7 @@ pub fn AboutPage(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-about.open-codebase"),
                 section_description: get_local_text("settings-about.open-codebase-description"),
                 Button {

@@ -2,10 +2,11 @@ use common::language::get_local_text;
 use common::state::ToastNotification;
 use common::{icons::outline::Shape as Icon, state::State};
 use dioxus::prelude::*;
-use kit::elements::{button::Button, switch::Switch, Appearance};
+use kit::{
+    components::section::Section,
+    elements::{button::Button, switch::Switch, Appearance},
+};
 use warp::logging::tracing::log;
-
-use crate::components::settings::SettingSection;
 
 #[allow(non_snake_case)]
 pub fn PrivacySettings(cx: Scope) -> Element {
@@ -16,7 +17,7 @@ pub fn PrivacySettings(cx: Scope) -> Element {
         div {
             id: "settings-privacy",
             aria_label: "settings-privacy",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-privacy.backup-recovery-phrase"),
                 section_description: get_local_text("settings-privacy.backup-phrase-description"),
                 Button {
@@ -26,7 +27,7 @@ pub fn PrivacySettings(cx: Scope) -> Element {
                     icon: Icon::DocumentText,
                 }
             },
-            SettingSection {
+            Section {
                 section_label: "Test out toast".to_string(),
                 section_description: "Flip the switch to trigger a toast".to_string(),
                 Switch {

@@ -1,9 +1,10 @@
 use common::language::get_local_text;
 use dioxus::prelude::*;
-use kit::elements::{button::Button, switch::Switch};
+use kit::{
+    components::section::Section,
+    elements::{button::Button, switch::Switch},
+};
 use warp::logging::tracing::log;
-
-use crate::components::settings::SettingSection;
 
 #[allow(non_snake_case)]
 pub fn FilesSettings(cx: Scope) -> Element {
@@ -12,14 +13,14 @@ pub fn FilesSettings(cx: Scope) -> Element {
         div {
             id: "settings-files",
             aria_label: "settings-files",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-files.local-sync"),
                 section_description: get_local_text("settings-files.local-sync-description"),
                 Switch {
 
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-files.open-sync-folder"),
                 section_description: get_local_text("settings-files.open-sync-folder-description"),
                 Button {

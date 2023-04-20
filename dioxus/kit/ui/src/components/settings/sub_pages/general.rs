@@ -2,11 +2,14 @@ use common::language::{change_language, get_available_languages, get_local_text}
 use common::state::{action::ConfigAction, Action, State};
 use dioxus::prelude::*;
 use kit::components::slide_selector::{ButtonsFormat, SlideSelector};
-use kit::elements::{select::Select, switch::Switch};
+use kit::{
+    components::section::Section,
+    elements::{select::Select, switch::Switch},
+};
 use warp::logging::tracing::log;
 
 use crate::utils::get_available_fonts;
-use crate::{components::settings::SettingSection, utils::get_available_themes};
+use crate::utils::get_available_themes;
 
 #[allow(non_snake_case)]
 pub fn GeneralSettings(cx: Scope) -> Element {
@@ -25,13 +28,13 @@ pub fn GeneralSettings(cx: Scope) -> Element {
             log::error!("invalid font scale detected!");
             state.write().mutate(Action::SetFontScale(1.0));
             2
-        }
+        },
     };
     cx.render(rsx!(
         div {
             id: "settings-general",
             aria_label: "settings-general",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-general.overlay"),
                 section_description: get_local_text("settings-general.overlay-description"),
                 Switch {
@@ -42,7 +45,7 @@ pub fn GeneralSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-general.app-language"),
                 section_description: get_local_text("settings-general.change-language"),
                 Select {
@@ -54,7 +57,7 @@ pub fn GeneralSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-general.theme"),
                 section_description: get_local_text("settings-general.theme-description"),
                 Select {
@@ -73,7 +76,7 @@ pub fn GeneralSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-general.font"),
                 section_description: get_local_text("settings-general.font-description"),
                 Select {
@@ -92,7 +95,7 @@ pub fn GeneralSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-general.font-scaling"),
                 section_description: get_local_text("settings-general.font-scaling-description"),
                 SlideSelector {

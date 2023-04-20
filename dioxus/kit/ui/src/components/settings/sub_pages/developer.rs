@@ -4,6 +4,7 @@ use common::warp_runner::{OtherCmd, WarpCmd};
 use common::WARP_CMD_CH;
 use dioxus::prelude::*;
 
+use crate::logger;
 use common::icons::outline::Shape as Icon;
 use common::language::get_local_text;
 use common::{
@@ -14,11 +15,12 @@ use common::{
 };
 use futures::channel::oneshot;
 use futures::StreamExt;
-use kit::elements::{button::Button, switch::Switch, Appearance};
+use kit::{
+    components::section::Section,
+    elements::{button::Button, switch::Switch, Appearance},
+};
 use rfd::FileDialog;
 use warp::logging::tracing::log;
-
-use crate::{components::settings::SettingSection, logger};
 
 #[allow(non_snake_case)]
 pub fn DeveloperSettings(cx: Scope) -> Element {
@@ -32,11 +34,8 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                 let dest = cmd.join("uplink.zip");
                 let warp_cmd_tx = WARP_CMD_CH.tx.clone();
                 let (tx, rx) = oneshot::channel::<Result<(), warp::error::Error>>();
-                let compress_cmd = OtherCmd::CompressFolder {
-                    src: STATIC_ARGS.uplink_path.clone(),
-                    dest,
-                    rsp: tx,
-                };
+                let compress_cmd =
+                    OtherCmd::CompressFolder { src: STATIC_ARGS.uplink_path.clone(), dest, rsp: tx };
 
                 if let Err(e) = warp_cmd_tx.send(WarpCmd::Other(compress_cmd)) {
                     log::error!("failed to send warp command: {}", e);
@@ -47,10 +46,10 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                 match res {
                     Ok(_) => {
                         log::debug!("cache export complete");
-                    }
+                    },
                     Err(e) => {
                         log::error!("failed to download cache: {e}");
-                    }
+                    },
                 };
             }
         }
@@ -60,7 +59,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
         div {
             id: "settings-developer",
             aria_label: "settings-developer",
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-developer.developer-mode"),
                 section_description: get_local_text("settings-developer.developer-mode-description"),
                 Switch {
@@ -74,7 +73,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                     },
                 }
             },
-            SettingSection {
+            Section {
                 section_label: "Test Notification".into(),
                 section_description: "Sends a test notification.".into(),
                 Button {
@@ -95,7 +94,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                         }
                     }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-developer.open-cache"),
                 section_description: get_local_text("settings-developer.open-cache-description"),
                 Button {
@@ -108,7 +107,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-developer.compress-download-cache"),
                 section_description: get_local_text("settings-developer.compress-download-cache-description"),
                 Button {
@@ -123,7 +122,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-developer.print-state"),
                 section_description: get_local_text("settings-developer.print-state-description"),
                 Button {
@@ -136,7 +135,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                     }
                 }
             },
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-developer.clear-cache"),
                 section_description: get_local_text("settings-developer.clear-cache-description"),
                 Button {
@@ -149,7 +148,7 @@ pub fn DeveloperSettings(cx: Scope) -> Element {
                     }
                 }
             }
-            SettingSection {
+            Section {
                 section_label: get_local_text("settings-developer.save-logs-to-file"),
                 section_description: get_local_text("settings-developer.save-logs-to-file-description"),
                 Switch {
