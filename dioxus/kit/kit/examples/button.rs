@@ -3,6 +3,7 @@
 use common::icons::outline::Shape as Icon;
 use dioxus::prelude::*;
 use kit::{
+    components::section::Section,
     elements::{
         button::Button,
         tooltip::{ArrowPosition, Tooltip},
@@ -65,27 +66,28 @@ fn App(cx: Scope) -> Element {
                 icon: Icon::Check,
             },
 
-            // Small button only provides room for the Icon and no Text
-            p {
-                "small: true"
+            Section {
+                section_label: "Small Button".into(),
+                section_description: "Setting small=true provides room only for the icon".into(),
+                Button {
+                    small: true,
+                    icon: Icon::Check,
+                },
             },
-            Button {
-                small: true,
-                icon: Icon::Check,
-            },
-            p {}, p {}
-
-            // Custom tooltip
-            Button {
-                text: "Custom Tooltip".into(),
-                icon: Icon::Cog6Tooth,
-                appearance: kit::elements::Appearance::Primary,
-                tooltip: cx.render(rsx!(
-                    Tooltip {
-                        arrow_position: ArrowPosition::Bottom,
-                        text: String::from("Settings")
-                    }
-                )),
+            Section {
+                section_label: "Custom Tooltip".into(),
+                section_description: "Creating a custom tool tip for the button".into(),
+                Button {
+                    text: "Custom Tooltip".into(),
+                    icon: Icon::Cog6Tooth,
+                    appearance: kit::elements::Appearance::Primary,
+                    tooltip: cx.render(rsx!(
+                        Tooltip {
+                            arrow_position: ArrowPosition::Bottom,
+                            text: String::from("Settings")
+                        }
+                    )),
+                },
             }
         }
     })
