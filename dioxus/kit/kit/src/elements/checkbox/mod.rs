@@ -20,7 +20,7 @@ pub fn Checkbox<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
     let disabled_class = if cx.props.disabled { "disabled" } else { "" };
 
     cx.render(rsx!(
-            div {
+        div {
             class: "input-checkbox {disabled_class}",
             height: "{cx.props.height}",
             width: "{cx.props.width}",
