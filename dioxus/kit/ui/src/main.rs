@@ -131,39 +131,6 @@ fn main() {
     };
     logger::init_with_level(max_log_level).expect("failed to init logger");
     log::debug!("starting uplink");
-    panic::set_hook(Box::new(|panic_info| {
-        let intro = match panic_info.payload().downcast_ref::<&str>() {
-            Some(s) => format!("panic occurred: {s:?}"),
-            None => "panic occurred".into(),
-        };
-        let location = match panic_info.location() {
-            Some(loc) => format!(" at file {}, line {}", loc.file(), loc.line()),
-            None => "".into(),
-        };
-
-        let logs = logger::dump_logs();
-        let crash_report = format!("{intro}{location}\n{logs}\n");
-        println!("{crash_report}");
-
-        let save_path = FileDialog::new()
-            .set_directory(dirs::home_dir().unwrap_or(".".into()))
-            .set_title(&get_local_text("uplink.crash-report"))
-            .pick_folder();
-
-        if let Some(p) = save_path {
-            let time = Local::now();
-            let file_name = format!(
-                "uplink-crash-report_{}-{}-{}_{}:{}:{}.txt",
-                time.year(),
-                time.month(),
-                time.day(),
-                time.hour(),
-                time.minute(),
-                time.second()
-            );
-            let _ = fs::write(p.join(file_name), crash_report);
-        }
-    }));
 
     // Initializes the cache dir if needed
     std::fs::create_dir_all(&STATIC_ARGS.uplink_path).expect("Error creating Uplink directory");
@@ -176,36 +143,6 @@ fn main() {
 }
 
 pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
-    let mut main_menu = Menu::new();
-    let mut app_menu = Menu::new();
-    let mut edit_menu = Menu::new();
-    let mut window_menu = Menu::new();
-
-    app_menu.add_native_item(MenuItem::About(String::from("Uplink"), AboutMetadata::default()));
-    app_menu.add_native_item(MenuItem::Quit);
-    // add native shortcuts to `edit_menu` menu
-    // in macOS native item are required to get keyboard shortcut
-    // to works correctly
-    edit_menu.add_native_item(MenuItem::Undo);
-    edit_menu.add_native_item(MenuItem::Redo);
-    edit_menu.add_native_item(MenuItem::Separator);
-    edit_menu.add_native_item(MenuItem::Cut);
-    edit_menu.add_native_item(MenuItem::Copy);
-    edit_menu.add_native_item(MenuItem::Paste);
-    edit_menu.add_native_item(MenuItem::SelectAll);
-
-    window_menu.add_native_item(MenuItem::Minimize);
-    window_menu.add_native_item(MenuItem::Zoom);
-    window_menu.add_native_item(MenuItem::Separator);
-    window_menu.add_native_item(MenuItem::ShowAll);
-    window_menu.add_native_item(MenuItem::EnterFullScreen);
-    window_menu.add_native_item(MenuItem::Separator);
-    window_menu.add_native_item(MenuItem::CloseWindow);
-
-    main_menu.add_submenu("Uplink", true, app_menu);
-    main_menu.add_submenu("Edit", true, edit_menu);
-    main_menu.add_submenu("Window", true, window_menu);
-
     let title = get_local_text("uplink");
 
     #[allow(unused_mut)]
@@ -218,24 +155,7 @@ pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
     if with_predefined_size {
         window = window.with_inner_size(LogicalSize::new(950.0, 600.0));
     }
-
-    #[cfg(target_os = "macos")]
-    {
-        use dioxus_desktop::tao::platform::macos::WindowBuilderExtMacOS;
-
-        window = window
-            .with_has_shadow(true)
-            .with_transparent(true)
-            .with_fullsize_content_view(true)
-            .with_menu(main_menu)
-            .with_titlebar_transparent(true);
-        // .with_movable_by_window_background(true)
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        window = window.with_decorations(false).with_transparent(true);
-    }
+    window = window.with_decorations(false).with_transparent(true);
     window
 }
 
