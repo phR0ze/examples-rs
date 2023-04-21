@@ -21,9 +21,9 @@ use kit::elements::button::Button;
 use kit::elements::Appearance;
 use notify::{RecommendedWatcher, RecursiveMode, Watcher};
 use once_cell::sync::Lazy;
-use overlay::{make_config, OverlayDom};
 use rfd::FileDialog;
 use std::collections::{HashMap, HashSet};
+use ui::overlay::{make_config, OverlayDom};
 
 use std::process::Command;
 use std::time::Instant;
@@ -42,64 +42,30 @@ use warp::logging::tracing::log::{self, LevelFilter};
 use dioxus_desktop::use_wry_event_handler;
 use dioxus_desktop::wry::application::event::Event as WryEvent;
 
-use crate::components::debug_logger::DebugLogger;
-use crate::components::toast::Toast;
-use crate::layouts::create_account::CreateAccountLayout;
-use crate::layouts::friends::FriendsLayout;
-use crate::layouts::loading::LoadingLayout;
-use crate::layouts::settings::SettingsLayout;
-use crate::layouts::storage::{FilesLayout, DRAG_EVENT};
-use crate::layouts::unlock::UnlockLayout;
+use ui::components::debug_logger::DebugLogger;
+use ui::components::toast::Toast;
+use ui::layouts::create_account::CreateAccountLayout;
+use ui::layouts::friends::FriendsLayout;
+use ui::layouts::loading::LoadingLayout;
+use ui::layouts::settings::SettingsLayout;
+use ui::layouts::storage::{FilesLayout, DRAG_EVENT};
+use ui::layouts::unlock::UnlockLayout;
 
-use crate::utils::auto_updater::{
-    get_download_dest, DownloadProgress, DownloadState, SoftwareDownloadCmd, SoftwareUpdateCmd,
-};
-use crate::utils::get_available_themes;
-use crate::window_manager::WindowManagerCmdChannels;
-use crate::{components::chat::RouteInfo, layouts::chat::ChatLayout};
 use common::{
     state::{friends, storage, ui::WindowMeta, Action, State},
     warp_runner::{ConstellationCmd, MultiPassCmd, RayGunCmd, WarpCmd},
 };
 use dioxus_router::*;
 use std::panic;
+use ui::utils::auto_updater::{
+    get_download_dest, DownloadProgress, DownloadState, SoftwareDownloadCmd, SoftwareUpdateCmd,
+};
+use ui::utils::get_available_themes;
+use ui::window_manager::WindowManagerCmdChannels;
+use ui::{components::chat::RouteInfo, layouts::chat::ChatLayout};
 
 use kit::STYLE as UIKIT_STYLES;
-pub const APP_STYLE: &str = include_str!("./compiled_styles.css");
-mod components;
-mod layouts;
-mod logger;
-mod overlay;
-mod utils;
-mod window_manager;
-
-pub static OPEN_DYSLEXIC: &str = include_str!("./open-dyslexic.css");
-
-// used to close the popout player, among other things
-pub static WINDOW_CMD_CH: Lazy<WindowManagerCmdChannels> = Lazy::new(|| {
-    let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-    WindowManagerCmdChannels { tx, rx: Arc::new(Mutex::new(rx)) }
-});
-
-pub struct UplinkRoutes<'a> {
-    pub loading: &'a str,
-    pub chat: &'a str,
-    pub friends: &'a str,
-    pub files: &'a str,
-    pub settings: &'a str,
-}
-
-pub static UPLINK_ROUTES: UplinkRoutes =
-    UplinkRoutes { loading: "/", chat: "/chat", friends: "/friends", files: "/files", settings: "/settings" };
-
-// serve as a sort of router while the user logs in]
-#[allow(clippy::large_enum_variant)]
-#[derive(PartialEq, Eq)]
-pub enum AuthPages {
-    Unlock,
-    CreateAccount,
-    Success(multipass::identity::Identity),
-}
+use ui::APP_STYLE;
 
 fn main() {
     std::fs::create_dir_all(&STATIC_ARGS.uplink_path).expect("Error creating Uplink directory");
@@ -143,24 +109,24 @@ fn bootstrap(cx: Scope) -> Element {
 // so instead use a Prop to determine which page to render
 // after the user logs in, app_bootstrap loads Uplink as normal.
 fn auth_page_manager(cx: Scope) -> Element {
-    let page = use_state(cx, || AuthPages::Unlock);
+    let page = use_state(cx, || ui::AuthPages::Unlock);
     let pin = use_ref(cx, String::new);
     cx.render(rsx!(match &*page.current() {
-        AuthPages::Success(ident) => rsx!(app_bootstrap { identity: ident.clone() }),
+        ui::AuthPages::Success(ident) => rsx!(app_bootstrap { identity: ident.clone() }),
         _ => rsx!(auth_wrapper { page: page.clone(), pin: pin.clone() }),
     }))
 }
 
 #[inline_props]
-fn auth_wrapper(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> Element {
+fn auth_wrapper(cx: Scope, page: UseState<ui::AuthPages>, pin: UseRef<String>) -> Element {
     cx.render(rsx! (
         style { "{UIKIT_STYLES} {APP_STYLE}" },
         div {
             id: "app-wrap",
             TitleBar{},
             match *page.current() {
-                AuthPages::Unlock => rsx!(UnlockLayout { page: page.clone(), pin: pin.clone() }),
-                AuthPages::CreateAccount => rsx!(CreateAccountLayout { page: page.clone(), pin: pin.clone() }),
+                ui::AuthPages::Unlock => rsx!(UnlockLayout { page: page.clone(), pin: pin.clone() }),
+                ui::AuthPages::CreateAccount => rsx!(CreateAccountLayout { page: page.clone(), pin: pin.clone() }),
                 _ => panic!("invalid page")
             }
         }
@@ -290,7 +256,8 @@ fn app(cx: Scope) -> Element {
         let user_lang_saved = state.read().settings.language.clone();
         change_language(user_lang_saved);
 
-        let open_dyslexic = if state.read().configuration.general.dyslexia_support { OPEN_DYSLEXIC } else { "" };
+        let open_dyslexic =
+            if state.read().configuration.general.dyslexia_support { ui::OPEN_DYSLEXIC } else { "" };
 
         let font_scale = format!("html {{ font-size: {}rem; }}", state.read().settings.font_scale());
 
@@ -303,7 +270,7 @@ fn app(cx: Scope) -> Element {
                 get_titlebar{},
                 get_toasts{},
                 get_call_dialog{},
-                get_pre_release_message{},
+                ui::get_pre_release_message{},
                 get_router{},
                 get_logger{},
             }
@@ -337,7 +304,7 @@ fn app(cx: Scope) -> Element {
             while let Some(dest) = rx.next().await {
                 let (tx, rx) = mpsc::unbounded_channel::<f32>();
                 updater_ch.send(SoftwareUpdateCmd(rx));
-                match utils::auto_updater::download_update(dest.0.clone(), tx).await {
+                match ui::utils::auto_updater::download_update(dest.0.clone(), tx).await {
                     Ok(downloaded_version) => {
                         log::debug!("downloaded version {downloaded_version}");
                     },
@@ -534,7 +501,7 @@ fn app(cx: Scope) -> Element {
         to_owned![needs_update];
         async move {
             loop {
-                let latest_release = match utils::auto_updater::check_for_release().await {
+                let latest_release = match ui::utils::auto_updater::check_for_release().await {
                     Ok(opt) => match opt {
                         Some(r) => r,
                         None => {
@@ -571,10 +538,10 @@ fn app(cx: Scope) -> Element {
     use_future(cx, (), |_| {
         to_owned![needs_update, desktop];
         async move {
-            let window_cmd_rx = WINDOW_CMD_CH.rx.clone();
+            let window_cmd_rx = ui::WINDOW_CMD_CH.rx.clone();
             let mut ch = window_cmd_rx.lock().await;
             while let Some(cmd) = ch.recv().await {
-                window_manager::handle_cmd(inner.clone(), cmd, desktop.clone()).await;
+                ui::window_manager::handle_cmd(inner.clone(), cmd, desktop.clone()).await;
                 needs_update.set(true);
             }
         }
@@ -676,28 +643,6 @@ fn app(cx: Scope) -> Element {
     });
 
     cx.render(main_element)
-}
-
-fn get_pre_release_message(_cx: Scope) -> Element {
-    let pre_release_text = get_local_text("uplink.pre-release");
-    _cx.render(rsx!(
-        div {
-            id: "pre-release",
-            aria_label: "pre-release",
-            IconElement {
-                icon: Icon::Beaker,
-            },
-            p {
-                div {
-                    onclick: move |_| {
-                        let _ = open::that("https://issues.satellite.im");
-                    },
-                    "{pre_release_text}"
-                }
-
-            }
-        },
-    ))
 }
 
 fn get_update_icon(cx: Scope) -> Element {
@@ -959,48 +904,31 @@ fn get_call_dialog(_cx: Scope) -> Element {
     None
 }
 
-pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
-    let title = get_local_text("uplink");
-
-    #[allow(unused_mut)]
-    let mut window = WindowBuilder::new()
-        .with_title(title)
-        .with_resizable(true)
-        // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
-        .with_min_inner_size(LogicalSize::new(300.0, 350.0));
-
-    if with_predefined_size {
-        window = window.with_inner_size(LogicalSize::new(950.0, 600.0));
-    }
-    window = window.with_decorations(false).with_transparent(true);
-    window
-}
-
 fn get_router(cx: Scope) -> Element {
     let state = use_shared_state::<State>(cx)?;
     let pending_friends = state.read().friends().incoming_requests.len();
 
     let chat_route = UIRoute {
-        to: UPLINK_ROUTES.chat,
+        to: ui::UPLINK_ROUTES.chat,
         name: get_local_text("uplink.chats"),
         icon: Icon::ChatBubbleBottomCenterText,
         ..UIRoute::default()
     };
     let settings_route = UIRoute {
-        to: UPLINK_ROUTES.settings,
+        to: ui::UPLINK_ROUTES.settings,
         name: get_local_text("settings.settings"),
         icon: Icon::Cog6Tooth,
         ..UIRoute::default()
     };
     let friends_route = UIRoute {
-        to: UPLINK_ROUTES.friends,
+        to: ui::UPLINK_ROUTES.friends,
         name: get_local_text("friends.friends"),
         icon: Icon::Users,
         with_badge: if pending_friends > 0 { Some(pending_friends.to_string()) } else { None },
         loading: None,
     };
     let files_route = UIRoute {
-        to: UPLINK_ROUTES.files,
+        to: ui::UPLINK_ROUTES.files,
         name: get_local_text("files.files"),
         icon: Icon::Folder,
         ..UIRoute::default()
@@ -1015,11 +943,11 @@ fn get_router(cx: Scope) -> Element {
     cx.render(rsx!(
         Router {
             Route {
-                to: UPLINK_ROUTES.loading,
+                to: ui::UPLINK_ROUTES.loading,
                 LoadingLayout{}
             },
             Route {
-                to: UPLINK_ROUTES.chat,
+                to: ui::UPLINK_ROUTES.chat,
                 ChatLayout {
                     route_info: RouteInfo {
                         routes: routes.clone(),
@@ -1028,7 +956,7 @@ fn get_router(cx: Scope) -> Element {
                 }
             },
             Route {
-                to: UPLINK_ROUTES.settings,
+                to: ui::UPLINK_ROUTES.settings,
                 SettingsLayout {
                     route_info: RouteInfo {
                         routes: routes.clone(),
@@ -1037,7 +965,7 @@ fn get_router(cx: Scope) -> Element {
                 }
             },
             Route {
-                to: UPLINK_ROUTES.friends,
+                to: ui::UPLINK_ROUTES.friends,
                 FriendsLayout {
                     route_info: RouteInfo {
                         routes: routes.clone(),
@@ -1046,7 +974,7 @@ fn get_router(cx: Scope) -> Element {
                 }
             },
             Route {
-                to: UPLINK_ROUTES.files,
+                to: ui::UPLINK_ROUTES.files,
                 FilesLayout {
                     route_info: RouteInfo {
                         routes: routes.clone(),

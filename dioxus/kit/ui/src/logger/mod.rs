@@ -67,7 +67,7 @@ impl LogGlue {
     }
 }
 
-impl crate::log::Log for LogGlue {
+impl warp::logging::tracing::log::Log for LogGlue {
     fn enabled(&self, metadata: &log::Metadata) -> bool {
         metadata.level() <= self.max_level
     }
@@ -79,9 +79,7 @@ impl crate::log::Log for LogGlue {
 
         // don't care about other libraries
         if record.file().map(|x| x.contains(".cargo")).unwrap_or(true) {
-            if LOGGER.read().display_warp
-                && record.file().map(|x| x.contains("warp")).unwrap_or(false)
-            {
+            if LOGGER.read().display_warp && record.file().map(|x| x.contains("warp")).unwrap_or(false) {
                 let msg = format!("{}", record.args());
                 LOGGER.write().log_warp(record.level(), &msg);
             }
@@ -98,10 +96,7 @@ impl crate::log::Log for LogGlue {
 impl Logger {
     fn load() -> Self {
         let logger_path = STATIC_ARGS.logger_path.to_string_lossy().to_string();
-        let _ = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&logger_path);
+        let _ = OpenOptions::new().create(true).append(true).open(&logger_path);
 
         Self {
             save_to_file: false,
@@ -124,12 +119,7 @@ impl Logger {
 
 impl Logger {
     fn log(&mut self, level: Level, message: &str) {
-        let new_log = Log {
-            level,
-            message: message.to_string(),
-            datetime: Local::now(),
-            colorized: false,
-        };
+        let new_log = Log { level, message: message.to_string(), datetime: Local::now(), colorized: false };
 
         // special path for Trace logs
         // don't persist tracing information. at most, print it to the terminal
@@ -139,11 +129,7 @@ impl Logger {
         }
 
         if self.save_to_file {
-            let mut file = OpenOptions::new()
-                .append(true)
-                .create(true)
-                .open(&self.log_file)
-                .unwrap();
+            let mut file = OpenOptions::new().append(true).create(true).open(&self.log_file).unwrap();
 
             if let Err(error) = writeln!(file, "{new_log}") {
                 eprintln!("Couldn't write to debug.log file. {error}");
@@ -165,12 +151,7 @@ impl Logger {
     }
 
     fn log_warp(&mut self, level: Level, message: &str) {
-        let new_log = Log {
-            level,
-            message: message.to_string(),
-            datetime: Local::now(),
-            colorized: false,
-        };
+        let new_log = Log { level, message: message.to_string(), datetime: Local::now(), colorized: false };
 
         println!("{new_log}");
     }
@@ -182,11 +163,7 @@ impl Logger {
             return;
         }
 
-        let mut file = OpenOptions::new()
-            .append(true)
-            .create(true)
-            .open(&self.log_file)
-            .unwrap();
+        let mut file = OpenOptions::new().append(true).create(true).open(&self.log_file).unwrap();
 
         for entry in self.log_entries.drain(..) {
             if let Err(error) = writeln!(file, "{entry}") {
@@ -211,12 +188,7 @@ pub fn dump_logs() -> String {
 
 // used for bug report
 pub fn get_logs() -> String {
-    let logs: Vec<String> = LOGGER
-        .read()
-        .log_entries
-        .iter()
-        .map(|x| x.to_string())
-        .collect();
+    let logs: Vec<String> = LOGGER.read().log_entries.iter().map(|x| x.to_string()).collect();
     logs.join("\n")
 }
 
@@ -250,21 +222,12 @@ pub fn load_debug_log() -> Vec<String> {
         Err(e) => {
             log::error!("failed to read debug.log: {}", e);
             return vec![];
-        }
+        },
     };
 
-    let mut in_memory: Vec<_> = LOGGER
-        .read()
-        .log_entries
-        .iter()
-        .map(|x| x.to_string())
-        .collect();
+    let mut in_memory: Vec<_> = LOGGER.read().log_entries.iter().map(|x| x.to_string()).collect();
 
-    raw_file
-        .lines()
-        .map(|x| x.to_string())
-        .chain(in_memory.drain(..))
-        .collect::<Vec<_>>()
+    raw_file.lines().map(|x| x.to_string()).chain(in_memory.drain(..)).collect::<Vec<_>>()
 }
 
 // this is kind of a hack. but Colorize adds characters to a string which display differently in the debug_logger and the terminal.

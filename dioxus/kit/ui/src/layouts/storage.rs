@@ -71,8 +71,7 @@ const MAX_LEN_TO_FORMAT_NAME: usize = 15;
 
 pub const ROOT_DIR_NAME: &str = "root";
 
-pub static DRAG_EVENT: Lazy<RwLock<FileDropEvent>> =
-    Lazy::new(|| RwLock::new(FileDropEvent::Cancelled));
+pub static DRAG_EVENT: Lazy<RwLock<FileDropEvent>> = Lazy::new(|| RwLock::new(FileDropEvent::Cancelled));
 
 enum ChanCmd {
     GetItemsFromCurrentDirectory,
@@ -80,14 +79,8 @@ enum ChanCmd {
     OpenDirectory(String),
     BackToPreviousDirectory(Directory),
     UploadFiles(Vec<PathBuf>),
-    DownloadFile {
-        file_name: String,
-        local_path_to_save_file: PathBuf,
-    },
-    RenameItem {
-        old_name: String,
-        new_name: String,
-    },
+    DownloadFile { file_name: String, local_path_to_save_file: PathBuf },
+    RenameItem { old_name: String, new_name: String },
     DeleteItems(Item),
 }
 
@@ -127,12 +120,12 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                         let (tx, rx) = oneshot::channel::<Result<(), warp::error::Error>>();
                         let directory_name2 = directory_name.clone();
 
-                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(
-                            ConstellationCmd::CreateNewDirectory {
+                        if let Err(e) =
+                            warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::CreateNewDirectory {
                                 directory_name,
                                 rsp: tx,
-                            },
-                        )) {
+                            }))
+                        {
                             log::error!("failed to add new directory {}", e);
                             continue;
                         }
@@ -142,13 +135,13 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                         match rsp {
                             Ok(_) => {
                                 log::info!("New directory added: {}", directory_name2);
-                            }
+                            },
                             Err(e) => {
                                 log::error!("failed to add new directory: {}", e);
                                 continue;
-                            }
+                            },
                         }
-                    }
+                    },
                     ChanCmd::GetItemsFromCurrentDirectory => {
                         let (tx, rx) = oneshot::channel::<Result<Storage, warp::error::Error>>();
 
@@ -163,23 +156,21 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                         match rsp {
                             Ok(storage) => {
                                 storage_state.set(Some(storage));
-                            }
+                            },
                             Err(e) => {
                                 log::error!("failed to add new directory: {}", e);
                                 continue;
-                            }
+                            },
                         }
-                    }
+                    },
                     ChanCmd::OpenDirectory(directory_name) => {
                         let (tx, rx) = oneshot::channel::<Result<Storage, warp::error::Error>>();
                         let directory_name2 = directory_name.clone();
 
-                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(
-                            ConstellationCmd::OpenDirectory {
-                                directory_name,
-                                rsp: tx,
-                            },
-                        )) {
+                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::OpenDirectory {
+                            directory_name,
+                            rsp: tx,
+                        })) {
                             log::error!("failed to open {directory_name2} directory {}", e);
                             continue;
                         }
@@ -189,20 +180,23 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                             Ok(storage) => {
                                 storage_state.set(Some(storage));
                                 log::info!("Folder {} opened", directory_name2);
-                            }
+                            },
                             Err(e) => {
                                 log::error!("failed to open folder {directory_name2}: {}", e);
                                 continue;
-                            }
+                            },
                         }
-                    }
+                    },
                     ChanCmd::BackToPreviousDirectory(directory) => {
                         let (tx, rx) = oneshot::channel::<Result<Storage, warp::error::Error>>();
                         let directory_name = directory.name();
 
-                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(
-                            ConstellationCmd::BackToPreviousDirectory { directory, rsp: tx },
-                        )) {
+                        if let Err(e) =
+                            warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::BackToPreviousDirectory {
+                                directory,
+                                rsp: tx,
+                            }))
+                        {
                             log::error!("failed to open directory {}: {}", directory_name, e);
                             continue;
                         }
@@ -212,27 +206,23 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                             Ok(storage) => {
                                 storage_state.set(Some(storage));
                                 log::info!("Folder {} opened", directory_name);
-                            }
+                            },
                             Err(e) => {
                                 log::error!("failed to open directory {}: {}", directory_name, e);
                                 continue;
-                            }
+                            },
                         }
-                    }
+                    },
                     ChanCmd::UploadFiles(files_path) => {
                         let mut script = main_script.replace("$IS_DRAGGING", "true");
                         script.push_str(ANIMATION_DASH_SCRIPT);
                         window.eval(&script);
 
-                        let (tx, mut rx) =
-                            mpsc::unbounded_channel::<FileTransferProgress<Storage>>();
+                        let (tx, mut rx) = mpsc::unbounded_channel::<FileTransferProgress<Storage>>();
 
-                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(
-                            ConstellationCmd::UploadFiles {
-                                files_path,
-                                rsp: tx,
-                            },
-                        )) {
+                        if let Err(e) = warp_cmd_tx
+                            .send(WarpCmd::Constellation(ConstellationCmd::UploadFiles { files_path, rsp: tx }))
+                        {
                             log::error!("failed to upload files {}", e);
                             continue;
                         }
@@ -242,46 +232,37 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                                     match steps {
                                         FileTransferStep::Start(name) => {
                                             let file_name_formatted = format_item_name(name);
-                                            let script = FILE_NAME_SCRIPT
-                                                .replace("$FILE_NAME", &file_name_formatted);
+                                            let script =
+                                                FILE_NAME_SCRIPT.replace("$FILE_NAME", &file_name_formatted);
                                             window.eval(&script);
                                             sleep(Duration::from_millis(100)).await;
-                                        }
+                                        },
                                         FileTransferStep::DuplicateName(duplicate_name_step) => {
                                             match duplicate_name_step {
                                                 None => {
                                                     let script = FEEDBACK_TEXT_SCRIPT.replace(
                                                         "$TEXT",
-                                                        &get_local_text(
-                                                            "files.renaming-duplicated",
-                                                        ),
+                                                        &get_local_text("files.renaming-duplicated"),
                                                     );
                                                     window.eval(&script);
-                                                }
+                                                },
                                                 Some(name) => {
-                                                    let file_name_formatted =
-                                                        format_item_name(name);
-                                                    let script = FILE_NAME_SCRIPT.replace(
-                                                        "$FILE_NAME",
-                                                        &file_name_formatted,
-                                                    );
+                                                    let file_name_formatted = format_item_name(name);
+                                                    let script = FILE_NAME_SCRIPT
+                                                        .replace("$FILE_NAME", &file_name_formatted);
                                                     window.eval(&script);
-                                                }
+                                                },
                                             }
                                             sleep(Duration::from_millis(200)).await;
-                                        }
+                                        },
                                         FileTransferStep::Upload(progress) => {
                                             let script = FEEDBACK_TEXT_SCRIPT.replace(
                                                 "$TEXT",
-                                                &format!(
-                                                    "{} {}",
-                                                    progress,
-                                                    get_local_text("files.uploaded")
-                                                ),
+                                                &format!("{} {}", progress, get_local_text("files.uploaded")),
                                             );
                                             window.eval(&script);
                                             sleep(Duration::from_millis(3)).await;
-                                        }
+                                        },
                                         FileTransferStep::Thumbnail(thumb_type) => {
                                             match thumb_type {
                                                 Some(_) => {
@@ -290,19 +271,17 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                                                         &get_local_text("files.thumbnail-uploaded"),
                                                     );
                                                     window.eval(&script);
-                                                }
+                                                },
                                                 None => {
-                                                    let script = FEEDBACK_TEXT_SCRIPT.replace(
-                                                        "$TEXT",
-                                                        &get_local_text("files.no-thumbnail"),
-                                                    );
+                                                    let script = FEEDBACK_TEXT_SCRIPT
+                                                        .replace("$TEXT", &get_local_text("files.no-thumbnail"));
                                                     window.eval(&script);
-                                                }
+                                                },
                                             }
                                             sleep(Duration::from_millis(200)).await;
-                                        }
+                                        },
                                     };
-                                }
+                                },
                                 FileTransferProgress::Finished(storage) => {
                                     *drag_event.write_silent() = None;
                                     let mut script = main_script.replace("$IS_DRAGGING", "false");
@@ -312,7 +291,7 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                                     window.eval(&script);
                                     storage_state.set(Some(storage));
                                     break;
-                                }
+                                },
                                 FileTransferProgress::Error(_) => {
                                     *drag_event.write_silent() = None;
                                     let mut script = main_script.replace("$IS_DRAGGING", "false");
@@ -321,23 +300,18 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                                     script.push_str(&ANIMATION_DASH_SCRIPT.replace("0.5s", "0s"));
                                     window.eval(&script);
                                     break;
-                                }
+                                },
                             }
                         }
-                    }
-                    ChanCmd::DownloadFile {
-                        file_name,
-                        local_path_to_save_file,
-                    } => {
+                    },
+                    ChanCmd::DownloadFile { file_name, local_path_to_save_file } => {
                         let (tx, rx) = oneshot::channel::<Result<(), warp::error::Error>>();
 
-                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(
-                            ConstellationCmd::DownloadFile {
-                                file_name,
-                                local_path_to_save_file,
-                                rsp: tx,
-                            },
-                        )) {
+                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::DownloadFile {
+                            file_name,
+                            local_path_to_save_file,
+                            rsp: tx,
+                        })) {
                             log::error!("failed to download file {}", e);
                             continue;
                         }
@@ -348,17 +322,15 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                             log::error!("failed to download file: {}", error);
                             continue;
                         }
-                    }
+                    },
                     ChanCmd::RenameItem { old_name, new_name } => {
                         let (tx, rx) = oneshot::channel::<Result<Storage, warp::error::Error>>();
 
-                        if let Err(e) =
-                            warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::RenameItem {
-                                old_name,
-                                new_name,
-                                rsp: tx,
-                            }))
-                        {
+                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::RenameItem {
+                            old_name,
+                            new_name,
+                            rsp: tx,
+                        })) {
                             log::error!("failed to rename item {}", e);
                             continue;
                         }
@@ -367,25 +339,20 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                         match rsp {
                             Ok(storage) => {
                                 storage_state.set(Some(storage));
-                            }
+                            },
                             Err(e) => {
-                                log::error!(
-                                    "failed to update uplink storage with renamed item: {}",
-                                    e
-                                );
+                                log::error!("failed to update uplink storage with renamed item: {}", e);
                                 continue;
-                            }
+                            },
                         }
-                    }
+                    },
                     ChanCmd::DeleteItems(item) => {
                         let (tx, rx) = oneshot::channel::<Result<Storage, warp::error::Error>>();
 
-                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(
-                            ConstellationCmd::DeleteItems {
-                                item: item.clone(),
-                                rsp: tx,
-                            },
-                        )) {
+                        if let Err(e) = warp_cmd_tx.send(WarpCmd::Constellation(ConstellationCmd::DeleteItems {
+                            item: item.clone(),
+                            rsp: tx,
+                        })) {
                             log::error!("failed to delete items {}, item {:?}", e, item.name());
                             continue;
                         }
@@ -394,13 +361,13 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                         match rsp {
                             Ok(storage) => {
                                 storage_state.set(Some(storage));
-                            }
+                            },
                             Err(e) => {
                                 log::error!("failed to delete items {}, item {:?}", e, item.name());
                                 continue;
-                            }
+                            },
                         }
-                    }
+                    },
                 }
             }
         }
@@ -440,8 +407,7 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
                     sleep(Duration::from_millis(100)).await;
                     if let FileDropEvent::Hovered(_) = get_drag_event() {
                         if drag_event.with(|i| i.clone()).is_none() {
-                            drag_and_drop_function(&window, &drag_event, main_script.clone(), &ch)
-                                .await;
+                            drag_and_drop_function(&window, &drag_event, main_script.clone(), &ch).await;
                         }
                     }
                 }
@@ -759,10 +725,8 @@ pub fn FilesLayout(cx: Scope<Props>) -> Element {
 }
 
 fn update_items_with_mock_data(
-    storage_state: &UseState<Option<Storage>>,
-    current_dir: &UseRef<Directory>,
-    directories_opened: &UseRef<Vec<Directory>>,
-    directories_list: &UseRef<Vec<Directory>>,
+    storage_state: &UseState<Option<Storage>>, current_dir: &UseRef<Directory>,
+    directories_opened: &UseRef<Vec<Directory>>, directories_list: &UseRef<Vec<Directory>>,
     files_list: &UseRef<Vec<File>>,
 ) {
     let storage_mock = Storage {
@@ -782,29 +746,17 @@ pub fn get_drag_event() -> FileDropEvent {
 fn format_item_name(file_name: String) -> String {
     let item = PathBuf::from(&file_name);
 
-    let file_stem = item
-        .file_stem()
-        .and_then(OsStr::to_str)
-        .map(str::to_string)
-        .unwrap_or_default();
+    let file_stem = item.file_stem().and_then(OsStr::to_str).map(str::to_string).unwrap_or_default();
 
     file_name
         .get(0..15)
         .map(|x| x.to_string())
-        .map(|x| {
-            if file_stem.len() > MAX_LEN_TO_FORMAT_NAME {
-                format!("{x}...")
-            } else {
-                x
-            }
-        })
+        .map(|x| if file_stem.len() > MAX_LEN_TO_FORMAT_NAME { format!("{x}...") } else { x })
         .unwrap_or_else(|| file_name.clone())
 }
 
 async fn drag_and_drop_function(
-    window: &DesktopContext,
-    drag_event: &UseRef<Option<FileDropEvent>>,
-    main_script: String,
+    window: &DesktopContext, drag_event: &UseRef<Option<FileDropEvent>>, main_script: String,
     ch: &Coroutine<ChanCmd>,
 ) {
     *drag_event.write_silent() = Some(get_drag_event());
@@ -817,38 +769,30 @@ async fn drag_and_drop_function(
                     if files_local_path.len() > 1 {
                         script.push_str(&FEEDBACK_TEXT_SCRIPT.replace(
                             "$TEXT",
-                            &format!(
-                                "{} {}!",
-                                files_local_path.len(),
-                                get_local_text("files.files-to-upload")
-                            ),
+                            &format!("{} {}!", files_local_path.len(), get_local_text("files.files-to-upload")),
                         ));
                     } else {
                         script.push_str(&FEEDBACK_TEXT_SCRIPT.replace(
                             "$TEXT",
-                            &format!(
-                                "{} {}!",
-                                files_local_path.len(),
-                                get_local_text("files.one-file-to-upload")
-                            ),
+                            &format!("{} {}!", files_local_path.len(), get_local_text("files.one-file-to-upload")),
                         ));
                     }
                     window.eval(&script);
                 }
-            }
+            },
             FileDropEvent::Dropped(files_local_path) => {
                 if verify_if_there_are_valid_paths(&files_local_path) {
                     let new_files_to_upload = decoded_pathbufs(files_local_path);
                     ch.send(ChanCmd::UploadFiles(new_files_to_upload));
                     break;
                 }
-            }
+            },
             _ => {
                 *drag_event.write_silent() = None;
                 let script = main_script.replace("$IS_DRAGGING", "false");
                 window.eval(&script);
                 break;
-            }
+            },
         };
         tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
@@ -868,10 +812,7 @@ pub fn decoded_pathbufs(paths: Vec<PathBuf>) -> Vec<PathBuf> {
     #[cfg(target_os = "linux")]
     {
         let decode = |path: &Path| path.as_os_str().to_string_lossy().replace("%20", " ");
-        paths = paths
-            .iter()
-            .map(|p| PathBuf::from(decode(p)))
-            .collect::<Vec<PathBuf>>();
+        paths = paths.iter().map(|p| PathBuf::from(decode(p))).collect::<Vec<PathBuf>>();
     }
     paths
 }
