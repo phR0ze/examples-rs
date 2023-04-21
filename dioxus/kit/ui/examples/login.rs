@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 use common::icons::outline::Shape as Icon;
 use dioxus::prelude::*;
 use kit::{
@@ -9,10 +7,11 @@ use kit::{
         checkbox::Checkbox,
         switch::Switch,
         tooltip::{ArrowPosition, Tooltip},
+        Appearance,
     },
     STYLE,
 };
-use ui::APP_STYLE;
+use ui::{utils::get_available_themes, APP_STYLE};
 
 fn main() {
     dioxus_desktop::launch_cfg(
@@ -22,9 +21,9 @@ fn main() {
                 .with_title("crux")
                 .with_resizable(true)
                 // Provides rounded window corner effect
-                //.with_transparent(true)
+                .with_transparent(true)
                 // Turns off standard window manager controls
-                //.with_decorations(false)
+                .with_decorations(false)
                 // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
                 .with_min_inner_size(dioxus_desktop::LogicalSize::new(300.0, 350.0))
                 .with_inner_size(dioxus_desktop::LogicalSize::new(950.0, 600.0)),
@@ -32,10 +31,52 @@ fn main() {
     )
 }
 
-fn App(cx: Scope) -> Element {
-    cx.render(rsx! {
-        style { "{STYLE} {APP_STYLE}" },
+#[allow(non_snake_case)]
+fn TitleBar(cx: Scope) -> Element {
+    let desktop = dioxus_desktop::use_window(cx);
+    cx.render(rsx!(
         div {
+            id: "titlebar",
+            onmousedown: move |_| { desktop.drag(); },
+            div {
+                class: "controls",
+                Button {
+                    aria_label: "minimize-button".into(),
+                    icon: Icon::Minus,
+                    appearance: Appearance::Transparent,
+                    onpress: move |_| {
+                        desktop.set_minimized(true);
+                    }
+                },
+                Button {
+                    aria_label: "square-button".into(),
+                    icon: Icon::Square2Stack,
+                    appearance: Appearance::Transparent,
+                    onpress: move |_| {
+                        desktop.set_maximized(!desktop.is_maximized());
+                    }
+                },
+                Button {
+                    aria_label: "close-button".into(),
+                    icon: Icon::XMark,
+                    appearance: Appearance::Transparent,
+                    onpress: move |_| {
+                        desktop.close();
+                    }
+                },
+            },
+        }
+    ))
+}
+
+#[allow(non_snake_case)]
+fn App(cx: Scope) -> Element {
+    let theme = get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
+
+    cx.render(rsx! {
+        style { "{STYLE} {APP_STYLE} {theme}" },
+        div {
+            TitleBar{},
             Section {
                 section_label: "Checkbox - unchecked".into(),
                 section_description: "Example of a checkbox that is unchecked".into(),
