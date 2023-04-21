@@ -268,8 +268,8 @@ fn app(cx: Scope) -> Element {
             div {
                 id: "app-wrap",
                 get_titlebar{},
-                get_toasts{},
-                get_call_dialog{},
+                //get_toasts{},
+                //get_call_dialog{},
                 ui::get_pre_release_message{},
                 get_router{},
                 get_logger{},

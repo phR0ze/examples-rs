@@ -1,9 +1,10 @@
 use common::icons::outline::Shape as Icon;
 use common::STATIC_ARGS;
 use dioxus::prelude::*;
+use dioxus_router::{Route, Router};
 use kit::{
     components::{
-        nav::{Nav, Route},
+        nav::{Nav, Route as UIRoute},
         section::Section,
     },
     elements::{
@@ -46,7 +47,36 @@ fn App(cx: Scope) -> Element {
         div {
             TitleBar{},
             //Splash{},
-            Content{},
+            //Content{},
+            Routes{},
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Routes(cx: Scope) -> Element {
+    cx.render(rsx! {
+        Router {
+            Route {
+                to: "splash".into(),
+                Splash{},
+            },
+            Route {
+                to: "chat".into(),
+                Content{},
+            },
+            Route {
+                to: "settings".into(),
+                Content{},
+            },
+            Route {
+                to: "friends".into(),
+                Content{},
+            },
+            Route {
+                to: "files".into(),
+                Content{},
+            }
         }
     })
 }
@@ -65,8 +95,8 @@ fn Settings(cx: Scope) -> Element {
 #[allow(non_snake_case)]
 fn SideBar(cx: Scope) -> Element {
     let routes = vec![
-        Route { to: "profile", name: "Profile".into(), icon: Icon::User, ..Route::default() },
-        Route { to: "general", name: "General".into(), icon: Icon::User, ..Route::default() },
+        UIRoute { to: "profile", name: "Profile".into(), icon: Icon::User, ..UIRoute::default() },
+        UIRoute { to: "general", name: "General".into(), icon: Icon::User, ..UIRoute::default() },
     ];
     let active_route = routes[0].clone();
 
