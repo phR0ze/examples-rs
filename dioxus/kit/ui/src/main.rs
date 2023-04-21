@@ -172,21 +172,7 @@ fn main() {
     std::fs::create_dir_all(&STATIC_ARGS.fonts_path).expect("error fonts themes directory");
 
     let window = get_window_builder(true);
-
-    let config = Config::default();
-
-    dioxus_desktop::launch_cfg(
-        bootstrap,
-        config.with_window(window).with_custom_index(
-            r#"
-    <!doctype html>
-    <html>
-    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-    <body style="background-color:rgba(0,0,0,0);"><div id="main"></div></body>
-    </html>"#
-                .to_string(),
-        ),
-    )
+    dioxus_desktop::launch_cfg(bootstrap, dioxus_desktop::Config::new().with_window(window))
 }
 
 pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
