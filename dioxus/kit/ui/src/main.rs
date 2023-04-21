@@ -124,23 +124,6 @@ fn main() {
     )
 }
 
-pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
-    let title = get_local_text("uplink");
-
-    #[allow(unused_mut)]
-    let mut window = WindowBuilder::new()
-        .with_title(title)
-        .with_resizable(true)
-        // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
-        .with_min_inner_size(LogicalSize::new(300.0, 350.0));
-
-    if with_predefined_size {
-        window = window.with_inner_size(LogicalSize::new(950.0, 600.0));
-    }
-    window = window.with_decorations(false).with_transparent(true);
-    window
-}
-
 // start warp_runner and ensure the user is logged in
 fn bootstrap(cx: Scope) -> Element {
     // warp_runner must be started from within a tokio reactor
@@ -640,48 +623,6 @@ fn app(cx: Scope) -> Element {
         }
     });
 
-    // initialize files
-    let inner = state.inner();
-    use_future(cx, (), |_| {
-        to_owned![items_init, needs_update];
-        async move {
-            if *items_init.read() {
-                return;
-            }
-            let warp_cmd_tx = WARP_CMD_CH.tx.clone();
-            let (tx, rx) = oneshot::channel::<Result<storage::Storage, warp::error::Error>>();
-
-            if let Err(e) = warp_cmd_tx
-                .send(WarpCmd::Constellation(ConstellationCmd::GetItemsFromCurrentDirectory { rsp: tx }))
-            {
-                log::error!("failed to initialize Files {}", e);
-                return;
-            }
-
-            let res = rx.await.expect("failed to get response from warp_runner");
-
-            log::trace!("init items");
-            match res {
-                Ok(storage) => match inner.try_borrow_mut() {
-                    Ok(state) => {
-                        state.write().storage = storage;
-
-                        needs_update.set(true);
-                    },
-                    Err(e) => {
-                        log::error!("{e}");
-                    },
-                },
-                Err(e) => {
-                    log::error!("init items failed: {}", e);
-                },
-            }
-
-            *items_init.write_silent() = true;
-            needs_update.set(true);
-        }
-    });
-
     // initialize conversations
     let inner = state.inner();
     use_future(cx, (), |_| {
@@ -1016,6 +957,23 @@ fn get_call_dialog(_cx: Scope) -> Element {
     //     )),
     // }
     None
+}
+
+pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
+    let title = get_local_text("uplink");
+
+    #[allow(unused_mut)]
+    let mut window = WindowBuilder::new()
+        .with_title(title)
+        .with_resizable(true)
+        // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
+        .with_min_inner_size(LogicalSize::new(300.0, 350.0));
+
+    if with_predefined_size {
+        window = window.with_inner_size(LogicalSize::new(950.0, 600.0));
+    }
+    window = window.with_decorations(false).with_transparent(true);
+    window
 }
 
 fn get_router(cx: Scope) -> Element {
