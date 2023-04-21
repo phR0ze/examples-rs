@@ -138,8 +138,21 @@ fn main() {
     std::fs::create_dir_all(&STATIC_ARGS.themes_path).expect("error creating themes directory");
     std::fs::create_dir_all(&STATIC_ARGS.fonts_path).expect("error fonts themes directory");
 
-    let window = get_window_builder(true);
-    dioxus_desktop::launch_cfg(bootstrap, dioxus_desktop::Config::new().with_window(window))
+    dioxus_desktop::launch_cfg(
+        bootstrap,
+        dioxus_desktop::Config::new().with_window(
+            dioxus_desktop::WindowBuilder::new()
+                .with_title("crux")
+                .with_resizable(true)
+                // Provides rounded window corner effect
+                .with_transparent(true)
+                // Turns off standard window manager controls
+                .with_decorations(false)
+                // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
+                .with_min_inner_size(dioxus_desktop::LogicalSize::new(300.0, 350.0))
+                .with_inner_size(dioxus_desktop::LogicalSize::new(950.0, 600.0)),
+        ),
+    )
 }
 
 pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
