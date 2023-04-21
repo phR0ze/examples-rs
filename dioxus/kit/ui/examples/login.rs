@@ -1,7 +1,11 @@
 use common::icons::outline::Shape as Icon;
+use common::STATIC_ARGS;
 use dioxus::prelude::*;
 use kit::{
-    components::section::Section,
+    components::{
+        nav::{Nav, Route},
+        section::Section,
+    },
     elements::{
         button::Button,
         checkbox::Checkbox,
@@ -9,6 +13,7 @@ use kit::{
         tooltip::{ArrowPosition, Tooltip},
         Appearance,
     },
+    layout::sidebar::Sidebar as ReusableSidebar,
     STYLE,
 };
 use ui::{utils::get_available_themes, APP_STYLE};
@@ -31,44 +36,7 @@ fn main() {
     )
 }
 
-#[allow(non_snake_case)]
-fn TitleBar(cx: Scope) -> Element {
-    let desktop = dioxus_desktop::use_window(cx);
-    cx.render(rsx!(
-        div {
-            id: "titlebar",
-            onmousedown: move |_| { desktop.drag(); },
-            div {
-                class: "controls",
-                Button {
-                    aria_label: "minimize-button".into(),
-                    icon: Icon::Minus,
-                    appearance: Appearance::Transparent,
-                    onpress: move |_| {
-                        desktop.set_minimized(true);
-                    }
-                },
-                Button {
-                    aria_label: "square-button".into(),
-                    icon: Icon::Square2Stack,
-                    appearance: Appearance::Transparent,
-                    onpress: move |_| {
-                        desktop.set_maximized(!desktop.is_maximized());
-                    }
-                },
-                Button {
-                    aria_label: "close-button".into(),
-                    icon: Icon::XMark,
-                    appearance: Appearance::Transparent,
-                    onpress: move |_| {
-                        desktop.close();
-                    }
-                },
-            },
-        }
-    ))
-}
-
+// UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     let theme = get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
@@ -77,6 +45,57 @@ fn App(cx: Scope) -> Element {
         style { "{STYLE} {APP_STYLE} {theme}" },
         div {
             TitleBar{},
+            //Splash{},
+            Content{},
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Settings(cx: Scope) -> Element {
+    cx.render(rsx! {
+        div {
+            id: "settings-layout",
+            aria_label: "settings-layout",
+            SideBar{},
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn SideBar(cx: Scope) -> Element {
+    let routes = vec![
+        Route { to: "profile", name: "Profile".into(), icon: Icon::User, ..Route::default() },
+        Route { to: "general", name: "General".into(), icon: Icon::User, ..Route::default() },
+    ];
+    let active_route = routes[0].clone();
+
+    cx.render(rsx! {
+      ReusableSidebar {
+            Nav {
+                routes: routes.clone(),
+                active: active_route,
+                onnavigate: move |route| {
+                    //use_router(cx).replace_route(route, None, None);
+                }
+            },
+        }
+    })
+}
+
+// Splash screen example
+#[allow(non_snake_case)]
+pub fn Splash(cx: Scope) -> Element {
+    let img_path =
+        STATIC_ARGS.extras_path.join("assets").join("img").join("uplink.gif").to_string_lossy().to_string();
+    cx.render(rsx!(img { style: "width: 100%", src: "{img_path}" }))
+}
+
+// Blob of content for testing
+#[allow(non_snake_case)]
+fn Content(cx: Scope) -> Element {
+    cx.render(rsx! {
+        div {
             Section {
                 section_label: "Checkbox - unchecked".into(),
                 section_description: "Example of a checkbox that is unchecked".into(),
@@ -190,4 +209,43 @@ fn App(cx: Scope) -> Element {
             }
         }
     })
+}
+
+// Custom window titlebar with custom window controls
+#[allow(non_snake_case)]
+fn TitleBar(cx: Scope) -> Element {
+    let desktop = dioxus_desktop::use_window(cx);
+    cx.render(rsx!(
+        div {
+            id: "titlebar",
+            onmousedown: move |_| { desktop.drag(); },
+            div {
+                class: "controls",
+                Button {
+                    aria_label: "minimize-button".into(),
+                    icon: Icon::Minus,
+                    appearance: Appearance::Transparent,
+                    onpress: move |_| {
+                        desktop.set_minimized(true);
+                    }
+                },
+                Button {
+                    aria_label: "square-button".into(),
+                    icon: Icon::Square2Stack,
+                    appearance: Appearance::Transparent,
+                    onpress: move |_| {
+                        desktop.set_maximized(!desktop.is_maximized());
+                    }
+                },
+                Button {
+                    aria_label: "close-button".into(),
+                    icon: Icon::XMark,
+                    appearance: Appearance::Transparent,
+                    onpress: move |_| {
+                        desktop.close();
+                    }
+                },
+            },
+        }
+    ))
 }
