@@ -168,6 +168,22 @@ fn auth_page_manager(cx: Scope) -> Element {
     }))
 }
 
+#[inline_props]
+fn auth_wrapper(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> Element {
+    cx.render(rsx! (
+        style { "{UIKIT_STYLES} {APP_STYLE}" },
+        div {
+            id: "app-wrap",
+            TitleBar{},
+            match *page.current() {
+                AuthPages::Unlock => rsx!(UnlockLayout { page: page.clone(), pin: pin.clone() }),
+                AuthPages::CreateAccount => rsx!(CreateAccountLayout { page: page.clone(), pin: pin.clone() }),
+                _ => panic!("invalid page")
+            }
+        }
+    ))
+}
+
 #[allow(non_snake_case)]
 fn TitleBar(cx: Scope) -> Element {
     let desktop = use_window(cx);
@@ -202,22 +218,6 @@ fn TitleBar(cx: Scope) -> Element {
                     }
                 },
             },
-        }
-    ))
-}
-
-#[inline_props]
-fn auth_wrapper(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> Element {
-    cx.render(rsx! (
-        style { "{UIKIT_STYLES} {APP_STYLE}" },
-        div {
-            id: "app-wrap",
-            TitleBar{},
-            match *page.current() {
-                AuthPages::Unlock => rsx!(UnlockLayout { page: page.clone(), pin: pin.clone() }),
-                AuthPages::CreateAccount => rsx!(CreateAccountLayout { page: page.clone(), pin: pin.clone() }),
-                _ => panic!("invalid page")
-            }
         }
     ))
 }

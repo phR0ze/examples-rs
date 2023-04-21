@@ -44,8 +44,7 @@ impl UnlockError {
 #[allow(non_snake_case)]
 pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> Element {
     log::trace!("rendering unlock layout");
-    let validation_failure: &UseState<Option<UnlockError>> =
-        use_state(cx, || Some(UnlockError::ValidationError)); // By default no pin is an invalid pin.
+    let validation_failure: &UseState<Option<UnlockError>> = use_state(cx, || Some(UnlockError::ValidationError)); // By default no pin is an invalid pin.
 
     let error: &UseState<Option<UnlockError>> = use_state(cx, || None);
     let shown_error = use_state(cx, || "");
@@ -64,9 +63,7 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
             }
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
             let (tx, rx) = oneshot::channel::<bool>();
-            if let Err(e) =
-                warp_cmd_tx.send(WarpCmd::Tesseract(TesseractCmd::AccountExists { rsp: tx }))
-            {
+            if let Err(e) = warp_cmd_tx.send(WarpCmd::Tesseract(TesseractCmd::AccountExists { rsp: tx })) {
                 log::error!("failed to send warp command: {}", e);
                 // returning true will prevent the account from being created
                 return;
@@ -84,13 +81,11 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
             let config = Configuration::load_or_default();
             let warp_cmd_tx = WARP_CMD_CH.tx.clone();
             while let Some(password) = rx.next().await {
-                let (tx, rx) =
-                    oneshot::channel::<Result<multipass::identity::Identity, warp::error::Error>>();
+                let (tx, rx) = oneshot::channel::<Result<multipass::identity::Identity, warp::error::Error>>();
 
-                if let Err(e) = warp_cmd_tx.send(WarpCmd::MultiPass(MultiPassCmd::TryLogIn {
-                    passphrase: password,
-                    rsp: tx,
-                })) {
+                if let Err(e) =
+                    warp_cmd_tx.send(WarpCmd::MultiPass(MultiPassCmd::TryLogIn { passphrase: password, rsp: tx }))
+                {
                     log::error!("failed to send warp command: {}", e);
                     cmd_in_progress.set(false);
                     continue;
@@ -105,21 +100,21 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
                         }
 
                         page.set(AuthPages::Success(ident))
-                    }
+                    },
                     Err(err) => match err {
                         warp::error::Error::DecryptionError => {
                             // wrong password
                             error.set(Some(UnlockError::InvalidPin));
                             log::warn!("decryption error");
-                        }
+                        },
                         warp::error::Error::IdentityNotCreated => {
                             // this is supposed to fail.
-                        }
+                        },
                         _ => {
                             // unexpected
                             error.set(Some(UnlockError::Unknown));
                             log::error!("LogIn failed: {}", err);
-                        }
+                        },
                     },
                 }
                 cmd_in_progress.set(false);
