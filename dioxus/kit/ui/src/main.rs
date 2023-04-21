@@ -102,37 +102,6 @@ pub enum AuthPages {
 }
 
 fn main() {
-    // Attempts to increase the file desc limit on unix-like systems
-    // Note: Will be changed out in the future
-    if fdlimit::raise_fd_limit().is_none() {}
-    // configure logging
-    let args = common::Args::parse();
-    let max_log_level = if let Some(profile) = args.profile {
-        match profile {
-            LogProfile::Debug => {
-                logger::set_write_to_stdout(true);
-                LevelFilter::Debug
-            },
-            LogProfile::Trace => {
-                logger::set_display_trace(true);
-                logger::set_write_to_stdout(true);
-                LevelFilter::Trace
-            },
-            LogProfile::Trace2 => {
-                logger::set_display_warp(true);
-                logger::set_display_trace(true);
-                logger::set_write_to_stdout(true);
-                LevelFilter::Trace
-            },
-            _ => LevelFilter::Debug,
-        }
-    } else {
-        LevelFilter::Debug
-    };
-    logger::init_with_level(max_log_level).expect("failed to init logger");
-    log::debug!("starting uplink");
-
-    // Initializes the cache dir if needed
     std::fs::create_dir_all(&STATIC_ARGS.uplink_path).expect("Error creating Uplink directory");
     std::fs::create_dir_all(&STATIC_ARGS.warp_path).expect("Error creating Warp directory");
     std::fs::create_dir_all(&STATIC_ARGS.themes_path).expect("error creating themes directory");
@@ -174,8 +143,6 @@ pub fn get_window_builder(with_predefined_size: bool) -> WindowBuilder {
 
 // start warp_runner and ensure the user is logged in
 fn bootstrap(cx: Scope) -> Element {
-    log::trace!("rendering bootstrap");
-
     // warp_runner must be started from within a tokio reactor
     // store in a use_ref to make it not get dropped
     let warp_runner = use_ref(cx, warp_runner::WarpRunner::new);
@@ -201,19 +168,13 @@ fn auth_page_manager(cx: Scope) -> Element {
     }))
 }
 
-#[allow(unused_assignments)]
-#[inline_props]
-fn auth_wrapper(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> Element {
-    log::trace!("rendering auth wrapper");
+#[allow(non_snake_case)]
+fn TitleBar(cx: Scope) -> Element {
     let desktop = use_window(cx);
-    let theme = "";
-
-    #[allow(unused_mut)]
-    let mut controls: Option<VNode> = None;
-
-    #[cfg(not(target_os = "macos"))]
-    {
-        controls = cx.render(rsx!(
+    cx.render(rsx!(
+        div {
+            id: "titlebar",
+            onmousedown: move |_| { desktop.drag(); },
             div {
                 class: "controls",
                 Button {
@@ -240,19 +201,18 @@ fn auth_wrapper(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> El
                         desktop.close();
                     }
                 },
-            }
-        ))
-    }
+            },
+        }
+    ))
+}
 
+#[inline_props]
+fn auth_wrapper(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -> Element {
     cx.render(rsx! (
-        style { "{UIKIT_STYLES} {APP_STYLE} {theme}" },
+        style { "{UIKIT_STYLES} {APP_STYLE}" },
         div {
             id: "app-wrap",
-            div {
-                id: "titlebar",
-                onmousedown: move |_| { desktop.drag(); },
-                controls,
-            },
+            TitleBar{},
             match *page.current() {
                 AuthPages::Unlock => rsx!(UnlockLayout { page: page.clone(), pin: pin.clone() }),
                 AuthPages::CreateAccount => rsx!(CreateAccountLayout { page: page.clone(), pin: pin.clone() }),
