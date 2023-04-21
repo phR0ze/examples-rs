@@ -139,8 +139,6 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
         special_chars: None,
     };
 
-    let loading = account_exists.current().is_none();
-
     let image_path = STATIC_ARGS
         .extras_path
         .join("images")
@@ -155,58 +153,72 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
         div {
             id: "unlock-layout",
             aria_label: "unlock-layout",
-            if loading {
-                rsx!(
-                    div {
-                        class: "skeletal-bars",
-                        div {
-                            class: "skeletal skeletal-bar",
-                        },
+            rsx! (
+                img {
+                    class: "idle",
+                    src: "{image_path}"
+                },
+                Input {
+                    id: "unlock-input".to_owned(),
+                    focus: true,
+                    is_password: true,
+                    icon: Icon::Key,
+                    disable_onblur: !account_exists.current().unwrap_or(true),
+                    aria_label: "pin-input".into(),
+                    placeholder: "Enter pin".into(),
+                    options: Options {
+                        with_validation: Some(pin_validation),
+                        with_clear_btn: true,
+                        with_label: Some("Welcome Back".into()),
+                        ellipsis_on_label: Some(LabelWithEllipsis {
+                            apply_ellipsis: true,
+                            padding_rigth_for_ellipsis: 105,
+                        }),
+                        ..Default::default()
                     }
-                )
-            } else {
-                rsx! (
-                    img {
-                        class: "idle",
-                        src: "{image_path}"
-                    },
-                    Input {
-                        id: "unlock-input".to_owned(),
-                        focus: true,
-                        is_password: true,
-                        icon: Icon::Key,
-                        disable_onblur: !account_exists.current().unwrap_or(true),
-                        aria_label: "pin-input".into(),
-                        disabled: loading,
-                        placeholder: get_local_text("unlock.enter-pin"),
-                        options: Options {
-                            with_validation: Some(pin_validation),
-                            with_clear_btn: true,
-                            with_label: if STATIC_ARGS.cache_path.exists()
-                            {Some(get_welcome_message(&state.current()))}
-                            else
-                                {Some(get_local_text("unlock.create-password"))}, // TODO: Implement this.
-                            ellipsis_on_label: Some(LabelWithEllipsis {
-                                apply_ellipsis: true,
-                                padding_rigth_for_ellipsis: 105,
-                            }),
-                            ..Default::default()
+                    onchange: move |(val, validation_passed): (String, bool)| {
+                        *pin.write_silent() = val.clone();
+                        // Reset the error when the person changes the pin
+                        if !shown_error.get().is_empty() {
+                            shown_error.set("");
                         }
-                        onchange: move |(val, validation_passed): (String, bool)| {
-                            *pin.write_silent() = val.clone();
-                            // Reset the error when the person changes the pin
-                            if !shown_error.get().is_empty() {
-                                shown_error.set("");
-                            }
-                            if validation_passed {
-                                cmd_in_progress.set(true);
-                                ch.send(val);
-                                validation_failure.set(None);
-                            } else {
-                                validation_failure.set(Some(UnlockError::ValidationError));
-                            }
+                        if validation_passed {
+                            cmd_in_progress.set(true);
+                            ch.send(val);
+                            validation_failure.set(None);
+                        } else {
+                            validation_failure.set(Some(UnlockError::ValidationError));
                         }
-                        onreturn: move |_| {
+                    }
+                    onreturn: move |_| {
+                        if let Some(validation_error) = validation_failure.get() {
+                            shown_error.set(validation_error.as_str());
+                        } else if let Some(e) = error.get() {
+                            shown_error.set(e.as_str());
+                        } else {
+                            page.set(AuthPages::CreateAccount);
+                        }
+                    }
+                },
+                (!shown_error.get().is_empty()).then(|| rsx!(
+                    span {
+                        class: "error",
+                        "{shown_error}"
+                    }
+                )),
+                div {
+                    class: "unlock-details",
+                    span {
+                        get_local_text("unlock.notice")
+                    }
+                }
+                Button {
+                        text: "Unlock Account".into(),
+                        aria_label: "unlock-account-button".into(),
+                        appearance: kit::elements::Appearance::Primary,
+                        icon: Icon::Check,
+                        disabled: validation_failure.current().is_some() || *cmd_in_progress.current(),
+                        onpress: move |_| {
                             if let Some(validation_error) = validation_failure.get() {
                                 shown_error.set(validation_error.as_str());
                             } else if let Some(e) = error.get() {
@@ -215,40 +227,8 @@ pub fn UnlockLayout(cx: Scope, page: UseState<AuthPages>, pin: UseRef<String>) -
                                 page.set(AuthPages::CreateAccount);
                             }
                         }
-                    },
-                    (!shown_error.get().is_empty()).then(|| rsx!(
-                        span {
-                            class: "error",
-                            "{shown_error}"
-                        }
-                    )),
-                    div {
-                        class: "unlock-details",
-                        span {
-                            get_local_text("unlock.notice")
-                        }
                     }
-                    Button {
-                            text: match account_exists.current().unwrap_or(true) {
-                                true => get_local_text("unlock.unlock-account"),
-                                false => get_local_text("unlock.create-account"),
-                            },
-                            aria_label: "create-account-button".into(),
-                            appearance: kit::elements::Appearance::Primary,
-                            icon: Icon::Check,
-                            disabled: validation_failure.current().is_some() || *cmd_in_progress.current(),
-                            onpress: move |_| {
-                                if let Some(validation_error) = validation_failure.get() {
-                                    shown_error.set(validation_error.as_str());
-                                } else if let Some(e) = error.get() {
-                                    shown_error.set(e.as_str());
-                                } else {
-                                    page.set(AuthPages::CreateAccount);
-                                }
-                            }
-                        }
-                )
-            }
+            )
         }
     ))
 }
@@ -258,15 +238,4 @@ fn update_theme_colors(state: &State) -> String {
         Some(theme) => theme.styles.clone(),
         None => String::new(),
     }
-}
-
-fn get_welcome_message(state: &State) -> String {
-    let name = match state.ui.cached_username.as_ref() {
-        Some(name) => name.clone(),
-        None => String::from("UNKNOWN"),
-    };
-
-    get_local_text_args_builder("unlock.welcome", |m| {
-        m.insert("name", name.into());
-    })
 }

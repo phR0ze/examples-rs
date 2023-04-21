@@ -734,34 +734,6 @@ fn app(cx: Scope) -> Element {
         }
     });
 
-    // Automatically select the best implementation for your platform.
-    let inner = state.inner();
-    use_future(cx, (), |_| async move {
-        let (tx, mut rx) = futures::channel::mpsc::unbounded();
-        let mut watcher = match RecommendedWatcher::new(
-            move |res| {
-                let _ = tx.unbounded_send(res);
-            },
-            notify::Config::default().with_poll_interval(Duration::from_secs(1)),
-        ) {
-            Ok(watcher) => watcher,
-            Err(e) => {
-                log::error!("{e}");
-                return;
-            },
-        };
-
-        while let Some(event) = rx.next().await {
-            let event = match event {
-                Ok(event) => event,
-                Err(e) => {
-                    log::error!("{e}");
-                    continue;
-                },
-            };
-        }
-    });
-
     cx.render(main_element)
 }
 
