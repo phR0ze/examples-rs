@@ -7,6 +7,8 @@ use dioxus::prelude::*;
 #[derive(PartialEq, Props)]
 pub struct Props {
     #[props(optional)]
+    icon: Option<Icon>,
+    #[props(optional)]
     text: Option<String>,
     #[props(optional)]
     link: Option<String>,
@@ -18,27 +20,29 @@ pub struct Props {
 pub fn TitleBar<'a>(cx: Scope<'a, Props>) -> Element<'a> {
     let desktop = dioxus_desktop::use_window(cx);
     let text = cx.props.text.clone().unwrap_or_default();
-    let link_opt = cx.props.text.clone();
     cx.render(rsx!(
         div {
             id: "titlebar",
             aria_label: "Title Bar",
             onmousedown: move |_| { desktop.drag(); },
             div {
-                id: "titlebar-text",
-                aria_label: "titlebar-text",
+                id: "titlebar-message",
+                aria_label: "titlebar-message",
                 IconElement {
-                    icon: Icon::Beaker,
+                    icon: cx.props.icon.unwrap_or(Icon::Beaker)
                 },
                 p {
-                    div {
-                        (cs.props.link.is_some()).then(||
-                            onclick: move |_| {
-                                let _ = open::that(link.clone());
-                            },
-                        ),
-                        "{text}"
-                    }
+                    cx.props.link.is_some().then(|| {
+                        let link = cx.props.link.clone().unwrap();
+                        rsx! {
+                            div {
+                                onclick: move |_| {
+                                    let _ = open::that(&link);
+                                },
+                                "{text}"
+                            }
+                        }
+                    })
                 },
             },
             div {
