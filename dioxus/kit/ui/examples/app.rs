@@ -1,7 +1,7 @@
 use common::icons::outline::Shape as Icon;
 use common::STATIC_ARGS;
 use dioxus::prelude::*;
-use dioxus_router::{Link, Route, Router};
+use dioxus_router::{use_router, Route, Router};
 use kit::{
     components::{
         nav::{Nav, Route as UIRoute},
@@ -66,9 +66,7 @@ fn App(cx: Scope) -> Element {
                 text: "Pre-release | Issues/Feedback".into(),
                 link: "https://issues.satellite.im".into()
             },
-            Splash{},
-            //Settings{},
-            // Routes{},
+            Routes{},
         }
     })
 }
@@ -110,7 +108,7 @@ fn Sidebar(cx: Scope<Props>) -> Element {
                     routes: cx.props.route_info.routes.clone(),
                     active: cx.props.route_info.active.clone(),
                     onnavigate: move |route| {
-                        //dioxus_router::use_router(cx).replace_route(route, None, None);
+                        //use_router(cx).replace_route(route, None, None);
                     }
                 },
             )),
@@ -141,6 +139,7 @@ fn Routes(cx: Scope) -> Element {
 
     cx.render(rsx! {
         Router {
+            Splash{},
             Route {
                 to: APP_ROUTES.loading,
                 Splash{},
@@ -190,8 +189,14 @@ fn Routes(cx: Scope) -> Element {
 pub fn Splash(cx: Scope) -> Element {
     let img_path =
         STATIC_ARGS.extras_path.join("assets").join("img").join("uplink.gif").to_string_lossy().to_string();
+
     cx.render(rsx! {
-        img { style: "width: 100%", src: "{img_path}" }
+        div {
+            onclick: move |_| {
+                use_router(cx).replace_route(APP_ROUTES.settings, None, None);
+            },
+            img { style: "width: 100%", src: "{img_path}" },
+        }
     })
 }
 
