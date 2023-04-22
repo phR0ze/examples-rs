@@ -1,7 +1,7 @@
 use common::icons::outline::Shape as Icon;
 use common::STATIC_ARGS;
 use dioxus::prelude::*;
-use dioxus_router::{Route, Router};
+use dioxus_router::{Link, Route, Router};
 use kit::{
     components::{
         nav::{Nav, Route as UIRoute},
@@ -18,6 +18,23 @@ use kit::{
     STYLE,
 };
 use ui::{utils::get_available_themes, APP_STYLE};
+
+pub struct AppRoutes<'a> {
+    pub loading: &'a str,
+    pub chat: &'a str,
+    pub friends: &'a str,
+    pub files: &'a str,
+    pub settings: &'a str,
+}
+
+#[derive(PartialEq, Clone)]
+pub struct RouteInfo {
+    pub routes: Vec<UIRoute>,
+    pub active: UIRoute,
+}
+
+pub static APP_ROUTES: AppRoutes =
+    AppRoutes { loading: "/", chat: "/chat", friends: "/friends", files: "/files", settings: "/settings" };
 
 fn main() {
     dioxus_desktop::launch_cfg(
@@ -50,68 +67,120 @@ fn App(cx: Scope) -> Element {
                 link: "https://issues.satellite.im".into()
             },
             Splash{},
-            //Content{},
-            //Routes{},
+            //Settings{},
+            // Routes{},
+        }
+    })
+}
+
+#[derive(PartialEq, Props)]
+pub struct Props {
+    route_info: RouteInfo,
+}
+
+#[allow(non_snake_case)]
+fn Settings(cx: Scope<Props>) -> Element {
+    cx.render(rsx! {
+        div {
+            id: "settings-layout",
+            aria_label: "settings-layout",
+            Sidebar {
+                route_info: cx.props.route_info.clone(),
+            },
+            div {
+                class: "full-width flex",
+                div {
+                    id: "content",
+                    class: "full-width",
+                    p {
+                        "hello world",
+                    }
+                },
+            },
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Sidebar(cx: Scope<Props>) -> Element {
+    cx.render(rsx! {
+        ReusableSidebar {
+            with_nav: cx.render(rsx!(
+                Nav {
+                    routes: cx.props.route_info.routes.clone(),
+                    active: cx.props.route_info.active.clone(),
+                    onnavigate: move |route| {
+                        //dioxus_router::use_router(cx).replace_route(route, None, None);
+                    }
+                },
+            )),
         }
     })
 }
 
 #[allow(non_snake_case)]
 fn Routes(cx: Scope) -> Element {
+    let chat_route = UIRoute {
+        to: APP_ROUTES.chat,
+        name: "Chat".into(),
+        icon: Icon::ChatBubbleBottomCenterText,
+        ..UIRoute::default()
+    };
+    let settings_route =
+        UIRoute { to: APP_ROUTES.settings, name: "Settings".into(), icon: Icon::Cog6Tooth, ..UIRoute::default() };
+    let friends_route =
+        UIRoute { to: APP_ROUTES.friends, name: "Friends".into(), icon: Icon::Users, ..UIRoute::default() };
+    let files_route =
+        UIRoute { to: APP_ROUTES.files, name: "Files".into(), icon: Icon::Folder, ..UIRoute::default() };
+    let routes = vec![
+        chat_route.clone(),
+        files_route.clone(),
+        friends_route.clone(),
+        settings_route.clone(),
+    ];
+
     cx.render(rsx! {
         Router {
             Route {
-                to: "splash".into(),
+                to: APP_ROUTES.loading,
                 Splash{},
             },
             Route {
-                to: "chat".into(),
-                Content{},
-            },
-            Route {
-                to: "settings".into(),
-                Content{},
-            },
-            Route {
-                to: "friends".into(),
-                Content{},
-            },
-            Route {
-                to: "files".into(),
-                Content{},
-            }
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn Settings(cx: Scope) -> Element {
-    cx.render(rsx! {
-        div {
-            id: "settings-layout",
-            aria_label: "settings-layout",
-            SideBar{},
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn SideBar(cx: Scope) -> Element {
-    let routes = vec![
-        UIRoute { to: "profile", name: "Profile".into(), icon: Icon::User, ..UIRoute::default() },
-        UIRoute { to: "general", name: "General".into(), icon: Icon::User, ..UIRoute::default() },
-    ];
-    let active_route = routes[0].clone();
-
-    cx.render(rsx! {
-      ReusableSidebar {
-            Nav {
-                routes: routes.clone(),
-                active: active_route,
-                onnavigate: move |route| {
-                    //use_router(cx).replace_route(route, None, None);
+                to: APP_ROUTES.chat,
+                Settings {
+                    route_info: RouteInfo {
+                        routes: routes.clone(),
+                        active: settings_route.clone(),
+                    }
                 }
             },
+            Route {
+                to: APP_ROUTES.settings,
+                Settings {
+                    route_info: RouteInfo {
+                        routes: routes.clone(),
+                        active: settings_route.clone(),
+                    }
+                }
+            },
+            Route {
+                to: APP_ROUTES.friends,
+                Settings {
+                    route_info: RouteInfo {
+                        routes: routes.clone(),
+                        active: settings_route.clone(),
+                    }
+                }
+            },
+            Route {
+                to: APP_ROUTES.files,
+                Settings {
+                    route_info: RouteInfo {
+                        routes: routes.clone(),
+                        active: settings_route.clone(),
+                    }
+                }
+            }
         }
     })
 }
@@ -121,7 +190,9 @@ fn SideBar(cx: Scope) -> Element {
 pub fn Splash(cx: Scope) -> Element {
     let img_path =
         STATIC_ARGS.extras_path.join("assets").join("img").join("uplink.gif").to_string_lossy().to_string();
-    cx.render(rsx!(img { style: "width: 100%", src: "{img_path}" }))
+    cx.render(rsx! {
+        img { style: "width: 100%", src: "{img_path}" }
+    })
 }
 
 // Blob of content for testing
