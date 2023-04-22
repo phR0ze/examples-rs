@@ -32,8 +32,7 @@ pub fn TitleBar<'a>(cx: Scope<'a, Props>) -> Element<'a> {
                     icon: cx.props.icon.unwrap_or(Icon::Beaker)
                 },
                 p {
-                    cx.props.link.is_some().then(|| {
-                        let link = cx.props.link.clone().unwrap();
+                    if let Some(link) = cx.props.link.clone() {
                         rsx! {
                             div {
                                 onclick: move |_| {
@@ -42,7 +41,13 @@ pub fn TitleBar<'a>(cx: Scope<'a, Props>) -> Element<'a> {
                                 "{text}"
                             }
                         }
-                    })
+                    } else {
+                        rsx! {
+                            div {
+                                "{text}"
+                            }
+                        }
+                    }
                 },
             },
             div {
