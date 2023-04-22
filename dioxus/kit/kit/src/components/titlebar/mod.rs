@@ -17,13 +17,13 @@ pub struct Props {
 // Custom window titlebar with custom window controls
 #[allow(dead_code)]
 #[allow(non_snake_case)]
-pub fn TitleBar<'a>(cx: Scope<'a, Props>) -> Element<'a> {
+pub fn Titlebar<'a>(cx: Scope<'a, Props>) -> Element<'a> {
     let desktop = dioxus_desktop::use_window(cx);
     let text = cx.props.text.clone().unwrap_or_default();
     cx.render(rsx!(
         div {
             id: "titlebar",
-            aria_label: "Title Bar",
+            aria_label: "Title bar",
             onmousedown: move |_| { desktop.drag(); },
             div {
                 id: "titlebar-message",

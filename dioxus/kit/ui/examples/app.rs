@@ -6,7 +6,7 @@ use kit::{
     components::{
         nav::{Nav, Route as UIRoute},
         section::Section,
-        titlebar::TitleBar,
+        titlebar::Titlebar,
     },
     elements::{
         button::Button,
@@ -62,7 +62,7 @@ fn App(cx: Scope) -> Element {
     cx.render(rsx! {
         style { "{STYLE} {APP_STYLE} {theme}" },
         div {
-            TitleBar {
+            Titlebar {
                 text: "Pre-release | Issues/Feedback".into(),
                 link: "https://issues.satellite.im".into()
             },
