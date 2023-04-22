@@ -6,13 +6,13 @@ use kit::{
     components::{
         nav::{Nav, Route as UIRoute},
         section::Section,
+        titlebar::TitleBar,
     },
     elements::{
         button::Button,
         checkbox::Checkbox,
         switch::Switch,
         tooltip::{ArrowPosition, Tooltip},
-        Appearance,
     },
     layout::sidebar::Sidebar as ReusableSidebar,
     STYLE,
@@ -45,10 +45,13 @@ fn App(cx: Scope) -> Element {
     cx.render(rsx! {
         style { "{STYLE} {APP_STYLE} {theme}" },
         div {
-            TitleBar{},
-            //Splash{},
+            TitleBar {
+                text: "Pre-release | Issues/Feedback".into(),
+                link: "https://issues.satellite.im".into()
+            },
+            Splash{},
             //Content{},
-            Routes{},
+            //Routes{},
         }
     })
 }
@@ -239,43 +242,4 @@ fn Content(cx: Scope) -> Element {
             }
         }
     })
-}
-
-// Custom window titlebar with custom window controls
-#[allow(non_snake_case)]
-fn TitleBar(cx: Scope) -> Element {
-    let desktop = dioxus_desktop::use_window(cx);
-    cx.render(rsx!(
-        div {
-            id: "titlebar",
-            onmousedown: move |_| { desktop.drag(); },
-            div {
-                class: "controls",
-                Button {
-                    aria_label: "minimize-button".into(),
-                    icon: Icon::Minus,
-                    appearance: Appearance::Transparent,
-                    onpress: move |_| {
-                        desktop.set_minimized(true);
-                    }
-                },
-                Button {
-                    aria_label: "square-button".into(),
-                    icon: Icon::Square2Stack,
-                    appearance: Appearance::Transparent,
-                    onpress: move |_| {
-                        desktop.set_maximized(!desktop.is_maximized());
-                    }
-                },
-                Button {
-                    aria_label: "close-button".into(),
-                    icon: Icon::XMark,
-                    appearance: Appearance::Transparent,
-                    onpress: move |_| {
-                        desktop.close();
-                    }
-                },
-            },
-        }
-    ))
 }

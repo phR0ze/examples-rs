@@ -21,3 +21,4 @@ pub mod section;
 pub mod file_embed;
 
 pub mod context_menu;
+pub mod titlebar;
