@@ -106,8 +106,23 @@ fn ChatLayout(cx: Scope<Props>) -> Element {
         div {
             id: "chat-layout",
             aria_label: "chat-layout",
-            Sidebar {
-                route_info: cx.props.route_info.clone()
+            ReusableSidebar {
+                hidden: false,
+                    with_search: cx.render(rsx!(
+                div {
+                    class: "search-input",
+                    Input {
+                        placeholder: "Search...".into(),
+                        aria_label: "settings-search-input".into(),
+                        icon: Icon::MagnifyingGlass,
+                        disabled: true,
+                        options: Options {
+                            with_clear_btn: true,
+                            ..Options::default()
+                        }
+                    }
+                }
+            ))
             },
             div {
                 id: "welcome",
