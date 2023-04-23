@@ -11,6 +11,7 @@ use kit::{
     elements::{
         button::Button,
         checkbox::Checkbox,
+        input::{Input, Options},
         switch::Switch,
         tooltip::{ArrowPosition, Tooltip},
         Appearance,
@@ -88,6 +89,7 @@ pub struct Props {
 
 #[allow(non_snake_case)]
 fn ChatLayout(cx: Scope<Props>) -> Element {
+    println!("Rendering Chat");
     let state = use_shared_state::<State>(cx)?;
 
     let cta_text = "Things are better with friends";
@@ -144,6 +146,8 @@ fn ChatLayout(cx: Scope<Props>) -> Element {
 
 #[allow(non_snake_case)]
 fn Settings(cx: Scope<Props>) -> Element {
+    println!("Rendering Settings");
+
     cx.render(rsx! {
         div {
             id: "settings-layout",
@@ -167,8 +171,36 @@ fn Settings(cx: Scope<Props>) -> Element {
 
 #[allow(non_snake_case)]
 fn Sidebar(cx: Scope<Props>) -> Element {
+    println!("Rendering Sidebar");
+    let state = use_shared_state::<State>(cx)?;
+    let reset_searchbar = use_state(cx, || false);
+
+    let profile = UIRoute { to: "profile", name: "Profile".into(), icon: Icon::User, ..UIRoute::default() };
+    let routes = vec![profile];
+    let active_route = routes[0].clone();
+
     cx.render(rsx! {
         ReusableSidebar {
+            hidden: false,
+            //hidden: state.read().sidebar_hidden,
+            with_search: cx.render(rsx!{
+                div {
+                    class: "search-input",
+                    Input {
+                        placeholder: "Search...".into(),
+                        disabled: false,
+                        aria_label: "chat-search-input".into(),
+                        icon: Icon::MagnifyingGlass,
+                        reset: reset_searchbar.clone(),
+                        options: Options {
+                            with_clear_btn: true,
+                            react_to_esc_key: true,
+                            clear_on_submit: true,
+                            ..Options::default()
+                        },
+                    }
+                }
+            }),
             with_nav: cx.render(rsx!(
                 Nav {
                     routes: cx.props.route_info.routes.clone(),
@@ -178,6 +210,14 @@ fn Sidebar(cx: Scope<Props>) -> Element {
                     }
                 },
             )),
+            Nav {
+                routes: routes.clone(),
+                active: active_route,
+                bubble: true,
+                onnavigate: move |route| {
+                    //emit(&cx, Page::from_str(route).unwrap());
+                }
+            }
         }
     })
 }
