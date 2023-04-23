@@ -67,6 +67,10 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     println!("Rendering App layout");
+
+    // kit Sidebar depends on this shared state value existing
+    use_shared_state_provider(cx, || common::state::State::default());
+
     use_shared_state_provider(cx, || State::default());
     let theme = get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
 
@@ -90,7 +94,7 @@ pub struct Props {
 #[allow(non_snake_case)]
 fn ChatLayout(cx: Scope<Props>) -> Element {
     println!("Rendering Chat");
-    let state = use_shared_state::<State>(cx)?;
+    let state = use_shared_state::<common::state::State>(cx)?;
 
     let cta_text = "Things are better with friends";
     let image_path = STATIC_ARGS
@@ -106,33 +110,18 @@ fn ChatLayout(cx: Scope<Props>) -> Element {
         div {
             id: "chat-layout",
             aria_label: "chat-layout",
-            ReusableSidebar {
-                hidden: false,
-                    with_search: cx.render(rsx!(
-                div {
-                    class: "search-input",
-                    Input {
-                        placeholder: "Search...".into(),
-                        aria_label: "settings-search-input".into(),
-                        icon: Icon::MagnifyingGlass,
-                        disabled: true,
-                        options: Options {
-                            with_clear_btn: true,
-                            ..Options::default()
-                        }
-                    }
-                }
-            ))
+            Sidebar {
+                route_info: cx.props.route_info.clone(),
             },
             div {
                 id: "welcome",
                 aria_label: "welcome-screen",
-                if state.read().sidebar_hidden {
+                if state.read().ui.sidebar_hidden {
                     rsx!(
                         Topbar {
-                            with_back_button: state.read().sidebar_hidden,
+                            with_back_button: state.read().ui.sidebar_hidden,
                             onback: move |_| {
-                                state.write().sidebar_hidden = true;
+                                state.write().ui.sidebar_hidden = false;
                             },
                         },
                     )
@@ -187,8 +176,8 @@ fn Settings(cx: Scope<Props>) -> Element {
 #[allow(non_snake_case)]
 fn Sidebar(cx: Scope<Props>) -> Element {
     println!("Rendering Sidebar");
-    let state = use_shared_state::<State>(cx)?;
-    let reset_searchbar = use_state(cx, || false);
+    let state = use_shared_state::<common::state::State>(cx)?;
+    let reset_searchbar = use_state(cx, || true);
 
     let profile = UIRoute { to: "profile", name: "Profile".into(), icon: Icon::User, ..UIRoute::default() };
     let routes = vec![profile];
@@ -196,8 +185,7 @@ fn Sidebar(cx: Scope<Props>) -> Element {
 
     cx.render(rsx! {
         ReusableSidebar {
-            hidden: false,
-            //hidden: state.read().sidebar_hidden,
+            hidden: state.read().ui.sidebar_hidden,
             with_search: cx.render(rsx!{
                 div {
                     class: "search-input",
