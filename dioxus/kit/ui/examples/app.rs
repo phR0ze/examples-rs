@@ -13,8 +13,9 @@ use kit::{
         checkbox::Checkbox,
         switch::Switch,
         tooltip::{ArrowPosition, Tooltip},
+        Appearance,
     },
-    layout::sidebar::Sidebar as ReusableSidebar,
+    layout::{sidebar::Sidebar as ReusableSidebar, topbar::Topbar},
     STYLE,
 };
 use ui::{utils::get_available_themes, APP_STYLE};
@@ -22,7 +23,8 @@ use ui::{utils::get_available_themes, APP_STYLE};
 // Application state
 #[derive(Default)]
 struct State {
-    splash: bool,
+    splash_viewed: bool,
+    sidebar_hidden: bool,
 }
 
 pub struct AppRoutes<'a> {
@@ -82,6 +84,62 @@ fn App(cx: Scope) -> Element {
 #[derive(PartialEq, Props)]
 pub struct Props {
     route_info: RouteInfo,
+}
+
+#[allow(non_snake_case)]
+fn ChatLayout(cx: Scope<Props>) -> Element {
+    let state = use_shared_state::<State>(cx)?;
+
+    let cta_text = "Things are better with friends";
+    let image_path = STATIC_ARGS
+        .extras_path
+        .join("images")
+        .join("mascot")
+        .join("better_with_friends.webp")
+        .to_str()
+        .map(|x| x.to_string())
+        .unwrap_or_default();
+
+    cx.render(rsx! {
+        div {
+            id: "chat-layout",
+            aria_label: "chat-layout",
+            Sidebar {
+                route_info: cx.props.route_info.clone()
+            },
+            div {
+                id: "welcome",
+                aria_label: "welcome-screen",
+                if state.read().sidebar_hidden {
+                    rsx!(
+                        Topbar {
+                            with_back_button: state.read().sidebar_hidden,
+                            onback: move |_| {
+                                state.write().sidebar_hidden = true;
+                            },
+                        },
+                    )
+                }
+                img {
+                    class: "image",
+                    src:"{image_path}"
+                },
+                p {
+                    class: "muted",
+                    "{cta_text}"
+                },
+                Button {
+                    icon: Icon::Plus,
+                    aria_label: "add-friends-button".into(),
+                    text: "Add Someone".into(),
+                    appearance: Appearance::Secondary,
+                    onpress: move |_| {
+                        use_router(cx).replace_route(APP_ROUTES.friends, None, None);
+                    }
+                },
+            }
+        }
+    })
 }
 
 #[allow(non_snake_case)]
@@ -153,10 +211,10 @@ fn Routes(cx: Scope) -> Element {
             },
             Route {
                 to: APP_ROUTES.chat,
-                Settings {
+                ChatLayout {
                     route_info: RouteInfo {
                         routes: routes.clone(),
-                        active: settings_route.clone(),
+                        active: chat_route.clone(),
                     }
                 }
             },
@@ -195,20 +253,20 @@ fn Routes(cx: Scope) -> Element {
 #[allow(non_snake_case)]
 pub fn Splash(cx: Scope) -> Element {
     println!("Rendering Splash layout");
-    let state = use_shared_state::<State>(cx).unwrap();
+    let state = use_shared_state::<State>(cx)?;
     let img_path =
         STATIC_ARGS.extras_path.join("assets").join("img").join("uplink.gif").to_string_lossy().to_string();
-    if !state.read().splash {
+    if !state.read().splash_viewed {
         cx.render(rsx! {
             div {
                 onclick: move |_| {
-                    state.write().splash = true;
+                    state.write().splash_viewed = true;
                 },
                 img { style: "width: 100%", src: "{img_path}" }
             }
         })
     } else {
-        use_router(cx).replace_route(APP_ROUTES.settings, None, None);
+        use_router(cx).replace_route(APP_ROUTES.chat, None, None);
         None
     }
 }
