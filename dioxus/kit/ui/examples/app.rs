@@ -19,6 +19,12 @@ use kit::{
 };
 use ui::{utils::get_available_themes, APP_STYLE};
 
+// Application state
+#[derive(Default)]
+struct State {
+    splash: bool,
+}
+
 pub struct AppRoutes<'a> {
     pub loading: &'a str,
     pub chat: &'a str,
@@ -57,6 +63,8 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
+    println!("Rendering App layout");
+    use_shared_state_provider(cx, || State::default());
     let theme = get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
 
     cx.render(rsx! {
@@ -139,7 +147,6 @@ fn Routes(cx: Scope) -> Element {
 
     cx.render(rsx! {
         Router {
-            Splash{},
             Route {
                 to: APP_ROUTES.loading,
                 Splash{},
@@ -187,17 +194,23 @@ fn Routes(cx: Scope) -> Element {
 // Splash screen example
 #[allow(non_snake_case)]
 pub fn Splash(cx: Scope) -> Element {
+    println!("Rendering Splash layout");
+    let state = use_shared_state::<State>(cx).unwrap();
     let img_path =
         STATIC_ARGS.extras_path.join("assets").join("img").join("uplink.gif").to_string_lossy().to_string();
-
-    cx.render(rsx! {
-        div {
-            onclick: move |_| {
-                use_router(cx).replace_route(APP_ROUTES.settings, None, None);
-            },
-            img { style: "width: 100%", src: "{img_path}" },
-        }
-    })
+    if !state.read().splash {
+        cx.render(rsx! {
+            div {
+                onclick: move |_| {
+                    state.write().splash = true;
+                },
+                img { style: "width: 100%", src: "{img_path}" }
+            }
+        })
+    } else {
+        use_router(cx).replace_route(APP_ROUTES.settings, None, None);
+        None
+    }
 }
 
 // Blob of content for testing
