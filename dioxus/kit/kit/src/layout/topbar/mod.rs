@@ -7,6 +7,8 @@ use crate::elements::{button::Button, Appearance};
 #[derive(Props)]
 pub struct Props<'a> {
     #[props(optional)]
+    title: Option<String>,
+    #[props(optional)]
     with_back_button: Option<bool>,
     #[props(optional)]
     onback: Option<EventHandler<'a>>,
@@ -25,13 +27,14 @@ pub fn show_back_button(cx: &Scope<Props>) -> bool {
 pub fn emit(cx: &Scope<Props>) {
     match &cx.props.onback {
         Some(f) => f.call(()),
-        None => {}
+        None => {},
     }
 }
 
 #[allow(non_snake_case)]
 pub fn Topbar<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
     log::trace!("rendering topbar");
+    let title = cx.props.title.clone();
     cx.render(rsx!(
         div {
             class: "topbar",
@@ -44,12 +47,20 @@ pub fn Topbar<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
                     appearance: Appearance::Secondary
                 }
             )),
+            if title.is_some() {
+                rsx! {
+                    div {
+                        class: "topbar-title",
+                        "{title.unwrap()}"
+                    }
+                }
+            }
             div {
-                class: "children",
+                class: "topbar-children",
                 cx.props.children.as_ref()
             },
             div {
-                class: "controls",
+                class: "topbar-controls",
                 cx.props.controls.as_ref()
             }
         }

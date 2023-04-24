@@ -1,16 +1,28 @@
-.topbar, .topbar .controls {
+.topbar {
 	display: inline-flex;
 	gap: var(--gap);
-}
-.topbar {
+	color: var(--text-color);
 	width: 100%;
 	border-bottom: 1px solid var(--border-color);
 	padding: var(--gap);
-	.children {
+
+	.topbar-title {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--gap);
+		font-size: var(--text-size-more);
+	}
+
+	.topbar-controls {
+		display: inline-flex;
+		gap: var(--gap);
+	}
+
+	.topbar-children {
 		flex: 1;
 		display: inline-flex;
 		gap: var(--gap);
 		overflow: hidden;
 	}
-	
+
 }

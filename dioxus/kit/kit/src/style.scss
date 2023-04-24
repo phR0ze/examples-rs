@@ -7,9 +7,7 @@
     Remove all the styles of the "User-Agent-Stylesheet", except for the 'display' property
     - The "symbol *" part is to solve Firefox SVG sprite bug
  */
-*:where(
-    :not(html, iframe, canvas, img, svg, video, audio):not(svg *, symbol *)
-  ) {
+*:where( :not(html, iframe, canvas, img, svg, video, audio):not(svg *, symbol *)) {
   all: unset;
   display: revert;
 }
@@ -20,10 +18,12 @@
 *::after {
   box-sizing: border-box;
 }
+
 p,
 label {
   cursor: default;
 }
+
 /* Reapply the pointer cursor for anchor tags */
 a {
   cursor: revert;
@@ -61,6 +61,7 @@ textarea {
 textarea {
   white-space: revert;
 }
+
 textarea::-webkit-scrollbar {
   display: none;
 }
@@ -160,12 +161,18 @@ html {
 }
 
 .noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-  -khtml-user-select: none; /* Konqueror HTML */
-  -moz-user-select: none; /* Old versions of Firefox */
-  -ms-user-select: none; /* Internet Explorer/Edge */
-  user-select: none; /* Non-prefixed version, currently
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Safari */
+  -khtml-user-select: none;
+  /* Konqueror HTML */
+  -moz-user-select: none;
+  /* Old versions of Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
                                     supported by Chrome, Edge, Opera and Firefox */
 }
 
@@ -238,10 +245,13 @@ html {
 }
 
 ::selection {
-  background: var(--text-color-bright); /* WebKit/Blink Browsers */
+  background: var(--text-color-bright);
+  /* WebKit/Blink Browsers */
 }
+
 ::-moz-selection {
-  background: var(--text-color-bright); /* Gecko Browsers */
+  background: var(--text-color-bright);
+  /* Gecko Browsers */
 }
 
 .skeletal {
@@ -261,6 +271,7 @@ html {
     stroke: var(--secondary) !important;
   }
 }
+
 .skeletal-bars {
   flex: 1;
   width: 100%;
@@ -308,12 +319,15 @@ p {
   0% {
     background: var(--text-color-bright);
   }
+
   25% {
     background: var(--text-color-bright);
   }
+
   75% {
     background: var(--secondary);
   }
+
   100% {
     background: var(--text-color-bright);
   }
@@ -323,9 +337,11 @@ p {
   0% {
     opacity: 0.75;
   }
+
   50% {
     opacity: 1;
   }
+
   100% {
     opacity: 0.75;
   }

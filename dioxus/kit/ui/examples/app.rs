@@ -119,6 +119,7 @@ fn ChatLayout(cx: Scope<Props>) -> Element {
                 if state.read().ui.sidebar_hidden {
                     rsx!(
                         Topbar {
+                            title: "Chat".into(),
                             with_back_button: state.read().ui.sidebar_hidden,
                             onback: move |_| {
                                 state.write().ui.sidebar_hidden = false;
