@@ -27,7 +27,6 @@ fn main() {
 fn App(cx: Scope) -> Element {
     //use_shared_state_provider(cx, || State::default());
     //println!("CWD: {:?}", std::env::current_dir());
-
     //let theme = config::get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
 
     cx.render(rsx! {

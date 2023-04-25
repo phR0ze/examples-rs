@@ -28,6 +28,7 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     //use_shared_state_provider(cx, || State::default());
+    #[cfg(any(windows, unix))]
     println!("CWD: {:?}", std::env::current_dir());
 
     let theme = config::get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
