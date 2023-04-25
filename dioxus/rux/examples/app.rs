@@ -1,5 +1,7 @@
 use dioxus::prelude::*;
 
+use rux::STYLES;
+
 fn main() {
     dioxus_desktop::launch_cfg(
         App,
@@ -8,7 +10,7 @@ fn main() {
                 .with_title("rux")
                 .with_resizable(true)
                 // Provides rounded window corner effect
-                //.with_transparent(true)
+                .with_transparent(true)
                 // Turns off standard window manager controls
                 //.with_decorations(false)
                 // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
@@ -22,17 +24,21 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     //use_shared_state_provider(cx, || State::default());
-    //let theme = get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
+    println!("CWD: {:?}", std::env::current_dir());
+
+    let theme = rux::get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
 
     cx.render(rsx! {
-        //style { "{STYLE} {APP_STYLE} {theme}" },
+        style { "{STYLES} {theme}" },
         div {
             // Titlebar {
             //     text: "Pre-release | Issues/Feedback".into(),
             //     link: "https://issues.satellite.im".into()
             // },
             // Routes{},
-            "Hello world!"
+            p {
+                "Hello world!"
+            }
         }
     })
 }
