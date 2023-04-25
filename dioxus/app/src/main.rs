@@ -1,6 +1,4 @@
-use dioxus::prelude::*;
-
-use rux::{state::config, STYLES};
+use rux::prelude::{STYLES, *};
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -28,12 +26,13 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     //use_shared_state_provider(cx, || State::default());
-    println!("CWD: {:?}", std::env::current_dir());
+    //println!("CWD: {:?}", std::env::current_dir());
 
-    let theme = config::get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
+    //let theme = config::get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
 
     cx.render(rsx! {
-        style { "{STYLES} {theme}" },
+        //style { "{STYLES} {theme}" },
+        style { "{STYLES}" },
         div {
             // Titlebar {
             //     text: "Pre-release | Issues/Feedback".into(),
