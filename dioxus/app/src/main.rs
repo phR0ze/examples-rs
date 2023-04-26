@@ -1,4 +1,4 @@
-use rux::prelude::{STYLES, *};
+use rux::prelude::{NORD, STYLES, *};
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -31,7 +31,7 @@ fn App(cx: Scope) -> Element {
 
     cx.render(rsx! {
         //style { "{STYLES} {theme}" },
-        style { "{STYLES}" },
+        style { "{STYLES} {NORD}" },
         div {
             // Titlebar {
             //     text: "Pre-release | Issues/Feedback".into(),

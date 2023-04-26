@@ -1,6 +1,7 @@
 pub mod state;
 
 pub const STYLES: &str = include_str!("./compiled_styles.css");
+pub const NORD: &str = include_str!("../assets/themes/nord.scss");
 
 use once_cell::sync::Lazy;
 use std::path::PathBuf;
@@ -45,5 +46,5 @@ pub mod prelude {
     // Exports
     #[cfg(any(windows, unix))]
     pub use crate::state::config;
-    pub use crate::{state, STYLES};
+    pub use crate::{state, NORD, STYLES};
 }
