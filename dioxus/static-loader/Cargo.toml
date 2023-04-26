@@ -1,0 +1,13 @@
+[workspace]
+members = [".", "macros"]
+
+[workspace.package]
+version = "0.1.0"
+
+[package]
+name = "static-loader"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+static-loader-macros = { path = "./macros" }
