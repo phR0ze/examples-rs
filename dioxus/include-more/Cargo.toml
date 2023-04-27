@@ -6,7 +6,7 @@ version = "0.1.0"
 
 [package]
 name = "include-more"
-version.workspace = true
+version = { workspace = true }
 edition = "2021"
 
 [dependencies]
