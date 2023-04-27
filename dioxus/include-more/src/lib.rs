@@ -4,6 +4,12 @@
 //! creats a static variable to access them. This allows you to easily ship various
 //! content files as part of a single binary or library.
 //!
+//! ### Pathing
+//! Any files included at compile time will need to be specified with the `path` field
+//! relative to the project root. The resulting file object will have a path starting
+//! with `/builtin` as a substitute for the project root path as an indicator from
+//! where it came from.
+//!
 //! ### Examples
 //! ```
 //! use include_more;
@@ -14,7 +20,7 @@
 //!     };
 //! }
 //!
-//! let expected = vec!["/tests/files/temp1", "/tests/files/temp2", "/tests/files/temp3"];
+//! let expected = vec!["/builtin/tests/files/temp1", "/builtin/tests/files/temp2"];
 //! assert_eq!(FILES.iter().map(|x| x.path.clone()).collect::<Vec<_>>(), expected);
 //! ```
 use std::slice::Iter;
@@ -51,7 +57,7 @@ impl StaticLoaderStrs {
     ///     };
     /// }
     ///
-    /// let expected = vec!["/tests/files/temp1", "/tests/files/temp2", "/tests/files/temp3"];
+    /// let expected = vec!["/builtin/tests/files/temp1", "/builtin/tests/files/temp2", "/builtin/tests/files/temp3"];
     /// assert_eq!(FILES.iter().map(|x| x.path.clone()).collect::<Vec<_>>(), expected);
     /// ```
     pub fn iter(&self) -> Iter<'_, StaticFileStr> {
@@ -71,7 +77,7 @@ impl StaticLoaderStrs {
 ///     };
 /// }
 ///
-/// let expected = vec!["/tests/files/temp1", "/tests/files/temp2", "/tests/files/temp3"];
+/// let expected = vec!["/builtin/tests/files/temp1", "/builtin/tests/files/temp2", "/builtin/tests/files/temp3"];
 /// assert_eq!(FILES.iter().map(|x| x.path.clone()).collect::<Vec<_>>(), expected);
 /// ```
 #[derive(Debug)]
@@ -85,7 +91,10 @@ impl StaticFileStr {
     #[doc(hidden)]
     pub fn new(path: &str, data: &str) -> Self {
         let workspace_path = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| String::from("./"));
-        Self { path: path.trim_start_matches(&workspace_path).to_string(), data: data.to_owned() }
+        Self {
+            path: format!("/builtin{}", path.trim_start_matches(&workspace_path).to_string()),
+            data: data.to_owned(),
+        }
     }
 }
 
