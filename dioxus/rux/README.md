@@ -1,7 +1,10 @@
 # rux
 Reusable UX for Dioxus
 
+This project is based on the excellent work Satellite-im did on their Uplink project.
+
 ## BACKLOG
+* Section label color is off in WASM but correct on desktop
 * Component: CardImage - Image, title and description
 * Create column layout
 * UI components

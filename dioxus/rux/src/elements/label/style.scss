@@ -1,0 +1,11 @@
+label {
+    color: var(--text-color-dark) !important;
+    font-size: var(--text-size-less);
+    text-transform: uppercase;
+}
+
+.wrap-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

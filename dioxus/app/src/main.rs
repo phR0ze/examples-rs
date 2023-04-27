@@ -1,5 +1,10 @@
-use rux::elements::switch::Switch;
-use rux::prelude::{STYLES, *};
+use rux::{
+    components::Section,
+    elements::{Icon, Switch},
+    icons::fa_brands_icons::FaRust,
+    prelude::*,
+    STYLES,
+};
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -38,8 +43,18 @@ fn App(cx: Scope) -> Element {
             //     link: "https://issues.satellite.im".into()
             // },
             // Routes{},
-            Switch {
-                active: false,
+            Icon {
+                width: 30,
+                height: 30,
+                fill: "black",
+                icon: FaRust,
+            },
+            Section {
+                section_label: "Checkbox - unchecked".into(),
+                section_description: "Example of a checkbox that is unchecked".into(),
+                Switch {
+                    active: false,
+                },
             },
             p {
                 "Hello world!"

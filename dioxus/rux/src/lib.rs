@@ -1,6 +1,17 @@
+//! # RUX: Reusable UX for Dioxus
+//!
+//! `rux` aims to provide a simple set of elements, components and layouts for those that
+//! don't want to start from scratch. It is based off a number of excellent projects
+//! * Satellite-im's Uplink project
+//! * dioxus-free-icons
+//!
+//! ### Icons
+//! `rux` re-exports the dioxus-free-icons crate as `rux::icons` and `rux::elements::Icon`
+//! to ergonomically blend the two crates together for ease of use.
+//!
 use include_more;
 use once_cell::sync::Lazy;
-use state::theme::Theme;
+use state::Theme;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -11,12 +22,14 @@ use titlecase::titlecase;
 use walkdir::WalkDir;
 
 #[cfg(any(windows, unix))]
-use state::config::Config;
+use state::Config;
 
 // Public exports
 // ****************************************************************************
+pub mod components;
 pub mod elements;
 pub mod state;
+pub use dioxus_free_icons::icons;
 
 pub const STYLES: &str = include_str!("./compiled_styles.css");
 include_more::include_files_as_strs! {
@@ -64,7 +77,6 @@ pub mod prelude {
 
     // Exports
     #[cfg(any(windows, unix))]
-    pub use crate::state::config;
     pub use crate::{elements, state, STYLES};
 }
 
