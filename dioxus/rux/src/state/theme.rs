@@ -1,12 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-use titlecase::titlecase;
-
-#[cfg(any(windows, unix))]
-use walkdir::WalkDir;
 
 #[derive(Eq, Clone, Debug, Default, Deserialize, Serialize)]
 pub struct Theme {

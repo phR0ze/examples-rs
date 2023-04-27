@@ -1,6 +1,6 @@
 use include_more;
 use once_cell::sync::Lazy;
-use state::themes::Theme;
+use state::theme::Theme;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -13,8 +13,9 @@ use walkdir::WalkDir;
 #[cfg(any(windows, unix))]
 use state::config::Config;
 
-/// Public exports
-/// ****************************************************************************
+// Public exports
+// ****************************************************************************
+pub mod elements;
 pub mod state;
 
 pub const STYLES: &str = include_str!("./compiled_styles.css");
@@ -27,7 +28,7 @@ include_more::include_files_as_strs! {
 #[cfg(any(windows, unix))]
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
     // Determine root path
-    // 1. Development runs of examples will have a CWD of the `.../rux` root
+
     // TODO: 2. Development runs from another appliction?
     // TODO: 3. Production runs from another application?
     // TODO: 4. Production runs from WASM?
@@ -48,9 +49,12 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 pub mod prelude {
     // Re-exports
     pub use dioxus;
-    pub use dioxus::core_macro::rsx;
     pub use dioxus::prelude::*;
     pub use dioxus_router;
+    pub use include_more;
+    pub use once_cell;
+    pub use serde;
+    pub use titlecase;
 
     #[cfg(any(windows, unix))]
     pub use dioxus_desktop;
@@ -61,7 +65,7 @@ pub mod prelude {
     // Exports
     #[cfg(any(windows, unix))]
     pub use crate::state::config;
-    pub use crate::{state, STYLES};
+    pub use crate::{elements, state, STYLES};
 }
 
 /// Get the available system and user themes for a RUX application
@@ -71,7 +75,6 @@ pub mod prelude {
 /// use rux::state::config;
 /// let themes = config::get_available_themes();
 /// ```
-#[cfg(any(windows, unix))]
 pub fn get_available_themes() -> Vec<Theme> {
     let mut themes = vec![];
 
@@ -113,7 +116,6 @@ pub fn get_available_themes() -> Vec<Theme> {
 }
 
 // Simple theme name extraction from path
-#[cfg(any(windows, unix))]
 fn get_pretty_name<S: AsRef<str>>(name: S) -> String {
     let path = Path::new(name.as_ref());
     let last = path.file_name().and_then(|p| Path::new(p).file_stem()).unwrap_or_default();

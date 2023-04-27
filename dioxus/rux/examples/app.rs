@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use rux::{state::themes, STYLES};
+use rux::{elements::switch::Switch, state::theme, STYLES};
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -41,6 +41,9 @@ fn App(cx: Scope) -> Element {
             //     link: "https://issues.satellite.im".into()
             // },
             // Routes{},
+            Switch {
+                active: false,
+            },
             p {
                 "Hello world!"
             }

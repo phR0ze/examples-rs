@@ -1,3 +1,4 @@
+use rux::elements::switch::Switch;
 use rux::prelude::{STYLES, *};
 
 fn main() {
@@ -37,6 +38,9 @@ fn App(cx: Scope) -> Element {
             //     link: "https://issues.satellite.im".into()
             // },
             // Routes{},
+            Switch {
+                active: false,
+            },
             p {
                 "Hello world!"
             }
