@@ -1,5 +1,5 @@
 [package]
-name = "static-loader-macros"
+name = "include-more-macros"
 version.workspace = true
 edition = "2021"
 

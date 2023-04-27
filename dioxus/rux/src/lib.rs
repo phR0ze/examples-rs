@@ -1,8 +1,4 @@
-pub mod state;
-
-pub const STYLES: &str = include_str!("./compiled_styles.css");
-pub const NORD: &str = include_str!("../assets/themes/nord.scss");
-
+use include_more;
 use once_cell::sync::Lazy;
 use state::themes::Theme;
 use std::{
@@ -16,6 +12,17 @@ use walkdir::WalkDir;
 
 #[cfg(any(windows, unix))]
 use state::config::Config;
+
+/// Public exports
+/// ****************************************************************************
+pub mod state;
+
+pub const STYLES: &str = include_str!("./compiled_styles.css");
+include_more::include_files_as_strs! {
+    static THEMES = {
+        path: "assets/themes",
+    };
+}
 
 #[cfg(any(windows, unix))]
 pub static CONFIG: Lazy<Config> = Lazy::new(|| {
@@ -54,7 +61,7 @@ pub mod prelude {
     // Exports
     #[cfg(any(windows, unix))]
     pub use crate::state::config;
-    pub use crate::{state, NORD, STYLES};
+    pub use crate::{state, STYLES};
 }
 
 /// Get the available system and user themes for a RUX application
@@ -68,24 +75,36 @@ pub mod prelude {
 pub fn get_available_themes() -> Vec<Theme> {
     let mut themes = vec![];
 
-    let mut add_to_themes = |themes_path| {
-        for file in WalkDir::new(themes_path).into_iter().filter_map(|file| file.ok()) {
-            if file.metadata().map(|x| x.is_file()).unwrap_or(false) {
-                let theme_path = file.path().display().to_string();
-                let pretty_theme_str = get_pretty_name(&theme_path);
-                let pretty_theme_str = titlecase(&pretty_theme_str);
-
-                let styles = fs::read_to_string(&theme_path).unwrap_or_default();
-
-                let theme = Theme { filename: theme_path.to_owned(), name: pretty_theme_str.to_owned(), styles };
-                if !themes.contains(&theme) {
-                    themes.push(theme);
-                }
-            }
+    // Add built in themes
+    for file in crate::THEMES.iter() {
+        let theme = Theme {
+            filename: file.path.clone(),
+            name: titlecase(&get_pretty_name(&file.path)).to_owned(),
+            styles: file.data.clone(),
+        };
+        if !themes.contains(&theme) {
+            themes.push(theme);
         }
-    };
-    add_to_themes(&crate::CONFIG.themes_path);
-    //add_to_themes(&crate::CONFIG.user_themes_path);
+    }
+
+    // let mut add_to_themes = |themes_path| {
+    //     for file in WalkDir::new(themes_path).into_iter().filter_map(|file| file.ok()) {
+    //         if file.metadata().map(|x| x.is_file()).unwrap_or(false) {
+    //             let theme_path = file.path().display().to_string();
+    //             let pretty_theme_str = get_pretty_name(&theme_path);
+    //             let pretty_theme_str = titlecase(&pretty_theme_str);
+
+    //             let styles = fs::read_to_string(&theme_path).unwrap_or_default();
+
+    //             let theme = Theme { filename: theme_path.to_owned(), name: pretty_theme_str.to_owned(), styles };
+    //             if !themes.contains(&theme) {
+    //                 themes.push(theme);
+    //             }
+    //         }
+    //     }
+    // };
+    // add_to_themes(&crate::CONFIG.themes_path);
+    // //add_to_themes(&crate::CONFIG.user_themes_path);
 
     themes.sort_by_key(|theme| theme.name.clone());
     themes.dedup();
