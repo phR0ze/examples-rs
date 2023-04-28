@@ -44,21 +44,6 @@ fn get_appearance(cx: &Scope<Props>) -> Appearance {
     cx.props.appearance.unwrap_or(Appearance::Default)
 }
 
-// Executes the bit of javascript to setup mouse hover for custom tooltips
-#[cfg(any(windows, unix))]
-fn setup_tooltip_effect(cx: &Scope<Props>, uuid: &String) {
-    let eval = dioxus_desktop::use_eval(cx);
-
-    // use_effect will run this after the component has been mounted
-    use_effect(cx, (uuid,), move |(uuid,)| {
-        to_owned![eval];
-        async move {
-            let script = get_script(SCRIPT, &uuid);
-            eval(script);
-        }
-    });
-}
-
 /// Returns a button element generated based on given props.
 ///
 /// # Examples
@@ -88,8 +73,21 @@ pub fn Button<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
     let small = cx.props.small.unwrap_or_default();
     let text2 = text.clone();
 
+    // Executes the bit of javascript to setup mouse hover for custom tooltips
+    // TODO: doesn't seem to work with WASM due to lifetimes issues
     #[cfg(any(windows, unix))]
-    setup_tooltip_effect(&cx, UUID);
+    {
+        let eval = dioxus_desktop::use_eval(cx);
+
+        // use_effect will run this after the component has been mounted
+        use_effect(cx, (UUID,), move |(UUID,)| {
+            to_owned![eval];
+            async move {
+                let script = get_script(SCRIPT, &UUID);
+                eval(script);
+            }
+        });
+    }
 
     cx.render(
         rsx!(

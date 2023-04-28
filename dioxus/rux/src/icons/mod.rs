@@ -183,7 +183,7 @@ pub struct IconProps<'a, S: IconShape> {
 /// See the [`IconProps`] field documentation for details on the properties it
 /// accepts.
 #[allow(non_snake_case)]
-pub(crate) fn Icon<'a, S: IconShape>(cx: Scope<'a, IconProps<S>>) -> Element<'a> {
+pub fn Icon<'a, S: IconShape>(cx: Scope<'a, IconProps<S>>) -> Element<'a> {
     let fill = if cx.props.disabled { cx.props.disabled_fill } else { cx.props.fill };
     cx.render(rsx! {
         svg {

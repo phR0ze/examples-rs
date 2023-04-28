@@ -1,3 +1,5 @@
+#[cfg(any(windows, unix))]
+use rux::components::TitleBar;
 use rux::{
     components::Section,
     elements::{Appearance, ArrowPosition, Button, Switch, Tooltip},
@@ -20,7 +22,7 @@ fn main() {
                 // Allows rounded CSS window effect to work
                 .with_transparent(true)
                 // Turns off standard window manager controls
-                //.with_decorations(false)
+                .with_decorations(false)
                 // We start the min inner size smaller because the prelude pages like unlock can be rendered much smaller.
                 .with_min_inner_size(dioxus_desktop::LogicalSize::new(300.0, 350.0))
                 .with_inner_size(dioxus_desktop::LogicalSize::new(950.0, 600.0)),
@@ -32,19 +34,27 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     //use_shared_state_provider(cx, || State::default());
-    #[cfg(any(windows, unix))]
-    println!("CWD: {:?}", std::env::current_dir());
 
+    // Desktop window titlebar and controls
+    let mut titlebar: Option<VNode> = None;
+    #[cfg(any(windows, unix))]
+    {
+        titlebar = cx.render(rsx! {
+            TitleBar{
+                 text: "Pre-release | Issues/Feedback".into(),
+                 link: "https://issues.satellite.im".into()
+            }
+        })
+    }
+
+    // Get the themes
     let theme = rux::get_available_themes().iter().find(|x| x.name == "Nord").unwrap().styles.clone();
 
     cx.render(rsx! {
         style { "{STYLES} {theme}" },
         div {
-            // Titlebar {
-            //     text: "Pre-release | Issues/Feedback".into(),
-            //     link: "https://issues.satellite.im".into()
-            // },
-            // Routes{},
+            id: "root",
+            titlebar,
             Section {
                 section_label: "Checkbox - unchecked".into(),
                 section_description: "Example of a checkbox that is unchecked".into(),
