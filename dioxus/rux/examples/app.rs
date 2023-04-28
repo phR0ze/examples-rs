@@ -1,7 +1,7 @@
 use rux::{
     components::Section,
-    elements::{Icon, Switch},
-    icons::fa_brands_icons::FaRust,
+    elements::{Appearance, Button, Switch},
+    icons::HiOutlineIcon,
     prelude::*,
     STYLES,
 };
@@ -45,12 +45,6 @@ fn App(cx: Scope) -> Element {
             //     link: "https://issues.satellite.im".into()
             // },
             // Routes{},
-            Icon {
-                width: 30,
-                height: 30,
-                fill: "black",
-                icon: FaRust,
-            },
             Section {
                 section_label: "Checkbox - unchecked".into(),
                 section_description: "Example of a checkbox that is unchecked".into(),
@@ -58,8 +52,58 @@ fn App(cx: Scope) -> Element {
                     active: false,
                 },
             },
-            p {
-                "Hello world!"
+            div {
+                style: "padding-left: 10px; border-bottom: 1px solid var(--border-color); color: var(--text-color);
+    ",
+                p {
+                    "Button Examples",
+                },
+                Button {
+                    text: "Default".into(),
+                    appearance: Appearance::Default,
+                    icon: HiOutlineIcon::User,
+                },
+                                Button {
+                    text: "Primary".into(),
+                    appearance: Appearance::Primary,
+                    icon: HiOutlineIcon::Cog6Tooth,
+                },
+                Button {
+                    text: "Secondary".into(),
+                    appearance: Appearance::Secondary,
+                    icon: HiOutlineIcon::MusicalNote,
+                },
+                Button {
+                    text: "SecondaryLess".into(),
+                    appearance: Appearance::SecondaryLess,
+                    icon: HiOutlineIcon::LockClosed,
+                },
+                Button {
+                    text: "Success".into(),
+                    appearance: Appearance::Success,
+                    icon: HiOutlineIcon::Folder,
+                },
+                Button {
+                    text: "Danger".into(),
+                    appearance: Appearance::Danger,
+                    icon: HiOutlineIcon::Beaker,
+                },
+                Button {
+                    text: "Disabled".into(),
+                    appearance: Appearance::Disabled,
+                    icon: HiOutlineIcon::BellAlert,
+                },
+                Button {
+                    text: "Transparent".into(),
+                    appearance: Appearance::Transparent,
+                    icon: HiOutlineIcon::EyeSlash,
+                }
+                Button {
+                    text: "With Badge".into(),
+                    with_badge: "Badge".into(),
+                    appearance: Appearance::Default,
+                    icon: HiOutlineIcon::CommandLine,
+                },
             }
         }
     })

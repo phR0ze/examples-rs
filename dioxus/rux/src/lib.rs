@@ -3,11 +3,8 @@
 //! `rux` aims to provide a simple set of elements, components and layouts for those that
 //! don't want to start from scratch. It is based off a number of excellent projects
 //! * Satellite-im's Uplink project
-//! * dioxus-free-icons
 //!
 //! ### Icons
-//! `rux` re-exports the dioxus-free-icons crate as `rux::icons` and `rux::elements::Icon`
-//! to ergonomically blend the two crates together for ease of use.
 //!
 use include_more;
 use once_cell::sync::Lazy;
@@ -28,8 +25,8 @@ use state::Config;
 // ****************************************************************************
 pub mod components;
 pub mod elements;
+pub mod icons;
 pub mod state;
-pub use dioxus_free_icons::icons;
 
 pub const STYLES: &str = include_str!("./compiled_styles.css");
 include_more::include_files_as_strs! {
@@ -78,6 +75,12 @@ pub mod prelude {
     // Exports
     #[cfg(any(windows, unix))]
     pub use crate::{elements, state, STYLES};
+}
+
+/// Loads the supporting javascript to a string.
+pub fn get_script(script: &'static str, uuid: &str) -> String {
+    // The replace is needed because you can't have hyphens in javascript declarations.
+    script.replace("DIUU", uuid).replace("SAFE_UUID", &uuid.replace('-', "_"))
 }
 
 /// Get the available system and user themes for a RUX application
