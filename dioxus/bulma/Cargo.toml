@@ -1,0 +1,15 @@
+[package]
+name = "bulma"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = "0.3.2"
+
+[target.'cfg(any(unix, windows))'.dependencies]
+dioxus-desktop = { version = "0.3.0", features = ["transparent"] }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+dioxus-web = "0.3.1"
