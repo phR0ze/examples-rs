@@ -77,7 +77,7 @@ pub mod prelude {
     pub use crate::{elements, state, STYLES};
 }
 
-/// Loads the supporting javascript to a string.
+/// Loads the supporting javascript to a string and uses the uuid as a unique
 pub fn get_script(script: &'static str, uuid: &str) -> String {
     // The replace is needed because you can't have hyphens in javascript declarations.
     script.replace("DIUU", uuid).replace("SAFE_UUID", &uuid.replace('-', "_"))

@@ -1,6 +1,6 @@
 use rux::{
     components::Section,
-    elements::{Appearance, Button, Switch},
+    elements::{Appearance, ArrowPosition, Button, Switch, Tooltip},
     icons::HiOutlineIcon,
     prelude::*,
     STYLES,
@@ -17,7 +17,7 @@ fn main() {
             dioxus_desktop::WindowBuilder::new()
                 .with_title("rux")
                 .with_resizable(true)
-                // Provides rounded window corner effect
+                // Allows rounded CSS window effect to work
                 .with_transparent(true)
                 // Turns off standard window manager controls
                 //.with_decorations(false)
@@ -103,6 +103,29 @@ fn App(cx: Scope) -> Element {
                     with_badge: "Badge".into(),
                     appearance: Appearance::Default,
                     icon: HiOutlineIcon::CommandLine,
+                },
+            },
+            Section {
+                section_label: "Small Button".into(),
+                section_description: "Setting small=true provides room only for the icon".into(),
+                Button {
+                    small: true,
+                    icon: HiOutlineIcon::Activity,
+                },
+            },
+            Section {
+                section_label: "Custom Tooltip".into(),
+                section_description: "Creating a custom tool tip for the button".into(),
+                Button {
+                    text: "Custom Tooltip".into(),
+                    icon: HiOutlineIcon::Calendar,
+                    appearance: Appearance::Primary,
+                    tooltip: cx.render(rsx!(
+                        Tooltip {
+                            arrow_position: ArrowPosition::Bottom,
+                            text: String::from("Settings")
+                        }
+                    )),
                 },
             }
         }

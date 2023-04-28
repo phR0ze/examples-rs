@@ -32,9 +32,9 @@ pub struct Props<'a> {
     small: Option<bool>,
 }
 
-/// Generates the appearance for the button.
-/// This will be overwritten if the button is disabled.
-pub fn get_appearance(cx: &Scope<Props>) -> Appearance {
+// Generates the appearance for the button.
+// This will be overwritten if the button is disabled.
+fn get_appearance(cx: &Scope<Props>) -> Appearance {
     // If the button is disabled, we can short circuit this and just provide the disabled appearance.
     if let Some(is_disabled) = cx.props.disabled {
         if is_disabled {
@@ -42,6 +42,21 @@ pub fn get_appearance(cx: &Scope<Props>) -> Appearance {
         }
     }
     cx.props.appearance.unwrap_or(Appearance::Default)
+}
+
+// Executes the bit of javascript to setup mouse hover for custom tooltips
+#[cfg(any(windows, unix))]
+fn setup_tooltip_effect(cx: &Scope<Props>, uuid: &String) {
+    let eval = dioxus_desktop::use_eval(cx);
+
+    // use_effect will run this after the component has been mounted
+    use_effect(cx, (uuid,), move |(uuid,)| {
+        to_owned![eval];
+        async move {
+            let script = get_script(SCRIPT, &uuid);
+            eval(script);
+        }
+    });
 }
 
 /// Returns a button element generated based on given props.
@@ -73,15 +88,8 @@ pub fn Button<'a>(cx: Scope<'a, Props<'a>>) -> Element<'a> {
     let small = cx.props.small.unwrap_or_default();
     let text2 = text.clone();
 
-    let eval = dioxus_desktop::use_eval(cx);
-    // only run this after the component has been mounted
-    use_effect(cx, (UUID,), move |(UUID,)| {
-        to_owned![eval];
-        async move {
-            let script = get_script(SCRIPT, &UUID);
-            eval(script);
-        }
-    });
+    #[cfg(any(windows, unix))]
+    setup_tooltip_effect(&cx, UUID);
 
     cx.render(
         rsx!(

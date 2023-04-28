@@ -3,9 +3,11 @@ use derive_more::Display;
 mod button;
 mod label;
 mod switch;
+mod tooltip;
 pub use button::Button;
 pub use label::Label;
 pub use switch::Switch;
+pub use tooltip::{ArrowPosition, Tooltip};
 
 /// Decides the look and feel of a button, also modifies some functionality.
 #[derive(Clone, PartialEq, Eq, Copy, Display)]
