@@ -109,7 +109,55 @@ pub struct ColumnProps<'a> {
     is_one_fifth: bool,
 
     #[props(default)]
+    is_offset_three_quarters: bool,
+
+    #[props(default)]
+    is_offset_two_thirds: bool,
+
+    #[props(default)]
+    is_offset_half: bool,
+
+    #[props(default)]
+    is_offset_one_third: bool,
+
+    #[props(default)]
+    is_offset_one_quarter: bool,
+
+    #[props(default)]
+    is_offset_four_fifths: bool,
+
+    #[props(default)]
+    is_offset_three_fifths: bool,
+
+    #[props(default)]
+    is_offset_two_fifths: bool,
+
+    #[props(default)]
+    is_offset_one_fifth: bool,
+
+    #[props(default)]
+    is_mobile: bool,
+
+    #[props(default)]
     is_narrow: bool,
+
+    #[props(default)]
+    is_narrow_mobile: bool,
+
+    #[props(default)]
+    is_narrow_tablet: bool,
+
+    #[props(default)]
+    is_narrow_touch: bool,
+
+    #[props(default)]
+    is_narrow_desktop: bool,
+
+    #[props(default)]
+    is_narrow_widescreen: bool,
+
+    #[props(default)]
+    is_narrow_fullhd: bool,
 
     #[props(optional)]
     size: Option<u8>,
@@ -125,6 +173,7 @@ pub struct ColumnProps<'a> {
 /// Column
 ///
 /// ### Properties
+/// * `is_mobile: bool` by default columns only work from tablet onwards. For mobile set this value to true
 /// * `is_three_quarters: bool`
 /// * `is_two_thirds: bool`
 /// * `is_half: bool`
@@ -137,21 +186,23 @@ pub struct ColumnProps<'a> {
 /// * `is_one_fifth: bool`
 /// * `is_size: Option<u8>` take an u8 of values 1-12 as input to specify the is-NUM classes, e.g. `is-5`
 pub fn Column<'a>(cx: Scope<'a, ColumnProps<'a>>) -> Element {
-    let mut class_name = "column".to_string();
+    let mut classes = "column".to_string();
 
     if cx.props.is_narrow {
-        class_name += " is-narrow";
+        classes += " is-narrow";
     }
+
+    // TODO: implement the rest
 
     if let Some(num) = cx.props.size {
         if (0..12).contains(&num) {
-            class_name = format!("{class_name} is-{num}");
+            classes = format!("{classes} is-{num}");
         }
     }
 
     if let Some(num) = cx.props.offset {
         if (0..12).contains(&num) {
-            class_name = format!("{class_name} is-offset-{num}");
+            classes = format!("{classes} is-offset-{num}");
         }
     }
 
@@ -161,7 +212,7 @@ pub fn Column<'a>(cx: Scope<'a, ColumnProps<'a>>) -> Element {
 
     cx.render(rsx! {
         div {
-            class: "{class_name}",
+            class: "{classes}",
             &cx.props.children
         }
     })

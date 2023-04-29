@@ -1,17 +1,11 @@
 //! Dioxus Bulma example
 //!
-pub mod layouts;
 
-// Get BULMA styles as a static str
-pub fn get_bulma_css() -> &'static str {
-    include_str!("./bulma.min.css")
-}
-
-// **********************************************************
-// App
-// **********************************************************
-use dioxus::prelude::*;
-use layouts::Container;
+use bulma::{
+    elements::Button,
+    layouts::{Column, Columns, Container},
+    prelude::*,
+};
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -38,8 +32,90 @@ fn App(cx: Scope) -> Element {
         style { "{get_bulma_css()}" },
         Container {
             is_fluid: true,
-            div {
-                "hello world"
+            br {}
+            Columns {
+                Column {
+                    Button {
+                        color: Colors::Success,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("success");
+                        }
+                        "Success"
+                    }
+                }
+                Column {
+                    Button {
+                        color: Colors::Info,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("info");
+                        }
+                        "Info"
+                    }
+                }
+                Column {
+                    Button {
+                        color: Colors::Warning,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("warning");
+                        }
+                        "Warning"
+                    }
+                }
+                Column {
+                    Button {
+                        color: Colors::Danger,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("danger");
+                        }
+                        "Danger"
+                    }
+                }
+            }
+            Columns {
+                Column {
+                    Button {
+                        color: Colors::Success,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("success");
+                        }
+                        "Success"
+                    }
+                }
+                Column {
+                    Button {
+                        color: Colors::Info,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("info");
+                        }
+                        "Info"
+                    }
+                }
+                Column {
+                    Button {
+                        color: Colors::Warning,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("warning");
+                        }
+                        "Warning"
+                    }
+                }
+                Column {
+                    Button {
+                        color: Colors::Danger,
+                        is_fullwidth: true,
+                        onclick: move |_| {
+                            println!("danger");
+                        }
+                        "Danger"
+                    }
+                }
             }
         }
     })
