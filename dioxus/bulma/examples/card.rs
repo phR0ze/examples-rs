@@ -2,8 +2,8 @@
 //!
 
 use bulma::{
-    components::{Card, CardHeader},
-    elements::Button,
+    components::Card,
+    elements::{Image, SubTitle, Title},
     layouts::{Column, Columns, Container},
     prelude::*,
 };
@@ -37,43 +37,58 @@ fn App(cx: Scope) -> Element {
             Columns {
                 Column {
                     Card {
-                        title: "Hello World".into(),
-                        content: cx.render(rsx! {
-                            div {
-                                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris."
+                        image: cx.render(rsx! {
+                            Image {
+                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                ratio: (16, 9).into(),
                             }
+                        })
+                        content: cx.render(rsx! {
+                            Title { "Hello World" }
+                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
                         }),
                     }
                 }
                 Column {
                     Card {
-                        image: "https://bulma.io/images/placeholders/1280x960.png".into()
-                        image_ratio: Ratios::SixteenByNine.into(),
-                        content: cx.render(rsx! {
-                            div {
-                                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris."
+                        image: cx.render(rsx! {
+                            Image {
+                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                ratio: (16, 9).into(),
                             }
+                        })
+                        content: cx.render(rsx! {
+                            Title { "Hello World" }
+                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
+                        }),
+                    }
+                }
+               Column {
+                    Card {
+                        image: cx.render(rsx! {
+                            Image {
+                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                ratio: (16, 9).into(),
+                            }
+                        })
+                        content: cx.render(rsx! {
+                            Title { "Hello World" }
+                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
                         }),
                     }
                 }
                 Column {
-                    Button {
-                        color: Colors::Warning,
-                        is_fullwidth: true,
-                        onclick: move |_| {
-                            println!("warning");
-                        }
-                        "Warning"
-                    }
-                }
-                Column {
-                    Button {
-                        color: Colors::Danger,
-                        is_fullwidth: true,
-                        onclick: move |_| {
-                            println!("danger");
-                        }
-                        "Danger"
+                    Card {
+                        image: cx.render(rsx! {
+                            Image {
+                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                ratio: (16, 9).into(),
+                            }
+                        })
+                        content: cx.render(rsx! {
+                            Title { "Hello World" }
+                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
+                        }),
                     }
                 }
             }

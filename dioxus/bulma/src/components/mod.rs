@@ -1,3 +1,3 @@
 mod card;
 
-pub use card::{Card, CardHeader, CardProps};
+pub use card::{Card, CardProps};
