@@ -30,6 +30,7 @@ pub struct ContainerProps<'a> {
 /// * `is_max_desktop: bool`
 /// * `is_max_widescreen: bool`
 /// * `is_fluid: bool`
+#[allow(non_snake_case)]
 pub fn Container<'a>(cx: Scope<'a, ContainerProps<'a>>) -> Element {
     let extra_class = if cx.props.is_widescreen {
         "is-widescreen"

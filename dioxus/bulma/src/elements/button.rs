@@ -1,6 +1,6 @@
 use dioxus::{events::MouseEvent, prelude::*};
 
-use crate::{Colors, Sizes};
+use crate::utils::*;
 
 #[derive(PartialEq)]
 pub enum ButtonState {

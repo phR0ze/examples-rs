@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 
+#[allow(non_snake_case)]
 #[derive(Props)]
 pub struct ColumnsProps<'a> {
     #[props(default)]
@@ -35,6 +36,7 @@ pub struct ColumnsProps<'a> {
 /// * `is_vcentered: bool`
 /// * `variable_gap: Option<u8>`
 /// * `children: Element<'a>`
+#[allow(non_snake_case)]
 pub fn Columns<'a>(cx: Scope<'a, ColumnsProps<'a>>) -> Element {
     let mut class_name = "columns".to_string();
 
@@ -76,6 +78,7 @@ pub fn Columns<'a>(cx: Scope<'a, ColumnsProps<'a>>) -> Element {
     })
 }
 
+#[allow(non_snake_case)]
 #[derive(Props)]
 pub struct ColumnProps<'a> {
     #[props(default)]
@@ -185,6 +188,7 @@ pub struct ColumnProps<'a> {
 /// * `is_two_fifths: bool`
 /// * `is_one_fifth: bool`
 /// * `is_size: Option<u8>` take an u8 of values 1-12 as input to specify the is-NUM classes, e.g. `is-5`
+#[allow(non_snake_case)]
 pub fn Column<'a>(cx: Scope<'a, ColumnProps<'a>>) -> Element {
     let mut classes = "column".to_string();
 
