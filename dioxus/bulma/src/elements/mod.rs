@@ -3,10 +3,11 @@ mod image;
 mod title;
 // mod notification;
 // mod progress;
-// pub mod tag;
+mod tag;
 
 pub use button::{Button, ButtonProps, ButtonState};
 pub use image::{Image, ImageProps};
+pub use tag::{Tag, TagLink, TagLinkProps, TagProps, Tags, TagsProps};
 pub use title::{SubTitle, SubTitleProps, Title, TitleProps};
 // pub use notification::{Notification, NotificationProps};
 // pub use progress::{Progress, ProgressProps};

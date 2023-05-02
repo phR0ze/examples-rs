@@ -5,17 +5,7 @@ use dioxus::prelude::*;
 #[allow(non_snake_case)]
 #[derive(Props)]
 pub struct CardProps<'a> {
-    #[props(default)]
-    header: Element<'a>,
-
-    #[props(default)]
-    content: Element<'a>,
-
-    #[props(default)]
-    image: Element<'a>,
-
-    #[props(default)]
-    footer: Element<'a>,
+    children: Element<'a>,
 }
 
 /// Card comprises several elements that you can mix and match
@@ -48,33 +38,100 @@ pub fn Card<'a>(cx: Scope<'a, CardProps<'a>>) -> Element {
     //     })
     // });
 
+    //     cx.render(rsx! {
+    //         div {
+    //             class: "card",
+    //             cx.props.header.as_ref().and_then(|_| cx.render(rsx! {
+    //                 footer {
+    //                     class: "card-header",
+    //                     &cx.props.header
+    //                 }
+    //             }))
+    //         }
+    //     })
+    // }
+
     cx.render(rsx! {
         div {
             class: "card",
-            cx.props.header.as_ref().and_then(|_| cx.render(rsx! {
-                footer {
-                    class: "card-header",
-                    &cx.props.header
-                }
-            }))
-            cx.props.image.as_ref().and_then(|_| cx.render(rsx! {
-                div {
-                    class: "card-image",
-                    &cx.props.image
-                }
-            }))
-            cx.props.content.as_ref().and_then(|_| cx.render(rsx! {
-                div {
-                    class: "card-content",
-                    &cx.props.content
-                }
-            }))
-            cx.props.footer.as_ref().and_then(|_| cx.render(rsx! {
-                footer {
-                    class: "card-footer",
-                    &cx.props.footer
-                }
-            }))
+            &cx.props.children
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+#[derive(Props)]
+pub struct CardHeaderProps<'a> {
+    #[props(optional)]
+    title: Option<String>,
+
+    children: Element<'a>,
+}
+
+#[allow(non_snake_case)]
+pub fn CardHeader<'a>(cx: Scope<'a, CardHeaderProps<'a>>) -> Element {
+    let title = cx.props.title.is_some().then(|| {
+        cx.render(rsx! {
+            p {
+                class: "card-header-title",
+                "{cx.props.title.clone().unwrap()}"
+            }
+        })
+    });
+
+    cx.render(rsx! {
+        div {
+            class: "card-header",
+            title,
+            &cx.props.children
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+#[derive(Props)]
+pub struct CardImageProps<'a> {
+    children: Element<'a>,
+}
+
+#[allow(non_snake_case)]
+pub fn CardImage<'a>(cx: Scope<'a, CardImageProps<'a>>) -> Element {
+    cx.render(rsx! {
+        div {
+            class: "card-image",
+            &cx.props.children
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+#[derive(Props)]
+pub struct CardContentProps<'a> {
+    children: Element<'a>,
+}
+
+#[allow(non_snake_case)]
+pub fn CardContent<'a>(cx: Scope<'a, CardContentProps<'a>>) -> Element {
+    cx.render(rsx! {
+        div {
+            class: "card-content",
+            &cx.props.children
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+#[derive(Props)]
+pub struct CardFooterProps<'a> {
+    children: Element<'a>,
+}
+
+#[allow(non_snake_case)]
+pub fn CardFooter<'a>(cx: Scope<'a, CardFooterProps<'a>>) -> Element {
+    cx.render(rsx! {
+        div {
+            class: "card-footer",
+            &cx.props.children
         }
     })
 }

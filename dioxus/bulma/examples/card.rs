@@ -2,7 +2,7 @@
 //!
 
 use bulma::{
-    components::Card,
+    components::{Card, CardContent, CardFooter, CardHeader, CardImage},
     elements::{Image, SubTitle, Title},
     layouts::{Column, Columns, Container},
     prelude::*,
@@ -37,58 +37,63 @@ fn App(cx: Scope) -> Element {
             Columns {
                 Column {
                     Card {
-                        image: cx.render(rsx! {
+                        CardHeader { title: "Header Title First".into() }
+                        CardContent {
+                            Title { "Content before image" }
+                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
+                        }
+                        CardImage {
                             Image {
                                 src: "https://bulma.io/images/placeholders/1280x960.png".into(),
                                 ratio: (16, 9).into(),
                             }
-                        })
-                        content: cx.render(rsx! {
-                            Title { "Hello World" }
-                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }),
+                        }
                     }
                 }
                 Column {
                     Card {
-                        image: cx.render(rsx! {
+                        CardContent {
+                            Title { "Hello World" }
+                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
+                        }
+                        CardImage {
                             Image {
                                 src: "https://bulma.io/images/placeholders/1280x960.png".into(),
                                 ratio: (16, 9).into(),
                             }
-                        })
-                        content: cx.render(rsx! {
-                            Title { "Hello World" }
-                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }),
+                        }
+                        CardHeader { title: "Header Title Last".into() }
                     }
                 }
                Column {
                     Card {
-                        image: cx.render(rsx! {
+                        CardImage {
                             Image {
                                 src: "https://bulma.io/images/placeholders/1280x960.png".into(),
                                 ratio: (16, 9).into(),
                             }
-                        })
-                        content: cx.render(rsx! {
+                        }
+                        CardContent {
                             Title { "Hello World" }
                             SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }),
+                        }
+                        CardFooter {
+                            Title { "Card Footer" }
+                        }
                     }
                 }
                 Column {
                     Card {
-                        image: cx.render(rsx! {
+                        CardImage {
                             Image {
                                 src: "https://bulma.io/images/placeholders/1280x960.png".into(),
                                 ratio: (16, 9).into(),
                             }
-                        })
-                        content: cx.render(rsx! {
+                        }
+                        CardContent {
                             Title { "Hello World" }
                             SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }),
+                        }
                     }
                 }
             }

@@ -12,9 +12,11 @@ pub struct ImageProps<'a> {
     #[props(default)]
     is_fullwidth: bool,
 
+    #[props(!optional)]
     src: &'a str,
 }
 
+/// Image
 #[allow(non_snake_case)]
 pub fn Image<'a>(cx: Scope<'a, ImageProps<'a>>) -> Element {
     let mut class_name = "image".to_string();
