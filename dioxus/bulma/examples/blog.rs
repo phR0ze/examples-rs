@@ -3,7 +3,8 @@
 
 use bulma::{
     components::{Card, CardContent, CardImage},
-    elements::{Image, SubTitle, Tag, TagLink, Tags, Title},
+    elements::{self, Image, SubTitle, Tag, TagLink, Tags, Title},
+    icons::*,
     layouts::{Column, Columns, Container},
     prelude::*,
 };
@@ -46,9 +47,20 @@ fn App(cx: Scope) -> Element {
                         CardContent {
                             Title { "Hello World" }
                             SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                            p {
-                                class: "is-uppercase is-size-7 is-family-monospace",
-                                "Read More ->"
+                            span {
+                                class: "icon-text",
+                                span {
+                                    class: "is-uppercase has-text-weight-medium is-size-7",
+                                    "Read More"
+                                }
+                                span { 
+                                    class: "icon",
+                                    Icon {
+                                        width: 15,
+                                        height: 15,
+                                        icon: fa_solid_icons::FaArrowRight,
+                                    }
+                                }
                             }
                         }
                     }
@@ -65,6 +77,10 @@ fn App(cx: Scope) -> Element {
                             Title { "Hello World" }
                             SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
                         }
+                        // Icon {
+                        //     IconText { "Read More".into() };
+                        //     IconSvg { width: 15, height: 15, src = fa_solid_icons::FaArrowRight }
+                        // }
                     }
                 }
                Column {
