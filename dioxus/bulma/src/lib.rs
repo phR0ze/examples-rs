@@ -10,6 +10,13 @@ pub mod icons {
     pub use dioxus_free_icons::icons::*;
     pub use dioxus_free_icons::{Icon, IconProps, IconShape};
 }
+pub use dioxus_router;
+
+#[cfg(any(windows, unix))]
+pub use dioxus_desktop;
+
+#[cfg(target_family = "wasm")]
+pub use dioxus_web;
 
 pub mod prelude {
     pub use crate::{get_bulma_css, utils::*};
