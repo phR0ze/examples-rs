@@ -1,5 +1,7 @@
 //! Dioxus Bulma example
 //!
+mod assets;
+use assets::*;
 
 use bulma::{
     dioxus_router::{use_router, Router, Route},
@@ -11,8 +13,21 @@ use bulma::{
 };
 
 const TOTAL_PAGES: u64 = 1000;
-const ITEMS_PER_PAGE: u64 = 15;
-const COLUMNS_PER_PAGE: u64 = 3;
+
+// Shared state object
+struct State {
+    items_per_page: usize,
+    columns_per_page: usize,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State {
+            items_per_page: 9,
+            columns_per_page: 3,
+        }
+    }
+}
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -33,6 +48,8 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
+    use_shared_state_provider(cx, || State::default());
+
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
         Router {
@@ -195,30 +212,27 @@ fn HomePage(cx: Scope) -> Element {
 
 #[allow(non_snake_case)]
 fn PostsPage(cx: Scope) -> Element {
+    let state = use_shared_state::<State>(cx).unwrap();
+    let cols = state.read().columns_per_page;
+    let rows = state.read().items_per_page/cols;
+
     cx.render(rsx! {
         div { class: "section container is-fluid",
             h1 { class: "title", "Posts" }
             h2 { class: "subtitle", "All of our quality writing in one place!" }
-            Posts {}
-            Pagination{}
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn Posts(cx: Scope) -> Element {
-    cx.render(rsx! {
-        Columns {
-            (1..=COLUMNS_PER_PAGE).map(|_| rsx! {
-                Column {
-                    ul {
-                        class: "list",
-                        Post {}
-                        Post {}
-                        Post {}
+            Columns {
+                for _ in (1..=cols) {
+                    Column {
+                        ul {
+                            class: "list",
+                            for _ in (1..=rows) {
+                                Post {}
+                            }
+                        }
                     }
                 }
-            })
+            }
+            Pagination{}
         }
     })
 }
@@ -229,9 +243,8 @@ fn Post(cx: Scope) -> Element {
         li { class: "list-item mb-5",
             Card {
                 CardImage {
-                    Image {
+                    Image { ratio: (2, 1).into(),
                         src: "https://bulma.io/images/placeholders/1280x960.png".into(),
-                        ratio: (16, 9).into(),
                     }
                 }
                 CardContent {
