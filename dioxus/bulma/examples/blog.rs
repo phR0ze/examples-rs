@@ -2,7 +2,7 @@
 //!
 
 use bulma::{
-    components::{Card, CardContent, CardImage},
+    components::{Card, CardContent, CardImage, Navbar},
     elements::{self, Image, SubTitle, Tag, TagLink, Tags, Title},
     icons::*,
     layouts::{Column, Columns, Container},
@@ -32,7 +32,43 @@ fn main() {
 fn App(cx: Scope) -> Element {
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-                Container {
+        Navbar {
+            color: Colors::Info,
+            brand: "https://bulma.io/images/bulma-logo.png".into(),
+            div {
+                class: "navbar-menu",
+                div {
+                    class: "navbar-start",
+                    a {
+                        class: "navbar-item",
+                        "Home"
+                    }
+                    a {
+                        class: "navbar-item",
+                        "Posts"
+                    }
+                    div {
+                        class: "navbar-item has-dropdown is-hoverable",
+                        div {
+                            class: "navbar-link",
+                            "More"
+                        }
+                        div {
+                            class: "navbar-dropdown",
+                            a {
+                                class: "navbar-item",
+                                "About"
+                            }
+                            a {
+                                class: "navbar-item",
+                                "Meet the authors"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Container {
             is_fluid: true,
             br {}
             Columns {

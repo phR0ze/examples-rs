@@ -16,6 +16,16 @@ pub enum Colors {
     Danger,
 }
 
+impl Colors {
+    pub fn to_class(&self) -> String {
+        format!("is-{}", self.to_string())
+    }
+    pub fn append_class(&self, classes: &str) -> String {
+        let color = self.to_string();
+        format!("{classes} is-{color}")
+    }
+}
+
 impl ToString for Colors {
     fn to_string(&self) -> String {
         match self {
@@ -42,6 +52,16 @@ pub enum Sizes {
     Normal,
     Medium,
     Large,
+}
+
+impl Sizes {
+    pub fn to_class(&self) -> String {
+        format!("is-{}", self.to_string())
+    }
+    pub fn append_class(&self, classes: &str) -> String {
+        let color = self.to_string();
+        format!("{classes} is-{color}")
+    }
 }
 
 impl ToString for Sizes {

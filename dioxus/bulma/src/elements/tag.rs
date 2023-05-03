@@ -1,6 +1,5 @@
-use dioxus::{events::MouseEvent, prelude::*};
-
 use crate::utils::*;
+use dioxus::{events::MouseEvent, prelude::*};
 
 #[allow(non_snake_case)]
 #[derive(Props)]

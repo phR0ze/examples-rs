@@ -32,7 +32,7 @@ pub struct ContainerProps<'a> {
 /// * `is_fluid: bool`
 #[allow(non_snake_case)]
 pub fn Container<'a>(cx: Scope<'a, ContainerProps<'a>>) -> Element {
-    let extra_class = if cx.props.is_widescreen {
+    let classes = if cx.props.is_widescreen {
         "is-widescreen"
     } else if cx.props.is_fullhd {
         "is-fullhd"
@@ -48,7 +48,7 @@ pub fn Container<'a>(cx: Scope<'a, ContainerProps<'a>>) -> Element {
 
     cx.render(rsx! {
         div {
-            class: "container {extra_class}",
+            class: "container {classes}",
             &cx.props.children
         }
     })

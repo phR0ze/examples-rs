@@ -1,6 +1,5 @@
-use dioxus::{events::MouseEvent, prelude::*};
-
 use crate::utils::*;
+use dioxus::{events::MouseEvent, prelude::*};
 
 #[derive(PartialEq)]
 pub enum ButtonState {
@@ -68,13 +67,11 @@ pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
     let mut classes = "button".to_string();
 
     if let Some(color) = &cx.props.color {
-        let color_name = color.to_string();
-        classes = format!("{classes} is-{color_name}");
+        classes = color.append_class(&classes);
     }
 
     if let Some(size) = &cx.props.size {
-        let size_name = size.to_string();
-        classes = format!("{classes} is-{size_name}");
+        classes = size.append_class(&classes);
     }
 
     if cx.props.is_light {
