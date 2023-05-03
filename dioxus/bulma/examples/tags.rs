@@ -40,27 +40,27 @@ fn App(cx: Scope) -> Element {
                     Tags {
                         Tag {
                             color: Colors::Warning,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Rust"
                         }
                         Tag {
                             color: Colors::Link,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Go"
                         }
                         Tag {
                             color: Colors::Info,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Python"
                         }
                         Tag {
                             color: Colors::Danger,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Ruby"
                         }
                         Tag {
                             color: Colors::Dark,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "C++"
                         }
                     }
@@ -70,19 +70,19 @@ fn App(cx: Scope) -> Element {
                     Tags {
                         Tag {
                             color: Colors::Danger,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             deletable: true,
                             "React"
                         }
                         Tag {
                             color: Colors::Success,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             deletable: true,
                             "Vue"
                         }
                         Tag {
                             color: Colors::Dark,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             deletable: true,
                             "Dioxus"
                         }
@@ -98,12 +98,12 @@ fn App(cx: Scope) -> Element {
                                 addons: true,
                                 Tag {
                                     color: Colors::Dark,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "crates.io"
                                 }
                                 Tag {
                                     color: Colors::Warning,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "v0.2.4"
                                 }
                             }
@@ -114,12 +114,12 @@ fn App(cx: Scope) -> Element {
                                 addons: true,
                                 Tag {
                                     color: Colors::Dark,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "docs"
                                 }
                                 Tag {
                                     color: Colors::Info,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "latest"
                                 }
                             }
@@ -130,7 +130,7 @@ fn App(cx: Scope) -> Element {
                     size: 1,
                     TagLink {
                         color: Colors::Link,
-                        size: Sizes::Medium,
+                        size: ButtonSizes::Medium,
                         onclick: |_| {
                             //toast.write().popup(ToastInfo::simple("clickable tag clicked."));
                         }

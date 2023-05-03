@@ -27,7 +27,7 @@ pub struct ButtonProps<'a> {
     color: Option<Colors>,
 
     #[props(optional)]
-    size: Option<Sizes>,
+    size: Option<ButtonSizes>,
 
     #[props(default)]
     state: ButtonState,
@@ -71,7 +71,7 @@ pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
     }
 
     if let Some(size) = &cx.props.size {
-        classes = size.append_class(&classes);
+        classes = size.append_is_class(&classes);
     }
 
     if cx.props.is_light {
@@ -147,7 +147,7 @@ pub struct ButtonsProps<'a> {
     color: Option<Colors>,
 
     #[props(optional)]
-    size: Option<Sizes>,
+    size: Option<ButtonSizes>,
 
     #[props(default)]
     state: ButtonState,

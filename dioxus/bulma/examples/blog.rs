@@ -3,12 +3,16 @@
 
 use bulma::{
     dioxus_router::{use_router, Router, Route},
-    components::{Card, CardContent, CardImage, Navbar},
-    elements::{Image, SubTitle, Tag, TagLink, Tags, Title},
+    components::*,
+    elements::*,
     icons::*,
-    layouts::{Column, Columns, Container},
+    layouts::*,
     prelude::*,
 };
+
+const TOTAL_PAGES: u64 = 1000;
+const ITEMS_PER_PAGE: u64 = 15;
+const COLUMNS_PER_PAGE: u64 = 3;
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -21,8 +25,6 @@ fn main() {
             bulma::dioxus_desktop::WindowBuilder::new()
                 .with_title("Bulma Example")
                 .with_resizable(true)
-                //.with_transparent(true)
-                //.with_decorations(false)
                 .with_inner_size(bulma::dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
     )
@@ -36,11 +38,11 @@ fn App(cx: Scope) -> Element {
         Router {
             AppHeader {},
             Route {
-                to: "/"
+                to: "/home"
                 HomePage{}
             },
             Route {
-                to: "/posts"
+                to: "/"
                 PostsPage{}
             }, 
             Route {
@@ -130,46 +132,31 @@ fn AppHeader(cx: Scope) -> Element {
 #[allow(non_snake_case)]
 fn HomePage(cx: Scope) -> Element {
     cx.render(rsx! {
-        div {
-            class: "tile is-ancestor is-vertical",
-            div {
-                class: "tile is-child hero",
-                div {
-                    class: "hero-body container pb-0",
-                    h1 {
-                        class: "title is-1",
+        div { class: "tile is-ancestor is-vertical",
+            div { class: "tile is-child hero",
+                div { class: "hero-body container pb-5",
+                    h1 { class: "title is-1",
                         "Welcome..."
                     },
-                    h2 {
-                        class: "subtitle",
+                    h2 { class: "subtitle",
                         "...to the best yew content"
                     }
                 },
-                div {
-                    class: "tile is-child",
-                    figure {
-                        class: "image is-3by1",
-                        img {
-                            src: "https://source.unsplash.com/random/1200x400/?yew"
-                        }
+                div { class: "tile is-child",
+                    figure { class: "image is-3by1",
+                        img { src: "https://source.unsplash.com/random/1200x400/?yew" }
                     }
                 },
-                div {
-                    class: "tile is-parent container",
-                    div {
-                        class: "tile is-parent",
-                        div {
-                            class: "tile is-child box",
-                            p {
-                                class: "title",
+                div { class: "tile is-parent container",
+                    div { class: "tile is-parent",
+                        div { class: "tile is-child box",
+                            p { class: "title",
                                 "What are yews?"
                             }
-                            p {
-                                class: "subtitle",
+                            p { class: "subtitle",
                                 "Everything you need to know!"
                             }
-                            div {
-                                class: "content",
+                            div { class: "content",
                                 r#"
                                 A yew is a small to medium-sized evergreen tree, growing 10 to 20 metres tall, with a trunk up to 2 metres in diameter.
                                 The bark is thin, scaly brown, coming off in small flakes aligned with the stem.
@@ -181,16 +168,12 @@ fn HomePage(cx: Scope) -> Element {
                             }
                         }
                     }
-                    div {
-                        class: "tile is-parent",
-                        div {
-                            class: "tile is-child box",
-                            p {
-                                class: "title",
+                    div { class: "tile is-parent",
+                        div { class: "tile is-child box",
+                            p { class: "title",
                                 "Who are we?"
                             }
-                            div {
-                                class: "content",
+                            div { class: "content",
                                 "We're a small team of just 2"
                                 sup {
                                     "64"
@@ -213,13 +196,83 @@ fn HomePage(cx: Scope) -> Element {
 #[allow(non_snake_case)]
 fn PostsPage(cx: Scope) -> Element {
     cx.render(rsx! {
-        div {
-            class: "section container",
+        div { class: "section container is-fluid",
             h1 { class: "title", "Posts" }
             h2 { class: "subtitle", "All of our quality writing in one place!" }
+            Posts {}
+            Pagination{}
         }
     })
 }
+
+#[allow(non_snake_case)]
+fn Posts(cx: Scope) -> Element {
+    cx.render(rsx! {
+        Columns {
+            (1..=COLUMNS_PER_PAGE).map(|_| rsx! {
+                Column {
+                    ul {
+                        class: "list",
+                        Post {}
+                        Post {}
+                        Post {}
+                    }
+                }
+            })
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Post(cx: Scope) -> Element {
+    cx.render(rsx! {
+        li { class: "list-item mb-5",
+            Card {
+                CardImage {
+                    Image {
+                        src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                        ratio: (16, 9).into(),
+                    }
+                }
+                CardContent {
+                    Title { "Hello World" }
+                    SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
+                    span { class: "icon-text",
+                        span { class: "is-uppercase has-text-weight-medium is-size-7",
+                            "Read More"
+                        }
+                        span { class: "icon",
+                            Icon {
+                                width: 15,
+                                height: 15,
+                                icon: fa_solid_icons::FaArrowRight,
+                            }
+                        }
+                    }
+                }                
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Pagination(cx: Scope) -> Element {
+    cx.render(rsx! {
+        nav { class: "pagination is-right",
+            // Disable when page == 1
+            a { class: "pagination-previous is-disabled", "Previous"}
+            a { class: "pagination-next", "Next Page"}
+            ul {
+                class: "pagination-list",
+                li { a { class: "pagination-link", "1" } }
+                li { a { class: "pagination-link is-current", "2" } }
+                li { span { class: "pagination-ellipsis", "..." } }
+                li { a { class: "pagination-link", "100" } }
+            }
+        }
+    })
+}
+
 
 #[allow(non_snake_case)]
 fn PostsPageOld(cx: Scope) -> Element {
@@ -310,27 +363,27 @@ fn PostsPageOld(cx: Scope) -> Element {
                     Tags {
                         Tag {
                             color: Colors::Warning,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Rust"
                         }
                         Tag {
                             color: Colors::Link,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Go"
                         }
                         Tag {
                             color: Colors::Info,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Python"
                         }
                         Tag {
                             color: Colors::Danger,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "Ruby"
                         }
                         Tag {
                             color: Colors::Dark,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             "C++"
                         }
                     }
@@ -340,19 +393,19 @@ fn PostsPageOld(cx: Scope) -> Element {
                     Tags {
                         Tag {
                             color: Colors::Danger,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             deletable: true,
                             "React"
                         }
                         Tag {
                             color: Colors::Success,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             deletable: true,
                             "Vue"
                         }
                         Tag {
                             color: Colors::Dark,
-                            size: Sizes::Medium,
+                            size: ButtonSizes::Medium,
                             deletable: true,
                             "Dioxus"
                         }
@@ -368,12 +421,12 @@ fn PostsPageOld(cx: Scope) -> Element {
                                 addons: true,
                                 Tag {
                                     color: Colors::Dark,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "crates.io"
                                 }
                                 Tag {
                                     color: Colors::Warning,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "v0.2.4"
                                 }
                             }
@@ -384,12 +437,12 @@ fn PostsPageOld(cx: Scope) -> Element {
                                 addons: true,
                                 Tag {
                                     color: Colors::Dark,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "docs"
                                 }
                                 Tag {
                                     color: Colors::Info,
-                                    size: Sizes::Medium,
+                                    size: ButtonSizes::Medium,
                                     "latest"
                                 }
                             }
@@ -400,7 +453,7 @@ fn PostsPageOld(cx: Scope) -> Element {
                     size: 1,
                     TagLink {
                         color: Colors::Link,
-                        size: Sizes::Medium,
+                        size: ButtonSizes::Medium,
                         onclick: |_| {
                             //toast.write().popup(ToastInfo::simple("clickable tag clicked."));
                         }

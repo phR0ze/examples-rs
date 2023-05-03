@@ -13,7 +13,7 @@ pub struct NavbarProps<'a> {
     brand: Option<String>,
 
     #[props(optional)]
-    brand_size: Option<(u16, u16)>,
+    brand_image_size: Option<(u16, u16)>,
 
     #[props(optional)]
     classes: Option<String>,
@@ -41,7 +41,7 @@ pub fn Navbar<'a>(cx: Scope<'a, NavbarProps<'a>>) -> Element {
     // navbar-brand
     // -------------------------------------------------------------------------
     let navbar_brand = cx.props.brand.is_some().then(|| {
-        let brand_image = if let Some((width, height)) = cx.props.brand_size {
+        let brand_image = if let Some((width, height)) = cx.props.brand_image_size {
             cx.render(rsx! {
                 img { width: "{width}", height: "{height}", src: "{cx.props.brand.clone().unwrap()}" }
             })

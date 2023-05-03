@@ -11,7 +11,7 @@ pub struct TagProps<'a> {
     is_light: bool,
 
     #[props(optional)]
-    size: Option<Sizes>,
+    size: Option<ButtonSizes>,
 
     #[props(default)]
     is_rounded: bool,
@@ -48,11 +48,11 @@ pub fn Tag<'a>(cx: Scope<'a, TagProps<'a>>) -> Element {
     }
 
     if cx.props.deletable {
-        let delete_button_size = match cx.props.size.as_ref().unwrap_or(&Sizes::Normal) {
-            Sizes::Small => "small",
-            Sizes::Normal => "small",
-            Sizes::Medium => "normal",
-            Sizes::Large => "medium",
+        let delete_button_size = match cx.props.size.as_ref().unwrap_or(&ButtonSizes::Normal) {
+            ButtonSizes::Small => "small",
+            ButtonSizes::Normal => "small",
+            ButtonSizes::Medium => "normal",
+            ButtonSizes::Large => "medium",
         };
         cx.render(rsx! {
             span {
@@ -86,7 +86,7 @@ pub struct TagLinkProps<'a> {
     is_light: bool,
 
     #[props(optional)]
-    size: Option<Sizes>,
+    size: Option<ButtonSizes>,
 
     #[props(default)]
     is_rounded: bool,
@@ -126,11 +126,11 @@ pub fn TagLink<'a>(cx: Scope<'a, TagLinkProps<'a>>) -> Element {
     }
 
     if cx.props.deletable {
-        let delete_button_size = match cx.props.size.as_ref().unwrap_or(&Sizes::Normal) {
-            Sizes::Small => "small",
-            Sizes::Normal => "small",
-            Sizes::Medium => "normal",
-            Sizes::Large => "medium",
+        let delete_button_size = match cx.props.size.as_ref().unwrap_or(&ButtonSizes::Normal) {
+            ButtonSizes::Small => "small",
+            ButtonSizes::Normal => "small",
+            ButtonSizes::Medium => "normal",
+            ButtonSizes::Large => "medium",
         };
         cx.render(rsx! {
             a {
