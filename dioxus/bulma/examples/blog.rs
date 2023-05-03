@@ -213,6 +213,17 @@ fn HomePage(cx: Scope) -> Element {
 #[allow(non_snake_case)]
 fn PostsPage(cx: Scope) -> Element {
     cx.render(rsx! {
+        div {
+            class: "section container",
+            h1 { class: "title", "Posts" }
+            h2 { class: "subtitle", "All of our quality writing in one place!" }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn PostsPageOld(cx: Scope) -> Element {
+    cx.render(rsx! {
         Container {
             is_fluid: true,
             br {}
