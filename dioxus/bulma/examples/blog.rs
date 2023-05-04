@@ -14,6 +14,7 @@ use bulma::{
 
 // Shared state object
 struct State {
+    pagination_links_per_side: usize,
     posts_total_posts: usize,
     posts_current_page: usize,
     posts_total_pages: usize,
@@ -24,6 +25,7 @@ struct State {
 impl Default for State {
     fn default() -> Self {
         State {
+            pagination_links_per_side: 3,
             posts_total_posts: 100,
             posts_total_pages: 100/9 + 1,
             posts_current_page: 1,
@@ -268,80 +270,6 @@ fn Post(cx: Scope) -> Element {
                     }
                 }                
             }
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn Pagination(cx: Scope) -> Element {
-    let state = use_shared_state::<State>(cx).unwrap();
-    let total_pages = state.read().posts_total_pages;
-    let page = state.read().posts_current_page;
-    let mut prev_css = "".to_string();
-
-    const LINKS_PER_SIDE: usize = 3;
-    let pages_left = page.checked_sub(1).unwrap_or_default() as usize;
-    let pages_right = (total_pages - page) as usize;
-    let links_left = LINKS_PER_SIDE.min(pages_left);
-    let links_right = LINKS_PER_SIDE.min(pages_right);
-
-    cx.render(rsx! {
-        nav { class: "pagination is-right",
-            if page == 1 {
-                prev_css = "is-disabled".to_string();
-            }
-            a { class: "pagination-previous {prev_css}",
-                onclick: move |_| {
-                    if page - 1 > 0 {
-                        state.write().posts_current_page = page - 1;
-                    }
-                },
-                "Previous"
-            }
-            a { class: "pagination-next",
-                onclick: move |_| {
-                    if page + 1 <= total_pages {
-                        state.write().posts_current_page = page + 1;
-                    }
-                },
-                "Next Page"
-            }
-            ul {
-                class: "pagination-list",
-
-                // Render page links to the left of the current page link
-                if links_left == LINKS_PER_SIDE {
-                    rsx! {
-                        li { a { class: "pagination-link", "1" } }
-                        li { span { class: "pagination-ellipsis", "..." } }
-                        for i in (page + 1 - links_left..page) {
-                            li { a { class: "pagination-link", format!("{i}") } }
-                        }
-                    }
-                } else {
-                    rsx! {
-                        for i in (1..page) {
-                            li { a { class: "pagination-link", format!("{i}") } }
-                        }
-                    }
-                }
-
-                // Render the current page link
-                li { a { class: "pagination-link is-current", format!("{page}") } }
-
-                li { a { class: "pagination-link", "{total_pages}" } }
-            }
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn RenderPaginationLinks(cx: Scope, page: usize) -> Element {
-    cx.render(rsx! {
-
-        // Links to the left of the current
-        for i in (1..page) {
-            li { a { class: "pagination-link", format!("{i}") } }
         }
     })
 }
