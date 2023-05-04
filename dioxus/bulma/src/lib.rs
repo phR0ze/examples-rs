@@ -6,6 +6,7 @@ mod utils;
 pub mod components;
 pub mod elements;
 pub mod layouts;
+pub mod state;
 pub mod icons {
     pub use dioxus_free_icons::icons::*;
     pub use dioxus_free_icons::{Icon, IconProps, IconShape};
@@ -19,7 +20,7 @@ pub use dioxus_desktop;
 pub use dioxus_web;
 
 pub mod prelude {
-    pub use crate::{get_bulma_css, utils::*};
+    pub use crate::{get_bulma_css, state::*, utils::*};
     pub use dioxus::prelude::*;
 }
 

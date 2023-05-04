@@ -1,12 +1,19 @@
 //! Provides a responsive, usable and flexible pagination component
 //!
+use crate::state::*;
 use dioxus::prelude::*;
 
 #[allow(non_snake_case)]
 #[derive(Props)]
 pub struct PaginationProps<'a> {
     #[props(!optional)]
+    page_type: String,
+
+    #[props(!optional)]
     total_pages: usize,
+
+    #[props(default = 3)]
+    links_per_side: usize,
 
     children: Element<'a>,
 }
@@ -15,15 +22,17 @@ pub struct PaginationProps<'a> {
 /// as the outside container for them to work correctly
 ///
 /// ### Properties
+/// * `page_type: String` is a key to track the current page for a set of pages
 /// * `children: Element<'a>` is all of the child elements that you can add
 #[allow(non_snake_case)]
 pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
-    let total_pages = state.read().posts_total_pages;
-    let page = state.read().posts_current_page;
-    let max_links = state.read().pagination_links_per_side;
+    let state = use_shared_state::<GlobalState>(cx)?;
+    let (pagekey1, pagekey2) = (cx.props.page_type.clone(), cx.props.page_type.clone());
+    let page = *state.read().pagination.current_pages.get(&pagekey1).unwrap_or(&1) as usize;
+    let max_links = cx.props.links_per_side;
 
     let pages_left = page.checked_sub(1).unwrap_or_default();
-    let pages_right = total_pages - page;
+    let pages_right = cx.props.total_pages - page;
     let mut links_left = max_links.min(pages_left);
     // If not all left links were displayed then add them to the right side
     let links_right = max_links.min(pages_right) + max_links.checked_sub(links_left).unwrap_or_default();
@@ -39,7 +48,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-previous {prev_css}",
                 onclick: move |_| {
                     if page - 1 > 0 {
-                        state.write().posts_current_page = page - 1;
+                        state.write().pagination.current_pages.insert(pagekey1.clone(), page - 1);
                     }
                 },
                 "Previous"
@@ -47,7 +56,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-next",
                 onclick: move |_| {
                     if page + 1 <= cx.props.total_pages {
-                        state.write().posts_current_page = page + 1;
+                        state.write().pagination.current_pages.insert(pagekey2.clone(), page + 1);
                     }
                 },
                 "Next Page"
@@ -62,18 +71,14 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
     })
 }
 
-#[allow(non_snake_case)]
-#[derive(Props)]
-pub struct PaginationNextProps<'a> {
-    children: Element<'a>,
-}
-
 /// The range may be to the left or the right of the current page.
 /// * `pages` is the page range to potentially display as links for this pagination range
 /// * `max` is the max number of pages to display as links for this pagination range
 /// * `left` signals the optional ellipsis would be to the left
 #[allow(non_snake_case)]
-fn PaginationRange<'a>(cx: Scope<'a>, mut pages: Vec<usize>, max: usize, left: bool) -> Element {
+fn PaginationRange<'a>(
+    cx: Scope<'a, PaginationProps<'a>>, mut pages: Vec<usize>, max: usize, left: bool,
+) -> Element {
     cx.render(if pages.len() > max {
         if left {
             // Split off everything at index max and beyond

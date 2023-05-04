@@ -1,3 +1,4 @@
+
 //! Dioxus Bulma example
 //!
 mod assets;
@@ -11,29 +12,6 @@ use bulma::{
     layouts::*,
     prelude::*,
 };
-
-// Shared state object
-struct State {
-    pagination_links_per_side: usize,
-    posts_total_posts: usize,
-    posts_current_page: usize,
-    posts_total_pages: usize,
-    posts_per_page_total: usize,
-    posts_cols_per_page: usize,
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State {
-            pagination_links_per_side: 3,
-            posts_total_posts: 100,
-            posts_total_pages: 100/9 + 1,
-            posts_current_page: 1,
-            posts_per_page_total: 9,
-            posts_cols_per_page: 3,
-        }
-    }
-}
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -54,7 +32,7 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    use_shared_state_provider(cx, || State::default());
+    use_shared_state_provider(cx, || GlobalState::default());
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
@@ -218,9 +196,10 @@ fn HomePage(cx: Scope) -> Element {
 
 #[allow(non_snake_case)]
 fn PostsPage(cx: Scope) -> Element {
-    let state = use_shared_state::<State>(cx).unwrap();
-    let cols = state.read().posts_cols_per_page;
-    let rows = state.read().posts_per_page_total/cols;
+    let per_page = 9;
+    let cols = 3;
+    let rows = per_page/cols;
+    let total_pages = 12;
 
     cx.render(rsx! {
         div { class: "section container is-fluid",
@@ -238,7 +217,10 @@ fn PostsPage(cx: Scope) -> Element {
                     }
                 }
             }
-            Pagination{}
+            Pagination{
+                page_type: "/posts".into(),
+                total_pages: total_pages,
+            }
         }
     })
 }
