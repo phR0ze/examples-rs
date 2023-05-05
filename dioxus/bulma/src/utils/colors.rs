@@ -18,9 +18,9 @@ impl Colors {
     pub fn to_class(&self) -> String {
         format!("is-{}", self.to_string())
     }
-    pub fn append_class(&self, classes: &str) -> String {
+    pub fn append_class(&self, class: &str) -> String {
         let color = self.to_string();
-        format!("{classes} is-{color}")
+        format!("{class} is-{color}")
     }
 }
 

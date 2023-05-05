@@ -16,7 +16,7 @@ pub struct NavbarProps<'a> {
     brand_image_size: Option<(u16, u16)>,
 
     #[props(optional)]
-    classes: Option<String>,
+    class: Option<String>,
 
     children: Element<'a>,
 }
@@ -28,14 +28,14 @@ pub struct NavbarProps<'a> {
 #[allow(non_snake_case)]
 pub fn Navbar<'a>(cx: Scope<'a, NavbarProps<'a>>) -> Element {
     // navbar
-    let mut navbar_classes = "navbar".to_string();
+    let mut navbar_class = "navbar".to_string();
 
     if let Some(color) = &cx.props.color {
-        navbar_classes = color.append_class(&navbar_classes);
+        navbar_class = color.append_class(&navbar_class);
     }
 
-    if let Some(extra_classes) = &cx.props.classes {
-        navbar_classes = format!("{navbar_classes} {extra_classes}");
+    if let Some(extra_class) = &cx.props.class {
+        navbar_class = format!("{navbar_class} {extra_class}");
     }
 
     // navbar-brand
@@ -64,7 +64,7 @@ pub fn Navbar<'a>(cx: Scope<'a, NavbarProps<'a>>) -> Element {
 
     cx.render(rsx! {
         nav {
-            class: "{navbar_classes}",
+            class: "{navbar_class}",
             navbar_brand,
             &cx.props.children
         }

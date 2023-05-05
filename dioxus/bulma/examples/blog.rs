@@ -2,7 +2,9 @@
 //! Dioxus Bulma example
 //!
 mod assets;
-use assets::*;
+use crate::assets as model;
+use assets::Generated;
+use once_cell::sync::Lazy;
 
 use bulma::{
     dioxus_router::{use_router, Router, Route},
@@ -12,21 +14,6 @@ use bulma::{
     layouts::*,
     prelude::*,
 };
-
-mod model {
-    struct Post {
-        seed: u64,
-        title: String,
-    }
-}
-
-static POSTS: Lazy<WindowManagerCmdChannels> = Lazy::new(|| {
-    let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
-    WindowManagerCmdChannels {
-        tx,
-        rx: Arc::new(Mutex::new(rx)),
-    }
-});
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -52,7 +39,7 @@ fn App(cx: Scope) -> Element {
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
         Router {
-            AppHeader {},
+            Header {},
             Route {
                 to: "/home"
                 HomePage{}
@@ -65,7 +52,7 @@ fn App(cx: Scope) -> Element {
                 to: ""
                 NotFoundPage{}
             }, 
-            AppFooter {}
+            Footer {}
         }
     })
 }
@@ -80,7 +67,7 @@ fn NotFoundPage(cx: Scope) -> Element {
 }
 
 #[allow(non_snake_case)]
-fn AppFooter(cx: Scope) -> Element {
+fn Footer(cx: Scope) -> Element {
     cx.render(rsx! {
         footer {
             class: "footer",
@@ -98,7 +85,7 @@ fn AppFooter(cx: Scope) -> Element {
 }
 
 #[allow(non_snake_case)]
-fn AppHeader(cx: Scope) -> Element {
+fn Header(cx: Scope) -> Element {
     cx.render(rsx! {
         Navbar {
             color: Colors::Info,
@@ -211,43 +198,62 @@ fn HomePage(cx: Scope) -> Element {
 
 #[allow(non_snake_case)]
 fn PostsPage(cx: Scope) -> Element {
+    let state = use_shared_state::<GlobalState>(cx)?;
+
     let per_page = 9;
     let cols = 3;
-    let rows = per_page/cols;
+    let per_col = per_page/cols;
     let total_pages = 12;
 
+    // Generate posts
+    let start_seed = state.read().pagination.get_current_page("/posts") * per_page;
+    let mut posts = (0..per_page).map(|seed_offset| {
+        model::PostMeta::generate_from_seed((start_seed + seed_offset) as u64)
+    });
+
     cx.render(rsx! {
-        div { class: "section container is-fluid",
-            h1 { class: "title", "Posts" }
-            h2 { class: "subtitle", "All of our quality writing in one place!" }
-            Columns {
-                for _ in (1..=cols) {
-                    Column {
-                        ul {
-                            class: "list",
-                            for _ in (1..=rows) {
-                                Post {}
+        Section {
+            Container {
+                is_fluid: true,
+                Title { "Posts" }
+                SubTitle { "All of our quality writing in one place!" }
+                Columns {
+                    for _ in (1..=cols) {
+                        Column {
+                            List {
+                                for post in posts.by_ref().take(per_col) {
+                                    Post {
+                                        img_src: post.image_url,
+                                    }
+                                }
                             }
                         }
                     }
                 }
-            }
-            Pagination{
-                route: "/posts".into(),
-                total_pages: total_pages,
+                Pagination{
+                    route: "/posts".into(),
+                    total_pages: total_pages,
+                }
             }
         }
     })
 }
 
 #[allow(non_snake_case)]
-fn Post(cx: Scope) -> Element {
+#[derive(PartialEq, Props)]
+pub struct PostProps {
+    #[props(!optional)]
+    img_src: String,
+}
+
+#[allow(non_snake_case)]
+pub fn Post<'a>(cx: Scope<'a, PostProps>) -> Element {
     cx.render(rsx! {
-        li { class: "list-item mb-5",
+        ListItem { class: "mb-5".into(),
             Card {
                 CardImage {
                     Image { ratio: (2, 1).into(),
-                        src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                        src: &cx.props.img_src,
                     }
                 }
                 CardContent {
@@ -266,197 +272,6 @@ fn Post(cx: Scope) -> Element {
                         }
                     }
                 }                
-            }
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn PostsPageOld(cx: Scope) -> Element {
-    cx.render(rsx! {
-        Container {
-            is_fluid: true,
-            br {}
-            Columns {
-                Column {
-                    Card {
-                        CardImage {
-                            Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
-                                ratio: (16, 9).into(),
-                            }
-                        }
-                        CardContent {
-                            Title { "Hello World" }
-                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                            span {
-                                class: "icon-text",
-                                span {
-                                    class: "is-uppercase has-text-weight-medium is-size-7",
-                                    "Read More"
-                                }
-                                span { 
-                                    class: "icon",
-                                    Icon {
-                                        width: 15,
-                                        height: 15,
-                                        icon: fa_solid_icons::FaArrowRight,
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                Column {
-                    Card {
-                        CardImage {
-                            Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
-                                ratio: (16, 9).into(),
-                            }
-                        }
-                        CardContent {
-                            Title { "Hello World" }
-                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }
-                        // Icon {
-                        //     IconText { "Read More".into() };
-                        //     IconSvg { width: 15, height: 15, src = fa_solid_icons::FaArrowRight }
-                        // }
-                    }
-                }
-               Column {
-                    Card {
-                        CardImage {
-                            Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
-                                ratio: (16, 9).into(),
-                            }
-                        }
-                        CardContent {
-                            Title { "Hello World" }
-                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }
-                    }
-                }
-                Column {
-                    Card {
-                        CardImage {
-                            Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
-                                ratio: (16, 9).into(),
-                            }
-                        }
-                        CardContent {
-                            Title { "Hello World" }
-                            SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                        }
-                    }
-                }
-            }
-                       Columns {
-                Column {
-                    size: 4,
-                    Tags {
-                        Tag {
-                            color: Colors::Warning,
-                            size: ButtonSizes::Medium,
-                            "Rust"
-                        }
-                        Tag {
-                            color: Colors::Link,
-                            size: ButtonSizes::Medium,
-                            "Go"
-                        }
-                        Tag {
-                            color: Colors::Info,
-                            size: ButtonSizes::Medium,
-                            "Python"
-                        }
-                        Tag {
-                            color: Colors::Danger,
-                            size: ButtonSizes::Medium,
-                            "Ruby"
-                        }
-                        Tag {
-                            color: Colors::Dark,
-                            size: ButtonSizes::Medium,
-                            "C++"
-                        }
-                    }
-                }
-                Column {
-                    size: 3,
-                    Tags {
-                        Tag {
-                            color: Colors::Danger,
-                            size: ButtonSizes::Medium,
-                            deletable: true,
-                            "React"
-                        }
-                        Tag {
-                            color: Colors::Success,
-                            size: ButtonSizes::Medium,
-                            deletable: true,
-                            "Vue"
-                        }
-                        Tag {
-                            color: Colors::Dark,
-                            size: ButtonSizes::Medium,
-                            deletable: true,
-                            "Dioxus"
-                        }
-                    }
-                }
-                Column {
-                    size: 4,
-                    div {
-                        class: "field is-grouped is-grouped-multiline",
-                        div {
-                            class: "control",
-                            Tags {
-                                addons: true,
-                                Tag {
-                                    color: Colors::Dark,
-                                    size: ButtonSizes::Medium,
-                                    "crates.io"
-                                }
-                                Tag {
-                                    color: Colors::Warning,
-                                    size: ButtonSizes::Medium,
-                                    "v0.2.4"
-                                }
-                            }
-                        }
-                        div {
-                            class: "control",
-                            Tags {
-                                addons: true,
-                                Tag {
-                                    color: Colors::Dark,
-                                    size: ButtonSizes::Medium,
-                                    "docs"
-                                }
-                                Tag {
-                                    color: Colors::Info,
-                                    size: ButtonSizes::Medium,
-                                    "latest"
-                                }
-                            }
-                        }
-                    }
-                }
-                Column {
-                    size: 1,
-                    TagLink {
-                        color: Colors::Link,
-                        size: ButtonSizes::Medium,
-                        onclick: |_| {
-                            //toast.write().popup(ToastInfo::simple("clickable tag clicked."));
-                        }
-                        "Link"
-                    }
-                }
             }
         }
     })

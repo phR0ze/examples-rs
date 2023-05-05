@@ -190,23 +190,23 @@ pub struct ColumnProps<'a> {
 /// * `is_size: Option<u8>` take an u8 of values 1-12 as input to specify the is-NUM classes, e.g. `is-5`
 #[allow(non_snake_case)]
 pub fn Column<'a>(cx: Scope<'a, ColumnProps<'a>>) -> Element {
-    let mut classes = "column".to_string();
+    let mut class = "column".to_string();
 
     if cx.props.is_narrow {
-        classes += " is-narrow";
+        class += " is-narrow";
     }
 
     // TODO: implement the rest
 
     if let Some(num) = cx.props.size {
         if (0..12).contains(&num) {
-            classes = format!("{classes} is-{num}");
+            class = format!("{class} is-{num}");
         }
     }
 
     if let Some(num) = cx.props.offset {
         if (0..12).contains(&num) {
-            classes = format!("{classes} is-offset-{num}");
+            class = format!("{class} is-offset-{num}");
         }
     }
 
@@ -216,7 +216,7 @@ pub fn Column<'a>(cx: Scope<'a, ColumnProps<'a>>) -> Element {
 
     cx.render(rsx! {
         div {
-            class: "{classes}",
+            class: "{class}",
             &cx.props.children
         }
     })

@@ -19,25 +19,25 @@ pub struct ImageProps<'a> {
 /// Image
 #[allow(non_snake_case)]
 pub fn Image<'a>(cx: Scope<'a, ImageProps<'a>>) -> Element {
-    let mut classes = "image".to_string();
+    let mut class = "image".to_string();
 
     if let Some(size) = cx.props.size {
-        classes = format!("{classes} is-{size}x{size}");
+        class = format!("{class} is-{size}x{size}");
     }
 
     if let Some(ratio) = cx.props.ratio {
         let a = ratio.0;
         let b = ratio.1;
-        classes = format!("{classes} is-{a}by{b}");
+        class = format!("{class} is-{a}by{b}");
     }
 
     if cx.props.is_fullwidth {
-        classes += " is-fullwidth";
+        class += " is-fullwidth";
     }
 
     cx.render(rsx! {
         figure {
-            class: "{classes}",
+            class: "{class}",
             img {
                 src: "{cx.props.src}"
             }

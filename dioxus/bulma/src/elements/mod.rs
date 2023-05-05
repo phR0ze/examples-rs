@@ -1,19 +1,13 @@
 mod button;
 mod image;
-mod title;
-// mod notification;
-// mod progress;
-//mod icon;
+mod list;
 mod tag;
+mod title;
 pub use button::*;
-//pub use icon::*;
 pub use image::*;
+pub use list::*;
 pub use tag::*;
 pub use title::*;
-// pub use notification::{Notification, NotificationProps};
-// pub use progress::{Progress, ProgressProps};
-
-// use dioxus::prelude::*;
 
 // #[inline_props]
 // pub fn Block<'a>(cx: Scope, children: Element<'a>) -> Element {

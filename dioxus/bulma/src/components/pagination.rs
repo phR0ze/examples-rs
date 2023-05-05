@@ -29,8 +29,9 @@ pub struct PaginationProps<'a> {
 #[allow(non_snake_case)]
 pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
     let state = use_shared_state::<GlobalState>(cx)?;
-    let (pagekey1, pagekey2) = (cx.props.route.clone(), cx.props.route.clone());
-    let page = *state.read().pagination.current_pages.get(&pagekey1).unwrap_or(&1) as usize;
+
+    let (route1, route2) = (cx.props.route.clone(), cx.props.route.clone());
+    let page = state.read().pagination.get_current_page(&route1);
     let max_links = cx.props.links_per_side;
 
     let pages_left = page.checked_sub(1).unwrap_or_default();
@@ -50,7 +51,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-previous {prev_css}",
                 onclick: move |_| {
                     if page - 1 > 0 {
-                        state.write().pagination.current_pages.insert(pagekey1.clone(), page - 1);
+                        state.write().pagination.set_current_page(route1.clone(), page - 1);
                     }
                 },
                 "Previous"
@@ -58,7 +59,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-next",
                 onclick: move |_| {
                     if page + 1 <= cx.props.total_pages {
-                        state.write().pagination.current_pages.insert(pagekey2.clone(), page + 1);
+                        state.write().pagination.set_current_page(route2.clone(), page + 1);
                     }
                 },
                 "Next Page"

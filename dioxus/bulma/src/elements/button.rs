@@ -64,34 +64,34 @@ pub struct ButtonProps<'a> {
 /// ### Properties
 /// * ``
 pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
-    let mut classes = "button".to_string();
+    let mut class = "button".to_string();
 
     if let Some(color) = &cx.props.color {
-        classes = color.append_class(&classes);
+        class = color.append_class(&class);
     }
 
     if let Some(size) = &cx.props.size {
-        classes = size.append_is_class(&classes);
+        class = size.append_is_class(&class);
     }
 
     if cx.props.is_light {
-        classes += " is-light";
+        class += " is-light";
     }
 
     if cx.props.is_outlined {
-        classes += " is-outlined";
+        class += " is-outlined";
     }
 
     if cx.props.is_inverted {
-        classes += " is-inverted";
+        class += " is-inverted";
     }
 
     if cx.props.is_rounded {
-        classes += " is-rounded";
+        class += " is-rounded";
     }
 
     if cx.props.is_fullwidth {
-        classes += " is-fullwidth";
+        class += " is-fullwidth";
     }
 
     let state = &cx.props.state;
@@ -100,19 +100,19 @@ pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
         match state {
             ButtonState::Normal => {},
             ButtonState::Hover => {
-                classes += " is-hovered";
+                class += " is-hovered";
             },
             ButtonState::Focus => {
-                classes += " is-focused";
+                class += " is-focused";
             },
             ButtonState::Active => {
-                classes += " is-active";
+                class += " is-active";
             },
             ButtonState::Loading => {
-                classes += " is-loading";
+                class += " is-loading";
             },
             ButtonState::Static => {
-                classes += " is-static";
+                class += " is-static";
             },
             ButtonState::Disabled => {
                 disabled = "true";
@@ -127,7 +127,7 @@ pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
 
     cx.render(rsx! {
         button {
-            class: "{classes}",
+            class: "{class}",
             r#type: "{button_type}",
             disabled: "{disabled}",
             onclick: move |evt| cx.props.onclick.call(evt),
@@ -181,43 +181,43 @@ pub struct ButtonsProps<'a> {
 
 /// Buttons
 pub fn Buttons<'a>(cx: Scope<'a, ButtonsProps<'a>>) -> Element {
-    let mut classes = "buttons".to_string();
+    let mut class = "buttons".to_string();
 
     if let Some(color) = &cx.props.color {
         let color_name = color.to_string();
-        classes = format!("{classes} are-{color_name}");
+        class = format!("{class} are-{color_name}");
     }
 
     if let Some(size) = &cx.props.size {
         let size_name = size.to_string();
-        classes = format!("{classes} are-{size_name}");
+        class = format!("{class} are-{size_name}");
     }
 
     if cx.props.are_light {
-        classes += " are-light";
+        class += " are-light";
     }
 
     if cx.props.are_outlined {
-        classes += " are-outlined";
+        class += " are-outlined";
     }
 
     if cx.props.are_inverted {
-        classes += " are-inverted";
+        class += " are-inverted";
     }
 
     if cx.props.are_rounded {
-        classes += " are-rounded";
+        class += " are-rounded";
     }
 
     if cx.props.are_fullwidth {
-        classes += " are-fullwidth";
+        class += " are-fullwidth";
     }
 
     // TODO: finish are- implementation
 
     cx.render(rsx! {
         div {
-            class: "{classes}",
+            class: "{class}",
             &cx.props.children
         }
     })

@@ -19,10 +19,10 @@
 //         format!("is-size-{}", self.to_string())
 //     }
 
-//     /// Appends the converted CSS class to the given classes string
-//     pub fn append_is_class(&self, classes: &str) -> String {
+//     /// Appends the converted CSS class to the given class string
+//     pub fn append_is_class(&self, class: &str) -> String {
 //         let size = self.to_string();
-//         format!("{classes} is-{size}")
+//         format!("{class} is-{size}")
 //     }
 // }
 
@@ -70,16 +70,16 @@ impl ButtonSizes {
         format!("are-{}", self.to_string())
     }
 
-    /// Appends the converted `is` CSS class to the given classes string
-    pub fn append_is_class(&self, classes: &str) -> String {
+    /// Appends the converted `is` CSS class to the given class string
+    pub fn append_is_class(&self, class: &str) -> String {
         let size = self.to_string();
-        format!("{classes} is-{size}")
+        format!("{class} is-{size}")
     }
 
-    /// Appends the converted `are` CSS class to the given classes string
-    pub fn append_are_class(&self, classes: &str) -> String {
+    /// Appends the converted `are` CSS class to the given class string
+    pub fn append_are_class(&self, class: &str) -> String {
         let size = self.to_string();
-        format!("{classes} are-{size}")
+        format!("{class} are-{size}")
     }
 }
 
