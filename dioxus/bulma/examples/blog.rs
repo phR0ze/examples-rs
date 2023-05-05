@@ -1,4 +1,3 @@
-
 //! Dioxus Bulma example
 //!
 mod assets;
@@ -7,8 +6,8 @@ use assets::Generated;
 use once_cell::sync::Lazy;
 
 use bulma::{
-    dioxus_router::{use_router, Router, Route},
     components::*,
+    dioxus_router::{use_router, Route, Router},
     elements::*,
     icons::*,
     layouts::*,
@@ -47,11 +46,11 @@ fn App(cx: Scope) -> Element {
             Route {
                 to: "/"
                 PostsPage{}
-            }, 
+            },
             Route {
                 to: ""
                 NotFoundPage{}
-            }, 
+            },
             Footer {}
         }
     })
@@ -202,14 +201,13 @@ fn PostsPage(cx: Scope) -> Element {
 
     let per_page = 9;
     let cols = 3;
-    let per_col = per_page/cols;
+    let per_col = per_page / cols;
     let total_pages = 12;
 
     // Generate posts
     let start_seed = state.read().pagination.get_current_page("/posts") * per_page;
-    let mut posts = (0..per_page).map(|seed_offset| {
-        model::PostMeta::generate_from_seed((start_seed + seed_offset) as u64)
-    });
+    let mut posts =
+        (0..per_page).map(|seed_offset| model::PostMeta::generate_from_seed((start_seed + seed_offset) as u64));
 
     cx.render(rsx! {
         Section {
@@ -222,7 +220,8 @@ fn PostsPage(cx: Scope) -> Element {
                         Column {
                             List {
                                 for post in posts.by_ref().take(per_col) {
-                                    Post {
+                                    Post { title: post.title.into(),
+                                        author: post.author.name.into(),
                                         img_src: post.image_url,
                                     }
                                 }
@@ -243,6 +242,12 @@ fn PostsPage(cx: Scope) -> Element {
 #[derive(PartialEq, Props)]
 pub struct PostProps {
     #[props(!optional)]
+    title: String,
+
+    #[props(!optional)]
+    author: String,
+
+    #[props(!optional)]
     img_src: String,
 }
 
@@ -257,21 +262,21 @@ pub fn Post<'a>(cx: Scope<'a, PostProps>) -> Element {
                     }
                 }
                 CardContent {
-                    Title { "Hello World" }
-                    SubTitle { "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus nec iaculis mauris." }
-                    span { class: "icon-text",
-                        span { class: "is-uppercase has-text-weight-medium is-size-7",
-                            "Read More"
-                        }
-                        span { class: "icon",
-                            Icon {
-                                width: 15,
-                                height: 15,
-                                icon: fa_solid_icons::FaArrowRight,
-                            }
-                        }
-                    }
-                }                
+                    Title { cx.props.title.clone() }
+                    SubTitle { cx.props.author.clone() }
+                    // span { class: "icon-text",
+                    //     span { class: "is-uppercase has-text-weight-medium is-size-7",
+                    //         "Read More"
+                    //     }
+                    //     span { class: "icon",
+                    //         Icon {
+                    //             width: 15,
+                    //             height: 15,
+                    //             icon: fa_solid_icons::FaArrowRight,
+                    //         }
+                    //     }
+                    // }
+                }
             }
         }
     })
