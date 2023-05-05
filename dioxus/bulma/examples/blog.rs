@@ -347,16 +347,14 @@ pub fn Author<'a>(cx: Scope<'a, AuthorProps>) -> Element {
     cx.render(rsx! {
         Card {
             CardContent {
-                div { class: "media",
-                    div { class: "media-left",
+                Media {
+                    MediaLeft {
                         Image { size: 128,
                             src: &cx.props.img_src,
                         }
                     }
-                    div { class: "media-content",
-                        p { class: "title is-3",
-                            cx.props.name.clone(),
-                        }
+                    MediaContent {
+                        Title { size: 3, cx.props.name.clone() }
                         p { "I like "
                             b { cx.props.keywords.join(", ") }
                         }
