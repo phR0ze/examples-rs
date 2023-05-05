@@ -13,6 +13,7 @@ use bulma::{
     layouts::*,
     prelude::*,
 };
+use rand::{distributions, Rng};
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -44,8 +45,12 @@ fn App(cx: Scope) -> Element {
                 HomePage{}
             },
             Route {
-                to: "/"
+                to: "/posts"
                 PostsPage{}
+            },
+            Route {
+                to: "/"
+                AuthorsPage{}
             },
             Route {
                 to: ""
@@ -220,8 +225,8 @@ fn PostsPage(cx: Scope) -> Element {
                         Column {
                             List {
                                 for post in posts.by_ref().take(per_col) {
-                                    Post { title: post.title.into(),
-                                        author: post.author.name.into(),
+                                    Post { title: post.title,
+                                        author: post.author.name,
                                         img_src: post.image_url,
                                     }
                                 }
@@ -252,7 +257,7 @@ pub struct PostProps {
 }
 
 #[allow(non_snake_case)]
-pub fn Post<'a>(cx: Scope<'a, PostProps>) -> Element {
+pub fn Post(cx: Scope<PostProps>) -> Element {
     cx.render(rsx! {
         ListItem { class: "mb-5".into(),
             Card {
@@ -276,6 +281,86 @@ pub fn Post<'a>(cx: Scope<'a, PostProps>) -> Element {
                     //         }
                     //     }
                     // }
+                }
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn AuthorsPage(cx: Scope) -> Element {
+    // Generate authors
+    let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
+    let authors: Vec<model::Author> = seeds.iter().map(|&seed| model::Author::generate_from_seed(seed)).collect();
+
+    cx.render(rsx! {
+        Container {
+            section { class: "hero",
+                div { class: "hero-body",
+                    Container {
+                        Title { "Authors" }
+                        SubTitle { "Meet the definitely real peaple behind your favorite Yew content" }
+                    }
+                }
+            }
+            p { class: "section py-0",
+                "It wouldn't be fair"
+                i { "(or possible :P)" }
+                " to list each and every author in alphabetical order."
+                br{}
+                "So instead we chose to put more focus on the individuals by introducing you to two people at a time"
+            }
+            div { class: "section",
+                div { class: "tile is-ancestor",
+                    for author in (authors) {
+                        div { class: "tile is-parent",
+                            div { class: "tile is-child",
+                                Author { name: author.name,
+                                    keywords: author.keywords,
+                                    img_src: author.image_url,
+                                }
+                            }
+                        }
+                    }
+                }
+                
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+#[derive(PartialEq, Props)]
+pub struct AuthorProps {
+    #[props(!optional)]
+    name: String,
+
+    #[props(!optional)]
+    keywords: Vec<String>,
+
+    #[props(!optional)]
+    img_src: String,
+}
+
+#[allow(non_snake_case)]
+pub fn Author<'a>(cx: Scope<'a, AuthorProps>) -> Element {
+    cx.render(rsx! {
+        Card {
+            CardContent {
+                div { class: "media",
+                    div { class: "media-left",
+                        Image { size: 128,
+                            src: &cx.props.img_src,
+                        }
+                    }
+                    div { class: "media-content",
+                        p { class: "title is-3",
+                            cx.props.name.clone(),
+                        }
+                        p { "I like "
+                            b { cx.props.keywords.join(", ") }
+                        }
+                    }
                 }
             }
         }
