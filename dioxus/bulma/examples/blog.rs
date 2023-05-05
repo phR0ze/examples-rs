@@ -13,6 +13,21 @@ use bulma::{
     prelude::*,
 };
 
+mod model {
+    struct Post {
+        seed: u64,
+        title: String,
+    }
+}
+
+static POSTS: Lazy<WindowManagerCmdChannels> = Lazy::new(|| {
+    let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+    WindowManagerCmdChannels {
+        tx,
+        rx: Arc::new(Mutex::new(rx)),
+    }
+});
+
 fn main() {
     #[cfg(target_family = "wasm")]
     bulma::dioxus_web::launch(App);
@@ -218,7 +233,7 @@ fn PostsPage(cx: Scope) -> Element {
                 }
             }
             Pagination{
-                page_type: "/posts".into(),
+                route: "/posts".into(),
                 total_pages: total_pages,
             }
         }

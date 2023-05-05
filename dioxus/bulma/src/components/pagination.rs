@@ -7,7 +7,7 @@ use dioxus::prelude::*;
 #[derive(Props)]
 pub struct PaginationProps<'a> {
     #[props(!optional)]
-    page_type: String,
+    route: String,
 
     #[props(!optional)]
     total_pages: usize,
@@ -22,12 +22,14 @@ pub struct PaginationProps<'a> {
 /// as the outside container for them to work correctly
 ///
 /// ### Properties
-/// * `page_type: String` is a key to track the current page for a set of pages
+/// * `route: String` is the routing url for the root of the pages your paginating
+/// * `total_pages: usize` total number of pages to paginate over
+/// * `links_per_side: usize` number of links to show to the left and right of the current page
 /// * `children: Element<'a>` is all of the child elements that you can add
 #[allow(non_snake_case)]
 pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
     let state = use_shared_state::<GlobalState>(cx)?;
-    let (pagekey1, pagekey2) = (cx.props.page_type.clone(), cx.props.page_type.clone());
+    let (pagekey1, pagekey2) = (cx.props.route.clone(), cx.props.route.clone());
     let page = *state.read().pagination.current_pages.get(&pagekey1).unwrap_or(&1) as usize;
     let max_links = cx.props.links_per_side;
 
