@@ -44,7 +44,8 @@
 //     }
 // }
 
-/// The `Button` and `Buttons` elements can accept 4 different sizes.
+/// There are 4 general size values that many non text elements will accept including
+/// Buttons and Progress bars.
 ///
 /// You can change the size of multiple buttons at once by using the `to_are_class`
 /// or `append_are_class` with the `Buttons` function to change the size of multiple
@@ -52,14 +53,14 @@
 ///
 /// * Default: `normal`
 #[derive(Clone, PartialEq)]
-pub enum ButtonSizes {
+pub enum Sizes {
     Small,
     Normal,
     Medium,
     Large,
 }
 
-impl ButtonSizes {
+impl Sizes {
     /// Converts the enum to the singular `is` CSS class
     pub fn to_is_class(&self) -> String {
         format!("is-{}", self.to_string())
@@ -83,19 +84,19 @@ impl ButtonSizes {
     }
 }
 
-impl ToString for ButtonSizes {
+impl ToString for Sizes {
     fn to_string(&self) -> String {
         match self {
-            ButtonSizes::Small => "small",
-            ButtonSizes::Normal => "normal",
-            ButtonSizes::Medium => "medium",
-            ButtonSizes::Large => "large",
+            Sizes::Small => "small",
+            Sizes::Normal => "normal",
+            Sizes::Medium => "medium",
+            Sizes::Large => "large",
         }
         .to_string()
     }
 }
 
-impl Default for ButtonSizes {
+impl Default for Sizes {
     fn default() -> Self {
         Self::Normal
     }

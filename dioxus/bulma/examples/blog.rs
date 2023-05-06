@@ -31,7 +31,7 @@ fn main() {
     )
 }
 
-// UI entry point
+// UI entry point that will only get called once on startup
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, || GlobalState::default());
@@ -323,7 +323,9 @@ fn AuthorsPage(cx: Scope) -> Element {
                         }
                     }
                 }
-                
+                progress { class: "progress is-info",
+                    max: "1.0",
+                } 
             }
         }
     })

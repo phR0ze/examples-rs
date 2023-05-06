@@ -27,7 +27,7 @@ pub struct ButtonProps<'a> {
     color: Option<Colors>,
 
     #[props(optional)]
-    size: Option<ButtonSizes>,
+    size: Option<Sizes>,
 
     #[props(default)]
     state: ButtonState,
@@ -147,7 +147,7 @@ pub struct ButtonsProps<'a> {
     color: Option<Colors>,
 
     #[props(optional)]
-    size: Option<ButtonSizes>,
+    size: Option<Sizes>,
 
     #[props(default)]
     state: ButtonState,
