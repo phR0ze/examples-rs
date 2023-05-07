@@ -4,6 +4,7 @@ mod assets;
 use crate::assets as model;
 use assets::Generated;
 use once_cell::sync::Lazy;
+use dioxus_signals::*;
 
 use bulma::{
     components::*,
@@ -35,6 +36,7 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     use_shared_state_provider(cx, || GlobalState::default());
+    // use_init_signal_rt(cx);
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },

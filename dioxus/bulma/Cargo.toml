@@ -7,6 +7,7 @@ edition = "2021"
 dioxus = "0.3.2"
 dioxus-router = "0.3.0"
 dioxus-free-icons = { version = "0.6.0", features = ["font-awesome-brands", "font-awesome-regular", "font-awesome-solid"] }
+dioxus-signals = { git = "https://github.com/DioxusLabs/dioxus/tree/master/packages/signals" }
 
 [target.'cfg(any(unix, windows))'.dependencies]
 dioxus-desktop = { version = "0.3.0", features = ["transparent"] }
