@@ -21,7 +21,15 @@ pub use dioxus_web;
 
 pub mod prelude {
     pub use crate::{get_bulma_css, state::*, utils::*};
+    pub use dioxus;
     pub use dioxus::prelude::*;
+    pub use dioxus_router;
+
+    #[cfg(any(windows, unix))]
+    pub use dioxus_desktop;
+
+    #[cfg(target_family = "wasm")]
+    pub use dioxus_web;
 }
 
 // Get BULMA styles as a static str

@@ -1,10 +1,8 @@
 //! Dioxus Bulma example
 //!
-mod assets;
-use crate::assets as model;
-use assets::Generated;
+mod content;
+use content::Generated;
 use once_cell::sync::Lazy;
-use dioxus_signals::*;
 
 use bulma::{
     components::*,
@@ -214,7 +212,7 @@ fn PostsPage(cx: Scope) -> Element {
     // Generate posts
     let start_seed = state.read().pagination.get_current_page("/posts") * per_page;
     let mut posts =
-        (0..per_page).map(|seed_offset| model::PostMeta::generate_from_seed((start_seed + seed_offset) as u64));
+        (0..per_page).map(|seed_offset| content::PostMeta::generate_from_seed((start_seed + seed_offset) as u64));
 
     cx.render(rsx! {
         Section {
@@ -293,7 +291,8 @@ pub fn Post(cx: Scope<PostProps>) -> Element {
 fn AuthorsPage(cx: Scope) -> Element {
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
-    let authors: Vec<model::Author> = seeds.iter().map(|&seed| model::Author::generate_from_seed(seed)).collect();
+    let authors: Vec<content::Author> =
+        seeds.iter().map(|&seed| content::Author::generate_from_seed(seed)).collect();
 
     cx.render(rsx! {
         Container {
@@ -327,7 +326,7 @@ fn AuthorsPage(cx: Scope) -> Element {
                 }
                 progress { class: "progress is-info",
                     max: "1.0",
-                } 
+                }
             }
         }
     })

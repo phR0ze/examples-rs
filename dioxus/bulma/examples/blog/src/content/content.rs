@@ -1,4 +1,4 @@
-use crate::assets::{Generated, Generator};
+use crate::content::{Generated, Generator};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Author {
