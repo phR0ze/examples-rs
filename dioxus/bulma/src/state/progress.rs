@@ -17,7 +17,7 @@ impl ProgressState {
     /// Set the progress for the given route
     /// * `route: &str` is the route to set the progress for
     /// * `progress: f64` the progress value to set
-    pub fn set_current_page(&mut self, route: String, progress: f64) {
+    pub fn set_progress(&mut self, route: String, progress: f64) {
         self.progress.insert(route, progress);
     }
 }

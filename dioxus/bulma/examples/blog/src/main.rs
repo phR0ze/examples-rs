@@ -5,8 +5,7 @@ mod pages;
 use pages::*;
 
 use bulma::{
-    components::*,
-    dioxus_router::{use_router, Route, Router},
+    dioxus_router::{Route, Router},
     prelude::*,
 };
 
@@ -59,75 +58,5 @@ fn App(cx: Scope) -> Element {
 
 #[allow(non_snake_case)]
 fn NotFoundPage(cx: Scope) -> Element {
-    cx.render(rsx! {
-        div {
-            "Page not found"
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn Footer(cx: Scope) -> Element {
-    cx.render(rsx! {
-        footer {
-            class: "footer",
-            div {
-                class: "content has-text-centered",
-                "Powered by "
-                a { href: "https://dioxuslabs.com/", "Dioxus" }
-                " using "
-                a { href: "https://bulma.io/", "Bulma" }
-                " and images from "
-                a { href: "https://unsplash.com", "Unsplash" }
-            }
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn Header(cx: Scope) -> Element {
-    cx.render(rsx! {
-        Navbar {
-            color: Colors::Info,
-            brand: "https://bulma.io/images/bulma-logo.png".into(),
-            div {
-                class: "navbar-menu",
-                div {
-                    class: "navbar-start",
-                    a {
-                        class: "navbar-item",
-                        onclick: move |_| {
-                            use_router(cx).replace_route("/", None, None)
-                        },
-                        "Home"
-                    }
-                    a {
-                        class: "navbar-item",
-                        onclick: move |_| {
-                            use_router(cx).replace_route("/posts", None, None)
-                        },
-                        "Posts"
-                    }
-                    div {
-                        class: "navbar-item has-dropdown is-hoverable",
-                        div {
-                            class: "navbar-link",
-                            "More"
-                        }
-                        div {
-                            class: "navbar-dropdown",
-                            a {
-                                class: "navbar-item",
-                                "About"
-                            }
-                            a {
-                                class: "navbar-item",
-                                "Meet the authors"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    })
+    cx.render(rsx! { div { "Page not found" } })
 }
