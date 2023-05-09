@@ -86,8 +86,6 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
 fn PaginationRange<'a>(
     cx: Scope<'a, PaginationProps<'a>>, mut pages: Vec<usize>, max: usize, left: bool,
 ) -> Element {
-    let state = cx.props.state;
-
     cx.render(if pages.len() > max {
         if left {
             // Split off everything at index max and beyond
@@ -95,24 +93,10 @@ fn PaginationRange<'a>(
             let offset = pages.len().checked_sub(max.checked_sub(2).unwrap_or_default()).unwrap_or_default();
             let right = pages.split_off(offset);
             rsx! {
-                li {
-                    a { class: "pagination-link",
-                        onclick: move |_| {
-                            state.write().pagination.set_current_page(&cx.props.route, *pages.first().unwrap());
-                        },
-                        format!("{}", pages.first().unwrap())
-                    }
-                }
-                li { span { class: "pagination-ellipsis", "..." } }
+                PaginationLink(cx, *pages.first().unwrap())
+                PaginationEllipsis {}
                 for i in (right) {
-                    li {
-                        a { class: "pagination-link",
-                            onclick: move |_| {
-                                state.write().pagination.set_current_page(&cx.props.route, i);
-                            },
-                            format!("{i}")
-                        }
-                    }
+                    PaginationLink(cx, i)
                 }
             }
         } else {
@@ -120,38 +104,15 @@ fn PaginationRange<'a>(
             // also taking into account 2 less for the last and ellipsis
             let right = pages.split_off(max - 2);
             rsx! {
-                for i in (pages) {
-                    li {
-                        a { class: "pagination-link",
-                            onclick: move |_| {
-                                state.write().pagination.set_current_page(&cx.props.route, i);
-                            },
-                            format!("{i}")
-                        }
-                    }
-                }
-                li { span { class: "pagination-ellipsis", "..." } }
-                li {
-                    a { class: "pagination-link",
-                        onclick: move |_| {
-                            state.write().pagination.set_current_page(&cx.props.route, *right.last().unwrap());
-                        },
-                        format!("{}", right.last().unwrap())
-                    }
-                }
+                for i in (pages) { PaginationLink(cx, i) }
+                PaginationEllipsis {}
+                PaginationLink(cx, *right.last().unwrap())
             }
         }
     } else {
         rsx! {
             for i in (pages) {
-                li {
-                    a { class: "pagination-link",
-                        onclick: move |_| {
-                            state.write().pagination.set_current_page(&cx.props.route, i);
-                        },
-                        format!("{i}")
-                    }
-                }
+                PaginationLink(cx, i)
             }
         }
     })
@@ -161,20 +122,29 @@ fn PaginationRange<'a>(
 ///
 /// ### Properties
 /// * `route: String` routing key used for page lookup
-/// * `total_pages: usize` total number of pages to paginate over
-/// * `links_per_side: usize` number of links to show to the left and right of the current page
 #[allow(non_snake_case)]
 fn PaginationLink<'a>(cx: Scope<'a, PaginationProps<'a>>, page: usize) -> Element<'a> {
     let state = cx.props.state;
-    let route = &cx.props.route;
 
     cx.render(rsx! {
         li {
             a { class: "pagination-link",
                 onclick: move |_| {
-                    state.write().pagination.set_current_page(route, page);
+                    state.write().pagination.set_current_page(&cx.props.route, page);
                 },
                 format!("{page}")
+            }
+        }
+    })
+}
+
+/// PaginationEllipsis provides an ellipsis place holder for pagination buttons
+#[allow(non_snake_case)]
+fn PaginationEllipsis(cx: Scope) -> Element {
+    cx.render(rsx! {
+        li {
+            span { class: "pagination-ellipsis",
+                "..."
             }
         }
     })
