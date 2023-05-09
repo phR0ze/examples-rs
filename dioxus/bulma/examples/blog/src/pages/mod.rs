@@ -24,14 +24,14 @@ pub fn Header(cx: Scope) -> Element {
                     a {
                         class: "navbar-item",
                         onclick: move |_| {
-                            use_router(cx).replace_route("/", None, None)
+                            use_router(cx).push_route("/", None, None)
                         },
                         "Home"
                     }
                     a {
                         class: "navbar-item",
                         onclick: move |_| {
-                            use_router(cx).replace_route("/posts", None, None)
+                            use_router(cx).push_route("/posts", None, None)
                         },
                         "Posts"
                     }
@@ -50,7 +50,7 @@ pub fn Header(cx: Scope) -> Element {
                             a {
                                 class: "navbar-item",
                                 onclick: move |_| {
-                                    use_router(cx).replace_route("/authors", None, None)
+                                    use_router(cx).push_route("/authors", None, None)
                                 },
                                 "Meet the authors"
                             }

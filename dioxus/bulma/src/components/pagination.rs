@@ -4,8 +4,8 @@ use crate::state::*;
 use dioxus::prelude::*;
 
 #[allow(non_snake_case)]
-#[derive(Props)]
-pub struct PaginationProps<'a> {
+#[derive(Props, PartialEq)]
+pub struct PaginationProps {
     #[props(!optional)]
     route: String,
 
@@ -14,8 +14,6 @@ pub struct PaginationProps<'a> {
 
     #[props(default = 3)]
     links_per_side: usize,
-
-    children: Element<'a>,
 }
 
 /// Pagination is the parent of all the pagination components and must be used
@@ -27,8 +25,9 @@ pub struct PaginationProps<'a> {
 /// * `links_per_side: usize` number of links to show to the left and right of the current page
 /// * `children: Element<'a>` is all of the child elements that you can add
 #[allow(non_snake_case)]
-pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
-    let state = use_shared_state::<GlobalState>(cx)?;
+pub fn Pagination<'a>(cx: Scope<'a, PaginationProps>) -> Element {
+    let state = use_shared_state::<GlobalState>(cx)
+        .expect("use_shared_state_provider(cx, || GlobalState::default() must be called first");
 
     let (route1, route2) = (cx.props.route.clone(), cx.props.route.clone());
     let page = state.read().pagination.get_current_page(&route1);
@@ -79,9 +78,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
 /// * `max` is the max number of pages to display as links for this pagination range
 /// * `left` signals the optional ellipsis would be to the left
 #[allow(non_snake_case)]
-fn PaginationRange<'a>(
-    cx: Scope<'a, PaginationProps<'a>>, mut pages: Vec<usize>, max: usize, left: bool,
-) -> Element {
+fn PaginationRange<'a>(cx: Scope<'a, PaginationProps>, mut pages: Vec<usize>, max: usize, left: bool) -> Element {
     cx.render(if pages.len() > max {
         if left {
             // Split off everything at index max and beyond
