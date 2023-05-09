@@ -1,8 +1,12 @@
+mod author;
 mod authors;
 mod home;
+// mod post;
 mod posts;
+pub use author::*;
 pub use authors::*;
 pub use home::*;
+// pub use post::*;
 pub use posts::*;
 
 use bulma::{components::*, dioxus_router::use_router, prelude::*};
@@ -45,6 +49,9 @@ pub fn Header(cx: Scope) -> Element {
                             }
                             a {
                                 class: "navbar-item",
+                                onclick: move |_| {
+                                    use_router(cx).replace_route("/authors", None, None)
+                                },
                                 "Meet the authors"
                             }
                         }

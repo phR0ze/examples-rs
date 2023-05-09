@@ -2,7 +2,7 @@ use crate::content::{self, Generated};
 use bulma::{components::*, elements::*, layouts::*, prelude::*};
 
 #[allow(non_snake_case)]
-pub fn PostsPage(cx: Scope) -> Element {
+pub fn Posts(cx: Scope) -> Element {
     let state = use_shared_state::<GlobalState>(cx)?;
 
     let per_page = 9;
@@ -26,7 +26,7 @@ pub fn PostsPage(cx: Scope) -> Element {
                         Column {
                             List {
                                 for post in posts.by_ref().take(per_col) {
-                                    Post { title: post.title,
+                                    PostCard { title: post.title,
                                         author: post.author.name,
                                         img_src: post.image_url,
                                     }
@@ -58,7 +58,7 @@ pub struct PostProps {
 }
 
 #[allow(non_snake_case)]
-pub fn Post(cx: Scope<PostProps>) -> Element {
+pub fn PostCard(cx: Scope<PostProps>) -> Element {
     cx.render(rsx! {
         ListItem { class: "mb-5".into(),
             Card {

@@ -1,7 +1,7 @@
 use bulma::prelude::*;
 
 #[allow(non_snake_case)]
-pub fn HomePage(cx: Scope) -> Element {
+pub fn Home(cx: Scope) -> Element {
     cx.render(rsx! {
         div { class: "tile is-ancestor is-vertical",
             div { class: "tile is-child hero",

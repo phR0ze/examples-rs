@@ -1,9 +1,9 @@
 use crate::content::{self, Generated};
-use bulma::{components::*, elements::*, layouts::*, prelude::*};
+use bulma::{components::*, dioxus_router::Link, elements::*, layouts::*, prelude::*};
 use rand::{distributions, Rng};
 
 #[allow(non_snake_case)]
-pub fn AuthorsPage(cx: Scope) -> Element {
+pub fn Authors(cx: Scope) -> Element {
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
     let authors: Vec<content::Author> =
@@ -31,7 +31,8 @@ pub fn AuthorsPage(cx: Scope) -> Element {
                     for author in (authors) {
                         div { class: "tile is-parent",
                             div { class: "tile is-child",
-                                Author { name: author.name,
+                                AuthorCard { name: author.name,
+                                    seed: author.seed,
                                     keywords: author.keywords,
                                     img_src: author.image_url,
                                 }
@@ -51,6 +52,9 @@ pub fn AuthorsPage(cx: Scope) -> Element {
 #[derive(PartialEq, Props)]
 pub struct AuthorProps {
     #[props(!optional)]
+    seed: u64,
+
+    #[props(!optional)]
     name: String,
 
     #[props(!optional)]
@@ -61,7 +65,9 @@ pub struct AuthorProps {
 }
 
 #[allow(non_snake_case)]
-pub fn Author<'a>(cx: Scope<'a, AuthorProps>) -> Element {
+pub fn AuthorCard<'a>(cx: Scope<'a, AuthorProps>) -> Element {
+    let seed = cx.props.seed;
+
     cx.render(rsx! {
         Card {
             CardContent {
@@ -77,6 +83,11 @@ pub fn Author<'a>(cx: Scope<'a, AuthorProps>) -> Element {
                             b { cx.props.keywords.join(", ") }
                         }
                     }
+                }
+            }
+            CardFooter {
+                Link { class: "card-footer-item"
+                    to: "/authors/{seed}", "Profile",
                 }
             }
         }

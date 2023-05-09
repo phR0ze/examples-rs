@@ -2,12 +2,18 @@
 //!
 mod content;
 mod pages;
-use pages::*;
 
 use bulma::{
     dioxus_router::{Route, Router},
     prelude::*,
 };
+
+struct AppRoutes<'a> {
+    pub root: &'a str,
+    pub posts: &'a str,
+    pub authors: &'a str,
+}
+static ROUTES: AppRoutes = AppRoutes { root: "/", posts: "/posts", authors: "/authors" };
 
 fn main() {
     #[cfg(target_family = "wasm")]
@@ -34,29 +40,19 @@ fn App(cx: Scope) -> Element {
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
         Router {
-            Header {},
-            Route {
-                to: "/home"
-                HomePage{}
-            },
-            Route {
-                to: "/posts"
-                PostsPage{}
-            },
-            Route {
-                to: "/"
-                AuthorsPage{}
-            },
-            Route {
-                to: ""
-                NotFoundPage{}
-            },
-            Footer {}
+            pages::Header {},
+            Route { to: ROUTES.root, pages::Home{} },
+            Route { to: ROUTES.posts, pages::Posts{} },
+            // Route { to: "/posts/:post", pages::Post{} },
+            Route { to: ROUTES.authors, pages::Authors {} },
+            Route { to: "/authors/:author", pages::Author{} },
+            Route { to: "" NotFoundPage{} },
+            pages::Footer {}
         }
     })
 }
 
 #[allow(non_snake_case)]
 fn NotFoundPage(cx: Scope) -> Element {
-    cx.render(rsx! { div { "Page not found" } })
+    cx.render(rsx! { p { "Page not found" } })
 }
