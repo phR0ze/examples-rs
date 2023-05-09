@@ -4,12 +4,11 @@
 use bulma::{
     components::*,
     dioxus_router::{Route, Router},
-    fermi::{use_atom_ref, use_init_atom_root, AtomRef},
     layouts::Section,
     prelude::*,
 };
 
-static GLOBAL_STATE: AtomRef<GlobalState> = |_| GlobalState::default();
+static GLOBAL_STATE: fermi::AtomRef<GlobalState> = |_| GlobalState::default();
 
 fn main() {
     dioxus_desktop::launch_cfg(
@@ -26,8 +25,8 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    use_init_atom_root(&cx);
-    let state = use_atom_ref(&cx, GLOBAL_STATE);
+    fermi::use_init_atom_root(&cx);
+    let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
     let total_pages = 12;
 
     cx.render(rsx! {

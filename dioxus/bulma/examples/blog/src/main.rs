@@ -8,6 +8,8 @@ use bulma::{
     prelude::*,
 };
 
+static GLOBAL_STATE: fermi::AtomRef<GlobalState> = |_| GlobalState::default();
+
 struct AppRoutes<'a> {
     pub root: &'a str,
     pub posts: &'a str,
@@ -34,8 +36,8 @@ fn main() {
 // UI entry point that will only get called once on startup
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    use_shared_state_provider(cx, || GlobalState::default());
-    // use_init_signal_rt(cx);
+    fermi::use_init_atom_root(&cx);
+    let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },

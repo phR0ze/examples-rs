@@ -1,12 +1,12 @@
 use crate::{
     content::{self, Generated},
-    ROUTES,
+    GLOBAL_STATE, ROUTES,
 };
 use bulma::{components::*, elements::*, layouts::*, prelude::*};
 
 #[allow(non_snake_case)]
 pub fn Posts(cx: Scope) -> Element {
-    let state = use_shared_state::<GlobalState>(cx)?;
+    let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
 
     let per_page = 9;
     let cols = 3;
@@ -39,6 +39,7 @@ pub fn Posts(cx: Scope) -> Element {
                     }
                 }
                 Pagination{
+                    state: state,
                     route: "/posts".into(),
                     total_pages: total_pages,
                 }
