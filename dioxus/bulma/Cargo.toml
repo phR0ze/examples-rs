@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+fermi = "0.3.0"
 dioxus = "0.3.2"
 dioxus-router = "0.3.0"
 dioxus-free-icons = { version = "0.6.0", features = ["font-awesome-brands", "font-awesome-regular", "font-awesome-solid"] }

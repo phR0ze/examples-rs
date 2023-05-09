@@ -2,10 +2,14 @@
 //!
 use crate::state::*;
 use dioxus::prelude::*;
+use fermi::UseAtomRef;
 
 #[allow(non_snake_case)]
-#[derive(Props, PartialEq)]
-pub struct PaginationProps {
+#[derive(Props)]
+pub struct PaginationProps<'a> {
+    #[props(!optional)]
+    state: &'a UseAtomRef<GlobalState>,
+
     #[props(!optional)]
     route: String,
 
@@ -19,15 +23,16 @@ pub struct PaginationProps {
 /// Pagination is the parent of all the pagination components and must be used
 /// as the outside container for them to work correctly
 ///
+/// ### Warning
+/// * must be used inside the Router component to work correctly
+///
 /// ### Properties
-/// * `route: String` is the routing url for the root of the pages your paginating
+/// * `route: String` routing key used for page lookup
 /// * `total_pages: usize` total number of pages to paginate over
 /// * `links_per_side: usize` number of links to show to the left and right of the current page
-/// * `children: Element<'a>` is all of the child elements that you can add
 #[allow(non_snake_case)]
-pub fn Pagination<'a>(cx: Scope<'a, PaginationProps>) -> Element {
-    let state = use_shared_state::<GlobalState>(cx)
-        .expect("use_shared_state_provider(cx, || GlobalState::default() must be called first");
+pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
+    let state = cx.props.state;
 
     let (route1, route2) = (cx.props.route.clone(), cx.props.route.clone());
     let page = state.read().pagination.get_current_page(&route1);
@@ -50,7 +55,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps>) -> Element {
             a { class: "pagination-previous {prev_css}",
                 onclick: move |_| {
                     if page - 1 > 0 {
-                        state.write().pagination.set_current_page(route1.clone(), page - 1);
+                        state.write().pagination.set_current_page(&route1, page - 1);
                     }
                 },
                 "Previous"
@@ -58,7 +63,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps>) -> Element {
             a { class: "pagination-next",
                 onclick: move |_| {
                     if page + 1 <= cx.props.total_pages {
-                        state.write().pagination.set_current_page(route2.clone(), page + 1);
+                        state.write().pagination.set_current_page(&route2, page + 1);
                     }
                 },
                 "Next Page"
@@ -66,7 +71,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps>) -> Element {
             ul {
                 class: "pagination-list",
                 PaginationRange(cx, (1..=pages_left).collect(), links_left, true)
-                li { a { class: "pagination-link is-current", "{page}" } }
+                li { a { class: "pagination-link is-current", "{page}"} }
                 PaginationRange(cx, (page+1..=page+pages_right).collect(), links_right, false)
             }
         }
@@ -78,7 +83,11 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps>) -> Element {
 /// * `max` is the max number of pages to display as links for this pagination range
 /// * `left` signals the optional ellipsis would be to the left
 #[allow(non_snake_case)]
-fn PaginationRange<'a>(cx: Scope<'a, PaginationProps>, mut pages: Vec<usize>, max: usize, left: bool) -> Element {
+fn PaginationRange<'a>(
+    cx: Scope<'a, PaginationProps<'a>>, mut pages: Vec<usize>, max: usize, left: bool,
+) -> Element {
+    let state = cx.props.state;
+
     cx.render(if pages.len() > max {
         if left {
             // Split off everything at index max and beyond
@@ -86,10 +95,24 @@ fn PaginationRange<'a>(cx: Scope<'a, PaginationProps>, mut pages: Vec<usize>, ma
             let offset = pages.len().checked_sub(max.checked_sub(2).unwrap_or_default()).unwrap_or_default();
             let right = pages.split_off(offset);
             rsx! {
-                li { a { class: "pagination-link", format!("{}", pages.first().unwrap()) } }
+                li {
+                    a { class: "pagination-link",
+                        onclick: move |_| {
+                            state.write().pagination.set_current_page(&cx.props.route, *pages.first().unwrap());
+                        },
+                        format!("{}", pages.first().unwrap())
+                    }
+                }
                 li { span { class: "pagination-ellipsis", "..." } }
                 for i in (right) {
-                    li { a { class: "pagination-link", format!("{i}") } }
+                    li {
+                        a { class: "pagination-link",
+                            onclick: move |_| {
+                                state.write().pagination.set_current_page(&cx.props.route, i);
+                            },
+                            format!("{i}")
+                        }
+                    }
                 }
             }
         } else {
@@ -98,16 +121,60 @@ fn PaginationRange<'a>(cx: Scope<'a, PaginationProps>, mut pages: Vec<usize>, ma
             let right = pages.split_off(max - 2);
             rsx! {
                 for i in (pages) {
-                    li { a { class: "pagination-link", format!("{i}") } }
+                    li {
+                        a { class: "pagination-link",
+                            onclick: move |_| {
+                                state.write().pagination.set_current_page(&cx.props.route, i);
+                            },
+                            format!("{i}")
+                        }
+                    }
                 }
                 li { span { class: "pagination-ellipsis", "..." } }
-                li { a { class: "pagination-link", format!("{}", right.last().unwrap()) } }
+                li {
+                    a { class: "pagination-link",
+                        onclick: move |_| {
+                            state.write().pagination.set_current_page(&cx.props.route, *right.last().unwrap());
+                        },
+                        format!("{}", right.last().unwrap())
+                    }
+                }
             }
         }
     } else {
         rsx! {
             for i in (pages) {
-                li { a { class: "pagination-link", format!("{i}") } }
+                li {
+                    a { class: "pagination-link",
+                        onclick: move |_| {
+                            state.write().pagination.set_current_page(&cx.props.route, i);
+                        },
+                        format!("{i}")
+                    }
+                }
+            }
+        }
+    })
+}
+
+/// PaginationLink provides a clickable pagination button
+///
+/// ### Properties
+/// * `route: String` routing key used for page lookup
+/// * `total_pages: usize` total number of pages to paginate over
+/// * `links_per_side: usize` number of links to show to the left and right of the current page
+#[allow(non_snake_case)]
+fn PaginationLink<'a>(cx: Scope<'a, PaginationProps<'a>>, page: usize) -> Element<'a> {
+    let state = cx.props.state;
+    let route = &cx.props.route;
+
+    cx.render(rsx! {
+        li {
+            a { class: "pagination-link",
+                onclick: move |_| {
+                    state.write().pagination.set_current_page(route, page);
+                },
+                format!("{page}")
             }
         }
     })

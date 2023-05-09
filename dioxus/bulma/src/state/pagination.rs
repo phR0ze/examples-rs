@@ -15,8 +15,8 @@ impl PaginationState {
         }
         value
     }
-    pub fn set_current_page(&mut self, route: String, page: usize) {
-        self.current_pages.insert(route, page);
+    pub fn set_current_page(&mut self, route: &str, page: usize) {
+        self.current_pages.insert(route.to_string(), page);
     }
 }
 

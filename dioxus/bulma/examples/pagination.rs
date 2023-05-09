@@ -1,7 +1,15 @@
 //! Dioxus Bulma example
 //!
 
-use bulma::{components::*, layouts::Section, prelude::*};
+use bulma::{
+    components::*,
+    dioxus_router::{Route, Router},
+    fermi::{use_atom_ref, use_init_atom_root, AtomRef},
+    layouts::Section,
+    prelude::*,
+};
+
+static GLOBAL_STATE: AtomRef<GlobalState> = |_| GlobalState::default();
 
 fn main() {
     dioxus_desktop::launch_cfg(
@@ -18,16 +26,20 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    // use_shared_state_provider(cx, || GlobalState::default());
-
+    use_init_atom_root(&cx);
+    let state = use_atom_ref(&cx, GLOBAL_STATE);
     let total_pages = 12;
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-        Section {
-            Pagination{
-                route: "/".into(),
-                total_pages: total_pages,
+        Router {
+            Route { to: "/authors/:author", "Authors" },
+            Section {
+                Pagination{
+                    state: state,
+                    route: "/".into(),
+                    total_pages: total_pages,
+                }
             }
         }
     })
