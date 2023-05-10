@@ -123,7 +123,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
         let interval = cx.props.interval;
         async move {
             loop {
-                time_sleep(interval).await;
+                sleep(interval).await;
                 state.write().progress.advance(&id);
             }
         }
@@ -148,11 +148,11 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 }
 
 #[cfg(target_family = "wasm")]
-async fn time_sleep(interval: usize) {
+async fn sleep(interval: usize) {
     gloo_timers::future::TimeoutFuture::new(interval as u32).await;
 }
 
 #[cfg(any(windows, unix))]
-async fn time_sleep(interval: usize) {
+async fn sleep(interval: usize) {
     tokio::time::sleep(tokio::time::Duration::from_millis(interval as u64)).await;
 }

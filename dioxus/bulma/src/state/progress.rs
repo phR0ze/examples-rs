@@ -58,16 +58,20 @@ impl ProgressState {
 
     /// Advance the progress bar using the set increment if not paused
     /// * `id: &str` id for creating or resetting progress
-    pub fn advance(&mut self, id: &str) {
+    /// * `returns: bool` true if completed
+    pub fn advance(&mut self, id: &str) -> bool {
+        let mut result = false;
         if let Some(meta) = self.progress.get_mut(id) {
             if !meta.paused {
-                if meta.value + meta.increment <= meta.max {
+                if meta.value + meta.increment < meta.max {
                     meta.value += meta.increment;
                 } else {
                     meta.value = meta.max;
+                    result = true;
                 }
             }
         }
+        result
     }
 
     /// Complete the progress for the given id
