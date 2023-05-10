@@ -18,6 +18,7 @@ impl Default for ButtonState {
     }
 }
 
+#[allow(non_snake_case)]
 #[derive(Props)]
 pub struct ButtonProps<'a> {
     #[props(optional)]
@@ -28,6 +29,9 @@ pub struct ButtonProps<'a> {
 
     #[props(optional)]
     size: Option<Sizes>,
+
+    #[props(optional)]
+    class: Option<&'a str>,
 
     #[props(default)]
     state: ButtonState,
@@ -62,7 +66,10 @@ pub struct ButtonProps<'a> {
 /// Button
 ///
 /// ### Properties
+/// * `is_light: bool` use the light coloring
+/// * `is_outlined: bool` use the outlined styling
 /// * ``
+#[allow(non_snake_case)]
 pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
     let mut class = "button".to_string();
 
@@ -72,6 +79,10 @@ pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
 
     if let Some(size) = &cx.props.size {
         class = size.append_is_class(&class);
+    }
+
+    if let Some(extra) = &cx.props.class {
+        class = format!("{class} {extra}");
     }
 
     if cx.props.is_light {
@@ -138,6 +149,7 @@ pub fn Button<'a>(cx: Scope<'a, ButtonProps<'a>>) -> Element {
     })
 }
 
+#[allow(non_snake_case)]
 #[derive(Props)]
 pub struct ButtonsProps<'a> {
     #[props(optional)]
@@ -180,6 +192,7 @@ pub struct ButtonsProps<'a> {
 }
 
 /// Buttons
+#[allow(non_snake_case)]
 pub fn Buttons<'a>(cx: Scope<'a, ButtonsProps<'a>>) -> Element {
     let mut class = "buttons".to_string();
 

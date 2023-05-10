@@ -1,6 +1,3 @@
-//! Dioxus Bulma example
-//!
-
 use bulma::{
     components::*,
     dioxus_router::{Route, Router},
@@ -34,9 +31,8 @@ fn App(cx: Scope) -> Element {
         Router {
             Route { to: "/authors/:author", "Authors" },
             Section {
-                Pagination{
+                Pagination { id: "/",
                     state: state,
-                    route: "/".into(),
                     total_pages: total_pages,
                 }
             }

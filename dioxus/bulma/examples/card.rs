@@ -1,6 +1,3 @@
-//! Dioxus Bulma example
-//!
-
 use bulma::{
     components::{Card, CardContent, CardFooter, CardHeader, CardImage},
     elements::{Image, SubTitle, Title},
@@ -19,8 +16,6 @@ fn main() {
             dioxus_desktop::WindowBuilder::new()
                 .with_title("Bulma Example")
                 .with_resizable(true)
-                //.with_transparent(true)
-                //.with_decorations(false)
                 .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
     )
@@ -44,7 +39,7 @@ fn App(cx: Scope) -> Element {
                         }
                         CardImage {
                             Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                src: "https://bulma.io/images/placeholders/1280x960.png",
                                 ratio: (16, 9).into(),
                             }
                         }
@@ -58,7 +53,7 @@ fn App(cx: Scope) -> Element {
                         }
                         CardImage {
                             Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                src: "https://bulma.io/images/placeholders/1280x960.png",
                                 ratio: (16, 9).into(),
                             }
                         }
@@ -69,7 +64,7 @@ fn App(cx: Scope) -> Element {
                     Card {
                         CardImage {
                             Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                src: "https://bulma.io/images/placeholders/1280x960.png",
                                 ratio: (16, 9).into(),
                             }
                         }
@@ -86,7 +81,7 @@ fn App(cx: Scope) -> Element {
                     Card {
                         CardImage {
                             Image {
-                                src: "https://bulma.io/images/placeholders/1280x960.png".into(),
+                                src: "https://bulma.io/images/placeholders/1280x960.png",
                                 ratio: (16, 9).into(),
                             }
                         }

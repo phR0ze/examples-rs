@@ -1,9 +1,6 @@
-//! Dioxus Bulma example
-//!
-
 use bulma::{
-    elements::{Button, Image, SubTitle, Tag, TagLink, Tags, Title},
-    layouts::{Column, Columns, Container, Section},
+    elements::{Button, Title},
+    layouts::{Column, Columns, Section},
     prelude::*,
 };
 
@@ -18,8 +15,6 @@ fn main() {
             dioxus_desktop::WindowBuilder::new()
                 .with_title("Bulma Example")
                 .with_resizable(true)
-                //.with_transparent(true)
-                //.with_decorations(false)
                 .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
     )

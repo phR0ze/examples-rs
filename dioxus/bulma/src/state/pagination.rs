@@ -8,15 +8,21 @@ pub struct PaginationState {
 }
 
 impl PaginationState {
-    pub fn get_current_page(&self, route: &str) -> usize {
-        let mut value = *self.current_pages.get(route).unwrap_or(&1) as usize;
+    /// Get pagination for the given id
+    /// * `id: &str` identifier for the pagination e.g. a page route
+    pub fn get(&self, id: &str) -> usize {
+        let mut value = *self.current_pages.get(id).unwrap_or(&1) as usize;
         if value == 0 {
             value = 1;
         }
         value
     }
-    pub fn set_current_page(&mut self, route: &str, page: usize) {
-        self.current_pages.insert(route.to_string(), page);
+
+    /// Set pagination for the given id
+    /// * `id: &str` identifier for the pagination e.g. a page route
+    /// * `page: usize` current page to set
+    pub fn set(&mut self, id: &str, page: usize) {
+        self.current_pages.insert(id.to_string(), page);
     }
 }
 

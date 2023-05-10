@@ -1,9 +1,5 @@
-//! Dioxus Bulma example
-//!
-
 use bulma::{
-    components::{Card, CardContent, CardHeader, CardImage},
-    elements::{Image, SubTitle, Tag, TagLink, Tags, Title},
+    elements::{Tag, TagLink, Tags},
     layouts::{Column, Columns, Container},
     prelude::*,
 };
@@ -19,8 +15,6 @@ fn main() {
             dioxus_desktop::WindowBuilder::new()
                 .with_title("Bulma Example")
                 .with_resizable(true)
-                //.with_transparent(true)
-                //.with_decorations(false)
                 .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
     )

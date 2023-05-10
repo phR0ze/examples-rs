@@ -8,16 +8,16 @@ use fermi::UseAtomRef;
 #[derive(Props)]
 pub struct PaginationProps<'a> {
     #[props(!optional)]
-    state: &'a UseAtomRef<GlobalState>,
-
-    #[props(!optional)]
-    route: String,
+    id: &'a str,
 
     #[props(!optional)]
     total_pages: usize,
 
     #[props(default = 3)]
     links_per_side: usize,
+
+    #[props(!optional)]
+    state: &'a UseAtomRef<GlobalState>,
 }
 
 /// Pagination is the parent of all the pagination components and must be used
@@ -27,15 +27,15 @@ pub struct PaginationProps<'a> {
 /// * must be used inside the Router component to work correctly
 ///
 /// ### Properties
-/// * `route: String` routing key used for page lookup
+/// * `id: String` id used for pagination lookup
 /// * `total_pages: usize` total number of pages to paginate over
 /// * `links_per_side: usize` number of links to show to the left and right of the current page
+/// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
 #[allow(non_snake_case)]
 pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
     let state = cx.props.state;
-
-    let (route1, route2) = (cx.props.route.clone(), cx.props.route.clone());
-    let page = state.read().pagination.get_current_page(&route1);
+    let (id1, id2) = (cx.props.id.clone(), cx.props.id.clone());
+    let page = state.read().pagination.get(&id1);
     let max_links = cx.props.links_per_side;
 
     let pages_left = page.checked_sub(1).unwrap_or_default();
@@ -55,7 +55,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-previous {prev_css}",
                 onclick: move |_| {
                     if page - 1 > 0 {
-                        state.write().pagination.set_current_page(&route1, page - 1);
+                        state.write().pagination.set(&id1, page - 1);
                     }
                 },
                 "Previous"
@@ -63,7 +63,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-next",
                 onclick: move |_| {
                     if page + 1 <= cx.props.total_pages {
-                        state.write().pagination.set_current_page(&route2, page + 1);
+                        state.write().pagination.set(&id2, page + 1);
                     }
                 },
                 "Next Page"
@@ -121,16 +121,16 @@ fn PaginationRange<'a>(
 /// PaginationLink provides a clickable pagination button
 ///
 /// ### Properties
-/// * `route: String` routing key used for page lookup
+/// * `id: &'a str` id used for pagination lookup
 #[allow(non_snake_case)]
-fn PaginationLink<'a>(cx: Scope<'a, PaginationProps<'a>>, page: usize) -> Element<'a> {
+fn PaginationLink<'a>(cx: Scope<'a, PaginationProps<'a>>, page: usize) -> Element {
     let state = cx.props.state;
 
     cx.render(rsx! {
         li {
             a { class: "pagination-link",
                 onclick: move |_| {
-                    state.write().pagination.set_current_page(&cx.props.route, page);
+                    state.write().pagination.set(&cx.props.id, page);
                 },
                 format!("{page}")
             }
