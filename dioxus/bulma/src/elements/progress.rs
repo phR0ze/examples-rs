@@ -117,7 +117,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     let (max, value) = state.read().progress.get(cx.props.id);
 
     // Submit to Dioxus scheduler
-    let future = use_future(&cx, (), |_| {
+    use_future(&cx, (), |_| {
         let state = state.clone();
         let id = cx.props.id.to_string();
         let interval = cx.props.interval;

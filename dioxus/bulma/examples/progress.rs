@@ -139,13 +139,28 @@ fn App(cx: Scope) -> Element {
                         state: state,
                         color: Colors::Warning,
                     }
-                    Button {
-                        color: Colors::Danger,
-                        is_light: true,
-                        onclick: move |_| {
-                            //state.write().progress.set(progress4, value4 + 0.05)
-                        },
-                        "Pause progress 4"
+                    if state.read().progress.paused(progress4) {
+                        rsx! {
+                            Button {
+                                color: Colors::Danger,
+                                is_light: true,
+                                onclick: move |_| {
+                                    state.write().progress.resume(progress4);
+                                },
+                                "Resume progress 4"
+                            }
+                        }
+                    } else {
+                        rsx! {
+                            Button {
+                                color: Colors::Danger,
+                                is_light: true,
+                                onclick: move |_| {
+                                    state.write().progress.pause(progress4);
+                                },
+                                "Pause progress 4"
+                            }
+                        }
                     }
                     Button {
                         class: "ml-5".into(),

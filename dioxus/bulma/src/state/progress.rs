@@ -108,6 +108,12 @@ impl ProgressState {
         }
     }
 
+    /// Check if the progress timer is paused
+    /// * `id: &str` id for looking up progress
+    pub fn paused(&self, id: &str) -> bool {
+        self.progress.get(id).unwrap_or_default().paused
+    }
+
     /// Reset progress
     /// * `id: &str` id for creating or resetting progress
     pub fn reset(&mut self, id: &str) {
