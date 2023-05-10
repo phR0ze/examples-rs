@@ -1,5 +1,5 @@
 use bulma::{
-    elements::{Button, Progress},
+    elements::{Button, Progress, ProgressTimed},
     layouts::{Column, Columns, Section},
     prelude::*,
 };
@@ -27,6 +27,7 @@ fn App(cx: Scope) -> Element {
     let progress1 = "progress1";
     let progress2 = "progress2";
     let progress3 = "progress3";
+    let progress4 = "progress4";
     let value1 = state.read().progress.value(progress1);
     let value2 = state.read().progress.value(progress2);
     let value3 = state.read().progress.value(progress3);
@@ -128,6 +129,39 @@ fn App(cx: Scope) -> Element {
                             state.write().progress.complete(progress3);
                         },
                         "Complete progress 3"
+                    }
+                }
+            }
+
+            Columns {
+                Column {
+                    ProgressTimed { id: progress4,
+                        state: state,
+                        color: Colors::Warning,
+                    }
+                    Button {
+                        color: Colors::Danger,
+                        is_light: true,
+                        onclick: move |_| {
+                            //state.write().progress.set(progress4, value4 + 0.05)
+                        },
+                        "Pause progress 4"
+                    }
+                    Button {
+                        class: "ml-5".into(),
+                        color: Colors::Warning,
+                        onclick: move |_| {
+                            state.write().progress.reset(progress4);
+                        },
+                        "Reset progress 4"
+                    }
+                    Button {
+                        class: "ml-5".into(),
+                        color: Colors::Success,
+                        onclick: move |_| {
+                            state.write().progress.complete(progress4);
+                        },
+                        "Complete progress 4"
                     }
                 }
             }
