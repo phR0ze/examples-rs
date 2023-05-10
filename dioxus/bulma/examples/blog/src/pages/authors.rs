@@ -1,4 +1,7 @@
-use crate::content::{self, Generated};
+use crate::{
+    content::{self, Generated},
+    GLOBAL_STATE, ROUTES,
+};
 use bulma::{components::*, dioxus_router::Link, elements::*, layouts::*, prelude::*};
 use rand::{distributions, Rng};
 
@@ -40,10 +43,22 @@ pub fn Authors(cx: Scope) -> Element {
                         }
                     }
                 }
-                progress { class: "progress is-info",
-                    max: "1.0",
-                }
+                RefreshAuthors { }
             }
+        }
+    })
+}
+
+/// By pushing the timed progress bar into a sub-component we can keep the parent component
+/// page from re-rendering over and over. Instead only this component is re-rendered each
+/// time the timer fires.
+#[allow(non_snake_case)]
+pub fn RefreshAuthors(cx: Scope) -> Element {
+    let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
+    cx.render(rsx! {
+        ProgressTimed { id: ROUTES.authors,
+            state: state,
+            color: Colors::Primary,
         }
     })
 }

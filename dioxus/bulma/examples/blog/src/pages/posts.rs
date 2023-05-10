@@ -14,7 +14,7 @@ pub fn Posts(cx: Scope) -> Element {
     let total_pages = 12;
 
     // Generate posts
-    let start_seed = state.read().pagination.get_current_page(ROUTES.posts) * per_page;
+    let start_seed = state.read().pagination.get(ROUTES.posts) * per_page;
     let mut posts =
         (0..per_page).map(|seed_offset| content::PostMeta::generate_from_seed((start_seed + seed_offset) as u64));
 
@@ -38,9 +38,8 @@ pub fn Posts(cx: Scope) -> Element {
                         }
                     }
                 }
-                Pagination{
+                Pagination{ id: ROUTES.posts,
                     state: state,
-                    route: "/posts".into(),
                     total_pages: total_pages,
                 }
             }
