@@ -32,6 +32,10 @@ fn App(cx: Scope) -> Element {
     let value2 = state.read().progress.value(progress2);
     let value3 = state.read().progress.value(progress3);
 
+    // let callback = use_callback!(cx, move |_| async move {
+    //     println!("callback foo");
+    // });
+
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
         Section {
@@ -138,29 +142,6 @@ fn App(cx: Scope) -> Element {
                     ProgressTimed { id: progress4,
                         state: state,
                         color: Colors::Warning,
-                    }
-                    if state.read().progress.paused(progress4) {
-                        rsx! {
-                            Button {
-                                color: Colors::Danger,
-                                is_light: true,
-                                onclick: move |_| {
-                                    state.write().progress.resume(progress4);
-                                },
-                                "Resume progress 4"
-                            }
-                        }
-                    } else {
-                        rsx! {
-                            Button {
-                                color: Colors::Danger,
-                                is_light: true,
-                                onclick: move |_| {
-                                    state.write().progress.pause(progress4);
-                                },
-                                "Pause progress 4"
-                            }
-                        }
                     }
                     Button {
                         class: "ml-5".into(),

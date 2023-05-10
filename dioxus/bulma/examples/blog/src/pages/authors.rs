@@ -56,9 +56,11 @@ pub fn Authors(cx: Scope) -> Element {
 pub fn RefreshAuthors(cx: Scope) -> Element {
     let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
     cx.render(rsx! {
-        ProgressTimed { id: ROUTES.authors,
-            state: state,
-            color: Colors::Primary,
+        Fragment {
+            ProgressTimed { id: ROUTES.authors,
+                state: state,
+                color: Colors::Primary,
+            }
         }
     })
 }

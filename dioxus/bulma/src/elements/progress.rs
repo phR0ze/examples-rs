@@ -67,17 +67,8 @@ pub struct ProgressTimedProps<'a> {
     #[props(!optional)]
     id: &'a str,
 
-    #[props(default = 100)]
-    interval: usize,
-
-    #[props(default = 0.005)]
-    increment: f64,
-
-    #[props(default = 1.0)]
-    max: f64,
-
-    #[props(default = 0.0)]
-    value: f64,
+    #[props(default = 15000)]
+    duration: usize,
 
     #[props(optional)]
     size: Option<Sizes>,
@@ -93,10 +84,7 @@ pub struct ProgressTimedProps<'a> {
 ///
 /// ### Properties
 /// * `id: String` id used for progress state lookup
-/// * `interval: usize` milliseconds to wait before advancing the progress bar
-/// * `increment: f64` quantity to increment the progress bar by
-/// * `max: f64` max value for the progress bar, defaults to 1.0
-/// * `value: f64` current value of the progress bar, defaults to 0.0
+/// * `duration: usize` milliseconds to wait before completing the progress bar, default 15000
 /// * `size: Option<Sizes>` optional CSS size of the progress bar
 /// * `color: Option<Colors>` optional CSS color of the progress bar
 /// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
@@ -106,13 +94,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 
     // Ensure timed progress has been configured
     if !state.read().progress.exists(cx.props.id) {
-        state.write().progress.timed(
-            cx.props.id,
-            cx.props.max,
-            cx.props.value,
-            cx.props.increment,
-            cx.props.interval,
-        );
+        state.write().progress.timed(cx.props.id, chrono::Local::now().timestamp(), cx.props.duration);
     }
     let (max, value) = state.read().progress.get(cx.props.id);
 
@@ -120,11 +102,13 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     use_future(&cx, (), |_| {
         let state = state.clone();
         let id = cx.props.id.to_string();
-        let interval = cx.props.interval;
+        let interval = state.read().progress.interval(&id);
         async move {
             loop {
                 sleep(interval).await;
-                state.write().progress.advance(&id);
+                if state.write().progress.advance(&id) {
+                    println!("completed");
+                }
             }
         }
     });

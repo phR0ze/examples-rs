@@ -1,6 +1,10 @@
 //! Provides progress shared state
 use std::collections::HashMap;
 
+const RESOLUTION: usize = 500;
+const MIN_INTERVAL_MS: usize = 50;
+const DEFAULT_DURATION_MS: usize = 15000;
+
 #[derive(Copy, Clone)]
 struct ProgressMeta {
     // Max progress value
@@ -9,25 +13,21 @@ struct ProgressMeta {
     // Current progress value
     value: f64,
 
-    // Amount to increment the value when advancing if timed
-    increment: f64,
+    // Unix timestamp when progress timer started
+    start: i64,
 
-    // Number of milliseconds to wait before advancing the value if timed
-    interval: usize,
-
-    // Current state of the timer if timed
-    paused: bool,
+    // Duration of the progress bar in milliseconds if timed
+    duration: usize,
 }
 
 impl Default for ProgressMeta {
     fn default() -> Self {
-        ProgressMeta { max: 1.0, value: 0.0, increment: 0.005, interval: 100, paused: false }
-    }
-}
-
-impl Default for &ProgressMeta {
-    fn default() -> Self {
-        &ProgressMeta { max: 1.0, value: 0.0, increment: 0.005, interval: 100, paused: false }
+        ProgressMeta {
+            max: 1.0,
+            value: 0.0,
+            start: chrono::Local::now().timestamp(),
+            duration: DEFAULT_DURATION_MS,
+        }
     }
 }
 
@@ -48,24 +48,23 @@ impl ProgressState {
 
     /// Create timed progress for the given id or reset if already exists
     /// * `id: &str` id for creating or resetting progress
-    /// * `max: f64` the max to use
-    /// * `value: f64` the value to set
-    /// * `increment: f64` amount to increment the value when advancing if timed
-    /// * `interval: usize` milliseconds to wait before advancing the value
-    pub fn timed(&mut self, id: &str, max: f64, value: f64, increment: f64, interval: usize) {
-        self.progress.insert(id.to_string(), ProgressMeta { max, value, increment, interval, paused: false });
+    /// * `start: i64` unix timestamp when the progress was started
+    /// * `duration: usize` milliseconds to wait before progress is complete
+    pub fn timed(&mut self, id: &str, start: i64, duration: usize) {
+        self.progress.insert(id.to_string(), ProgressMeta { start, duration, ..Default::default() });
     }
 
-    /// Advance the progress bar using the set increment if not paused
-    /// * `id: &str` id for creating or resetting progress
+    /// Advance the timed progress bar
+    /// * `id: &str` id for looking up progress
     /// * `returns: bool` true if completed
     pub fn advance(&mut self, id: &str) -> bool {
         let mut result = false;
         if let Some(meta) = self.progress.get_mut(id) {
-            if !meta.paused {
-                if meta.value + meta.increment < meta.max {
-                    meta.value += meta.increment;
-                } else {
+            if meta.value < meta.max {
+                let elapsed = chrono::Local::now().timestamp() - meta.start;
+                meta.value = elapsed as f64 / meta.duration as f64;
+                println!("advance: {}", meta.value);
+                if elapsed >= meta.duration as i64 {
                     meta.value = meta.max;
                     result = true;
                 }
@@ -82,6 +81,13 @@ impl ProgressState {
         }
     }
 
+    /// Get the progress duration for the given id
+    /// * `id: &str` id for looking up progress value
+    /// * returns `duration: usize`
+    pub fn duration(&self, id: &str) -> usize {
+        self.progress.get(id).unwrap_or(&ProgressMeta::default()).duration
+    }
+
     /// Check if the given progress already exists by id
     /// * `id: &str` id for looking up progress
     /// * returns `exists: bool`
@@ -93,43 +99,25 @@ impl ProgressState {
     /// * `id: &str` id for looking up progress max and value
     /// * returns `(max: f64, value: f64)`
     pub fn get(&self, id: &str) -> (f64, f64) {
-        let meta = self.progress.get(id).unwrap_or_default();
-        (meta.max, meta.value)
-    }
-
-    /// Get the progress interval value for the given id
-    /// * `id: &str` id for looking up progress value
-    /// * returns `interval: usize` milliseconds to wait before advancing
-    pub fn interval(&self, id: &str) -> usize {
-        self.progress.get(id).unwrap_or_default().interval
-    }
-
-    /// Pause timer from advancing the progress value
-    /// * `id: &str` id for looking up progress
-    pub fn pause(&mut self, id: &str) {
-        if let Some(meta) = self.progress.get_mut(id) {
-            meta.paused = true;
+        if let Some(meta) = self.progress.get(id) {
+            (meta.max, meta.value)
+        } else {
+            let meta = ProgressMeta::default();
+            (meta.max, meta.value)
         }
     }
 
-    /// Check if the progress timer is paused
-    /// * `id: &str` id for looking up progress
-    pub fn paused(&self, id: &str) -> bool {
-        self.progress.get(id).unwrap_or_default().paused
+    /// Get the interval for the given progress timer
+    /// * `id: &str` id for looking up progress value
+    /// * returns `interval: usize` milliseconds to wait before firing
+    pub fn interval(&self, id: &str) -> usize {
+        (self.duration(id) / RESOLUTION).min(MIN_INTERVAL_MS)
     }
 
     /// Reset progress
     /// * `id: &str` id for creating or resetting progress
     pub fn reset(&mut self, id: &str) {
-        self.set(id, 0.0);
-    }
-
-    /// Resume timer to continue advancing the progress value
-    /// * `id: &str` id for looking up progress
-    pub fn resume(&mut self, id: &str) {
-        if let Some(meta) = self.progress.get_mut(id) {
-            meta.paused = false;
-        }
+        self.timed(id, chrono::Local::now().timestamp(), self.duration(id));
     }
 
     /// Set the progress for the given id
@@ -138,16 +126,21 @@ impl ProgressState {
     pub fn set(&mut self, id: &str, value: f64) {
         if let Some(meta) = self.progress.get_mut(id) {
             meta.value = value;
-        } else {
-            self.progress.insert(id.to_string(), ProgressMeta { value, ..Default::default() });
         }
+    }
+
+    /// Get the progress start timestamp for the given id
+    /// * `id: &str` id for looking up progress value
+    /// * returns `start: i64`
+    pub fn start(&self, id: &str) -> i64 {
+        self.progress.get(id).unwrap_or(&ProgressMeta::default()).start
     }
 
     /// Get the progress value for the given id
     /// * `id: &str` id for looking up progress value
     /// * returns `value: f64`
     pub fn value(&self, id: &str) -> f64 {
-        self.progress.get(id).unwrap_or_default().value
+        self.progress.get(id).unwrap_or(&ProgressMeta::default()).value
     }
 }
 
