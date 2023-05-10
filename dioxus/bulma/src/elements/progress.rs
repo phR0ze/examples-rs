@@ -1,6 +1,7 @@
 use crate::{state::GlobalState, utils::*};
 use dioxus::prelude::*;
 use fermi::UseAtomRef;
+use instant::Instant;
 
 #[allow(non_snake_case)]
 #[derive(Props)]
@@ -68,7 +69,7 @@ pub struct ProgressTimedProps<'a> {
     id: &'a str,
 
     #[props(default = 15000)]
-    duration: usize,
+    duration: u64,
 
     #[props(optional)]
     size: Option<Sizes>,
@@ -94,7 +95,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 
     // Ensure timed progress has been configured
     if !state.read().progress.exists(cx.props.id) {
-        state.write().progress.timed(cx.props.id, chrono::Local::now().timestamp(), cx.props.duration);
+        state.write().progress.timed(cx.props.id, Instant::now(), cx.props.duration);
     }
     let (max, value) = state.read().progress.get(cx.props.id);
 
@@ -132,11 +133,11 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 }
 
 #[cfg(target_family = "wasm")]
-async fn sleep(interval: usize) {
+async fn sleep(interval: u64) {
     gloo_timers::future::TimeoutFuture::new(interval as u32).await;
 }
 
 #[cfg(any(windows, unix))]
-async fn sleep(interval: usize) {
-    tokio::time::sleep(tokio::time::Duration::from_millis(interval as u64)).await;
+async fn sleep(interval: u64) {
+    tokio::time::sleep(tokio::time::Duration::from_millis(interval)).await;
 }
