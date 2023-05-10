@@ -21,13 +21,13 @@ struct ProgressMeta {
 
 impl Default for ProgressMeta {
     fn default() -> Self {
-        ProgressMeta { max: 1.0, value: 0.0, increment: 0.01, interval: 250, paused: false }
+        ProgressMeta { max: 1.0, value: 0.0, increment: 0.005, interval: 100, paused: false }
     }
 }
 
 impl Default for &ProgressMeta {
     fn default() -> Self {
-        &ProgressMeta { max: 1.0, value: 0.0, increment: 0.01, interval: 250, paused: false }
+        &ProgressMeta { max: 1.0, value: 0.0, increment: 0.005, interval: 100, paused: false }
     }
 }
 

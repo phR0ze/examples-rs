@@ -11,10 +11,11 @@ dioxus-free-icons = { version = "0.6.0", features = ["font-awesome-brands", "fon
 
 [target.'cfg(any(unix, windows))'.dependencies]
 dioxus-desktop = { version = "0.3.0", features = ["transparent"] }
-tokio = { version = "1.26.0", features = ["time"], optional = true }
+tokio = { version = "1.28.0", features = ["time"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 dioxus-web = "0.3.1"
+gloo-timers = { version = "0.2.6", features = ["futures"], optional = true }
 
 [dev-dependencies]
 getrandom = { version = "0.2", features = ["js"] }

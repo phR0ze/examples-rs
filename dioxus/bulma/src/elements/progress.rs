@@ -67,10 +67,10 @@ pub struct ProgressTimedProps<'a> {
     #[props(!optional)]
     id: &'a str,
 
-    #[props(default = 250)]
+    #[props(default = 100)]
     interval: usize,
 
-    #[props(default = 0.01)]
+    #[props(default = 0.005)]
     increment: f64,
 
     #[props(default = 1.0)]
@@ -116,18 +116,15 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     }
     let (max, value) = state.read().progress.get(cx.props.id);
 
-    // Spawn background thread to time the progress
-    use_future(&cx, (), |_| {
-        let id = cx.props.id;
+    // Submit to Dioxus scheduler
+    let future = use_future(&cx, (), |_| {
         let state = state.clone();
+        let id = cx.props.id.to_string();
+        let interval = cx.props.interval;
         async move {
             loop {
-                // if let Some(hide_after) = item.hide_after {
-                //     if chrono::Local::now().timestamp() >= hide_after {
-                //         toast_manager.write().list.remove(id);
-                //     }
-                // }
-                // time_sleep(100).await;
+                time_sleep(interval).await;
+                state.write().progress.advance(&id);
             }
         }
     });
@@ -155,7 +152,7 @@ async fn time_sleep(interval: usize) {
     gloo_timers::future::TimeoutFuture::new(interval as u32).await;
 }
 
-// #[cfg(any(windows, unix))]
-// async fn time_sleep(interval: usize) {
-//     tokio::time::sleep(tokio::time::Duration::from_millis(interval as u64)).await;
-// }
+#[cfg(any(windows, unix))]
+async fn time_sleep(interval: usize) {
+    tokio::time::sleep(tokio::time::Duration::from_millis(interval as u64)).await;
+}
