@@ -2,7 +2,13 @@ use crate::{
     content::{self, Generated},
     GLOBAL_STATE, ROUTES,
 };
-use bulma::{components::*, dioxus_router::Link, elements::*, layouts::*, prelude::*};
+use bulma::{
+    components::*,
+    dioxus_router::{use_router, Link},
+    elements::*,
+    layouts::*,
+    prelude::*,
+};
 use rand::{distributions, Rng};
 
 #[allow(non_snake_case)]
@@ -11,6 +17,7 @@ pub fn Authors(cx: Scope) -> Element {
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
     let authors: Vec<content::Author> =
         seeds.iter().map(|&seed| content::Author::generate_from_seed(seed)).collect();
+    let id = format!("{}/{}:{}", ROUTES.authors, seeds[0], seeds[1]);
 
     cx.render(rsx! {
         Container {
@@ -43,24 +50,34 @@ pub fn Authors(cx: Scope) -> Element {
                         }
                     }
                 }
-                RefreshAuthors { }
+                RefreshAuthors { id: id }
             }
         }
     })
+}
+
+#[allow(non_snake_case)]
+#[derive(Props, PartialEq)]
+pub struct RefreshAuthorsProps {
+    #[props(!optional)]
+    id: String,
 }
 
 /// By pushing the timed progress bar into a sub-component we can keep the parent component
 /// page from re-rendering over and over. Instead only this component is re-rendered each
 /// time the timer fires.
 #[allow(non_snake_case)]
-pub fn RefreshAuthors(cx: Scope) -> Element {
+pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
     let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
+    // if state.read().progress.completed(ROUTES.authors) {
+    //     println!("living!");
+    //     state.write().progress.remove(ROUTES.authors);
+    //     use_router(cx).replace_route(ROUTES.authors, None, None)
+    // }
     cx.render(rsx! {
-        Fragment {
-            ProgressTimed { id: ROUTES.authors,
-                state: state,
-                color: Colors::Primary,
-            }
+        ProgressTimed { id: &cx.props.id,
+            state: state,
+            color: Colors::Primary,
         }
     })
 }

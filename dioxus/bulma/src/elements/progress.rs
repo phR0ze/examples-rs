@@ -81,7 +81,9 @@ pub struct ProgressTimedProps<'a> {
     state: &'a UseAtomRef<GlobalState>,
 }
 
-/// Progress bar
+/// Timed progress bar provides will automatically increment every 50ms until it hits 100%
+/// of the specified duration.  Unique ids must be used or you'll have cross timer updates
+/// happening
 ///
 /// ### Properties
 /// * `id: String` id used for progress state lookup
@@ -93,7 +95,7 @@ pub struct ProgressTimedProps<'a> {
 pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     let state = cx.props.state;
 
-    // Ensure timed progress has been configured
+    // Configure timed progress
     if !state.read().progress.exists(cx.props.id) {
         state.write().progress.timed(cx.props.id, Instant::now(), cx.props.duration);
     }
@@ -108,7 +110,8 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
             loop {
                 sleep(interval).await;
                 if state.write().progress.advance(&id) {
-                    println!("completed");
+                    // state.write().progress.remove(&id);
+                    break;
                 }
             }
         }

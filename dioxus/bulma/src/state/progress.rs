@@ -34,20 +34,24 @@ pub struct ProgressState {
 }
 
 impl ProgressState {
-    /// Create progress for the given id or reset if already exists
+    /// Create progress for the given id or reset if already exists and is completed
     /// * `id: &str` id for creating or resetting progress
     /// * `max: f64` the max to use
     /// * `value: f64` the value to set
     pub fn new(&mut self, id: &str, max: f64, value: f64) {
-        self.progress.insert(id.to_string(), ProgressMeta { max, value, ..Default::default() });
+        if !self.exists(id) || self.completed(id) {
+            self.progress.insert(id.to_string(), ProgressMeta { max, value, ..Default::default() });
+        }
     }
 
-    /// Create timed progress for the given id or reset if already exists
+    /// Create timed progress for the given id or reset if already exists and is completed
     /// * `id: &str` id for creating or resetting progress
     /// * `start: Instant` start time for the progress timer
     /// * `duration: u64` milliseconds to wait before progress is complete
     pub fn timed(&mut self, id: &str, start: Instant, duration: u64) {
-        self.progress.insert(id.to_string(), ProgressMeta { start, duration, ..Default::default() });
+        if !self.exists(id) || self.completed(id) {
+            self.progress.insert(id.to_string(), ProgressMeta { start, duration, ..Default::default() });
+        }
     }
 
     /// Advance the timed progress bar
@@ -74,6 +78,17 @@ impl ProgressState {
         if let Some(meta) = self.progress.get_mut(id) {
             meta.value = meta.max;
         }
+    }
+
+    /// Check if the progress bar is completed
+    /// * `id: &str` id for looking up progress
+    /// * returns `completed: bool` true if completed
+    pub fn completed(&self, id: &str) -> bool {
+        let mut result = false;
+        if let Some(meta) = self.progress.get(id) {
+            result = meta.value >= meta.max;
+        }
+        result
     }
 
     /// Get the progress duration for the given id
@@ -107,6 +122,12 @@ impl ProgressState {
     /// * returns `interval: u64` milliseconds to wait before firing
     pub fn interval(&self, id: &str) -> u64 {
         (self.duration(id) / RESOLUTION).min(MIN_INTERVAL_MS)
+    }
+
+    /// Remove the indicated progress
+    /// * `id: &str` id for lookup up progress
+    pub fn remove(&mut self, id: &str) {
+        self.progress.remove(id);
     }
 
     /// Reset progress
