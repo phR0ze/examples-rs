@@ -1,4 +1,4 @@
-use crate::{state::GlobalState, utils::*};
+use crate::{state::*, utils::*};
 use dioxus::prelude::*;
 use fermi::UseAtomRef;
 use instant::Instant;
@@ -22,7 +22,7 @@ pub struct ProgressProps<'a> {
     color: Option<Colors>,
 
     #[props(!optional)]
-    state: &'a UseAtomRef<GlobalState>,
+    state: &'a UseAtomRef<ProgressState>,
 }
 
 /// Progress bar
@@ -36,13 +36,13 @@ pub struct ProgressProps<'a> {
 /// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
 #[allow(non_snake_case)]
 pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
-    let state = cx.props.state;
+    let progress = cx.props.state;
 
     // Ensure progress has been configured
-    if !state.read().progress.exists(cx.props.id) {
-        state.write().progress.new(cx.props.id, cx.props.max, cx.props.value);
+    if !progress.read().exists(cx.props.id) {
+        progress.write().new(cx.props.id, cx.props.max, cx.props.value);
     }
-    let (max, value) = state.read().progress.get(cx.props.id);
+    let (max, value) = progress.read().get(cx.props.id);
 
     // Configure class
     let mut class = "progress".to_string();
@@ -78,7 +78,10 @@ pub struct ProgressTimedProps<'a> {
     color: Option<Colors>,
 
     #[props(!optional)]
-    state: &'a UseAtomRef<GlobalState>,
+    state: &'a UseAtomRef<ProgressState>,
+
+    #[props(optional)]
+    oncomplete: Option<EventHandler<'a, ()>>,
 }
 
 /// Timed progress bar provides will automatically increment every 50ms until it hits 100%
@@ -93,27 +96,30 @@ pub struct ProgressTimedProps<'a> {
 /// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
 #[allow(non_snake_case)]
 pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
-    let state = cx.props.state;
+    let progress = cx.props.state;
 
     // Configure timed progress
-    if !state.read().progress.exists(cx.props.id) {
-        state.write().progress.timed(cx.props.id, Instant::now(), cx.props.duration);
+    if !progress.read().exists(cx.props.id) {
+        progress.write().timed(cx.props.id, Instant::now(), cx.props.duration);
     }
-    let (max, value) = state.read().progress.get(cx.props.id);
+    let (max, value) = progress.read().get(cx.props.id);
 
     // Submit to Dioxus scheduler
     use_future(&cx, (), |_| {
-        let state = state.clone();
+        let progress = progress.clone();
         let id = cx.props.id.to_string();
-        let interval = state.read().progress.interval(&id);
+        let interval = progress.read().interval(&id);
+        // let oncomplete = cx.props.oncomplete.clone();
         async move {
             loop {
                 sleep(interval).await;
-                if state.write().progress.advance(&id) {
+                if progress.write().advance(&id) {
                     // don't clean up the timer as callers need to know when completed
+                    //cx.props.oncomplete.as_ref().map(|x| x.call(()));
                     break;
                 }
             }
+            println!("goodbye!");
         }
     });
 

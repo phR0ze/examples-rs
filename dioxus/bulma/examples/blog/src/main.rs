@@ -8,7 +8,8 @@ use bulma::{
     prelude::*,
 };
 
-static GLOBAL_STATE: fermi::AtomRef<GlobalState> = |_| GlobalState::default();
+static PROGRESS_STATE: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static PAGINATION_STATE: fermi::AtomRef<PaginationState> = |_| PaginationState::default();
 
 struct AppRoutes<'a> {
     pub root: &'a str,
@@ -37,7 +38,6 @@ fn main() {
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     fermi::use_init_atom_root(&cx);
-    //let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },

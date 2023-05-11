@@ -67,6 +67,8 @@ impl ProgressState {
                     meta.value = meta.max;
                     result = true;
                 }
+            } else {
+                result = true;
             }
         }
         result

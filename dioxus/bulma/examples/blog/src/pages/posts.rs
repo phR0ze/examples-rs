@@ -1,12 +1,12 @@
 use crate::{
     content::{self, Generated},
-    GLOBAL_STATE, ROUTES,
+    PAGINATION_STATE, ROUTES,
 };
 use bulma::{components::*, elements::*, layouts::*, prelude::*};
 
 #[allow(non_snake_case)]
 pub fn Posts(cx: Scope) -> Element {
-    let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
+    let pagination = fermi::use_atom_ref(&cx, PAGINATION_STATE);
 
     let per_page = 9;
     let cols = 3;
@@ -14,7 +14,7 @@ pub fn Posts(cx: Scope) -> Element {
     let total_pages = 12;
 
     // Generate posts
-    let start_seed = state.read().pagination.get(ROUTES.posts) * per_page;
+    let start_seed = pagination.read().get(ROUTES.posts) * per_page;
     let mut posts =
         (0..per_page).map(|seed_offset| content::PostMeta::generate_from_seed((start_seed + seed_offset) as u64));
 
@@ -39,7 +39,7 @@ pub fn Posts(cx: Scope) -> Element {
                     }
                 }
                 Pagination{ id: ROUTES.posts,
-                    state: state,
+                    state: pagination,
                     total_pages: total_pages,
                 }
             }

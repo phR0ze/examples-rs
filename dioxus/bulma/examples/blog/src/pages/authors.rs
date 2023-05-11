@@ -1,6 +1,6 @@
 use crate::{
     content::{self, Generated},
-    GLOBAL_STATE, ROUTES,
+    PROGRESS_STATE, ROUTES,
 };
 use bulma::{
     components::*,
@@ -71,16 +71,16 @@ pub struct RefreshAuthorsProps {
 #[allow(non_snake_case)]
 pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
     println!("render refresh");
-    let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
-    if state.read().progress.completed(&cx.props.id) {
+    let progress = fermi::use_atom_ref(&cx, PROGRESS_STATE);
+    if progress.read().completed(&cx.props.id) {
         println!("completed!");
         // Write will trigger one final refresh of this component
-        state.write().progress.remove(&cx.props.id);
+        progress.write().remove(&cx.props.id);
         use_router(cx).replace_route(ROUTES.authors, None, None)
     }
     cx.render(rsx! {
         ProgressTimed { id: &cx.props.id,
-            state: state,
+            state: progress,
             color: Colors::Primary,
         }
     })
