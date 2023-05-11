@@ -110,7 +110,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
             loop {
                 sleep(interval).await;
                 if state.write().progress.advance(&id) {
-                    // state.write().progress.remove(&id);
+                    // don't clean up the timer as callers need to know when completed
                     break;
                 }
             }

@@ -13,6 +13,8 @@ use rand::{distributions, Rng};
 
 #[allow(non_snake_case)]
 pub fn Authors(cx: Scope) -> Element {
+    println!("render authors page");
+
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
     let authors: Vec<content::Author> =
@@ -68,12 +70,14 @@ pub struct RefreshAuthorsProps {
 /// time the timer fires.
 #[allow(non_snake_case)]
 pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
+    println!("render refresh");
     let state = fermi::use_atom_ref(&cx, GLOBAL_STATE);
-    // if state.read().progress.completed(ROUTES.authors) {
-    //     println!("living!");
-    //     state.write().progress.remove(ROUTES.authors);
-    //     use_router(cx).replace_route(ROUTES.authors, None, None)
-    // }
+    if state.read().progress.completed(&cx.props.id) {
+        println!("completed!");
+        // Write will trigger one final refresh of this component
+        state.write().progress.remove(&cx.props.id);
+        use_router(cx).replace_route(ROUTES.authors, None, None)
+    }
     cx.render(rsx! {
         ProgressTimed { id: &cx.props.id,
             state: state,

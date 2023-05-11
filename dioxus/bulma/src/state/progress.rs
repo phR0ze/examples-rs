@@ -133,7 +133,10 @@ impl ProgressState {
     /// Reset progress
     /// * `id: &str` id for creating or resetting progress
     pub fn reset(&mut self, id: &str) {
-        self.timed(id, Instant::now(), self.duration(id));
+        self.progress.insert(
+            id.to_string(),
+            ProgressMeta { start: Instant::now(), duration: self.duration(id), ..Default::default() },
+        );
     }
 
     /// Set the progress for the given id
