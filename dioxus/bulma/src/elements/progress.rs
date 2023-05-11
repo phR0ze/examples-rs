@@ -33,7 +33,7 @@ pub struct ProgressProps<'a> {
 /// * `value: f64` current value of the progress bar, defaults to 0.0
 /// * `size: Option<Sizes>` optional CSS size of the progress bar
 /// * `color: Option<Colors>` optional CSS color of the progress bar
-/// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
+/// * `state: &'a UseAtomRef<ProgressState>` fermi state reference for progress tracking
 #[allow(non_snake_case)]
 pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
     let progress = cx.props.state;
@@ -93,9 +93,11 @@ pub struct ProgressTimedProps<'a> {
 /// * `duration: usize` milliseconds to wait before completing the progress bar, default 15000
 /// * `size: Option<Sizes>` optional CSS size of the progress bar
 /// * `color: Option<Colors>` optional CSS color of the progress bar
-/// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
+/// * `state: &'a UseAtomRef<ProgressState>` fermi state reference for progress tracking
+/// * `completed: Option<&'a UseAtomRef<bool>>` optional completed signal for listeners
 #[allow(non_snake_case)]
 pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
+    println!("progress timed");
     let state = cx.props.state;
 
     // Configure timed progress
@@ -106,7 +108,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 
     // Submit to Dioxus scheduler
     use_future(&cx, (), |_| {
-        let state = state.clone();
+        to_owned![state];
         let id = cx.props.id.to_string();
         let completed = cx.props.completed.and_then(|x| Some(x.clone()));
         let interval = state.read().interval(&id);

@@ -25,7 +25,7 @@ fn App(cx: Scope) -> Element {
     fermi::use_init_atom_root(&cx);
 
     // When the ProgressExamples sets the shared state `completed` to true it will
-    // trigger Dioxus to re-render this i.e. `App` component.
+    // trigger Dioxus to re-render this (i.e. `App`) component.
     let signal_update = fermi::use_atom_ref(&cx, |_| false);
 
     cx.render(rsx! {
@@ -46,7 +46,6 @@ pub struct ProgressExamplesProps<'a> {
 // rendering calls separately from the the parent component
 #[allow(non_snake_case)]
 fn ProgressExamples<'a>(cx: Scope<'a, ProgressExamplesProps<'a>>) -> Element {
-    println!("render progress examples");
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE);
 
     let progress1 = "progress1";
