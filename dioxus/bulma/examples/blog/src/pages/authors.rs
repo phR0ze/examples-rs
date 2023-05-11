@@ -15,6 +15,9 @@ use rand::{distributions, Rng};
 pub fn Authors(cx: Scope) -> Element {
     println!("render authors page");
 
+    // Configure a signal that when set to true will trigger this component to re-render
+    let signal_update = fermi::use_atom_ref(&cx, |_| false);
+
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
     let authors: Vec<content::Author> =
@@ -52,24 +55,24 @@ pub fn Authors(cx: Scope) -> Element {
                         }
                     }
                 }
-                RefreshAuthors { id: id }
+                RefreshAuthors { id: id, completed: signal_update }
             }
         }
     })
 }
 
 #[allow(non_snake_case)]
-#[derive(Props, PartialEq)]
-pub struct RefreshAuthorsProps {
-    #[props(!optional)]
+#[derive(Props)]
+pub struct RefreshAuthorsProps<'a> {
     id: String,
+    completed: &'a fermi::UseAtomRef<bool>,
 }
 
 /// By pushing the timed progress bar into a sub-component we can keep the parent component
 /// page from re-rendering over and over. Instead only this component is re-rendered each
 /// time the timer fires.
 #[allow(non_snake_case)]
-pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
+pub fn RefreshAuthors<'a>(cx: Scope<'a, RefreshAuthorsProps<'a>>) -> Element {
     println!("render refresh");
     let progress = fermi::use_atom_ref(&cx, PROGRESS_STATE);
     if progress.read().completed(&cx.props.id) {
@@ -82,6 +85,7 @@ pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
         ProgressTimed { id: &cx.props.id,
             state: progress,
             color: Colors::Primary,
+            completed: cx.props.completed.into(),
         }
     })
 }

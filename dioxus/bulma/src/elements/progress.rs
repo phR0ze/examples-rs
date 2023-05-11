@@ -1,6 +1,6 @@
 use crate::{state::*, utils::*};
 use dioxus::prelude::*;
-use fermi::UseAtomRef;
+use fermi::{use_atom_ref, AtomRef, UseAtomRef};
 use instant::Instant;
 
 #[allow(non_snake_case)]
@@ -22,7 +22,7 @@ pub struct ProgressProps<'a> {
     color: Option<Colors>,
 
     #[props(!optional)]
-    state: &'a UseAtomRef<ProgressState>,
+    state: &'a fermi::UseAtomRef<ProgressState>,
 }
 
 /// Progress bar
@@ -81,7 +81,7 @@ pub struct ProgressTimedProps<'a> {
     state: &'a UseAtomRef<ProgressState>,
 
     #[props(optional)]
-    oncomplete: Option<EventHandler<'a, ()>>,
+    completed: Option<&'a UseAtomRef<bool>>,
 }
 
 /// Timed progress bar provides will automatically increment every 50ms until it hits 100%
@@ -96,25 +96,27 @@ pub struct ProgressTimedProps<'a> {
 /// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
 #[allow(non_snake_case)]
 pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
-    let progress = cx.props.state;
+    let state = cx.props.state;
 
     // Configure timed progress
-    if !progress.read().exists(cx.props.id) {
-        progress.write().timed(cx.props.id, Instant::now(), cx.props.duration);
+    if !state.read().exists(cx.props.id) {
+        state.write().timed(cx.props.id, Instant::now(), cx.props.duration);
     }
-    let (max, value) = progress.read().get(cx.props.id);
+    let (max, value) = state.read().get(cx.props.id);
 
     // Submit to Dioxus scheduler
     use_future(&cx, (), |_| {
-        let progress = progress.clone();
+        let state = state.clone();
         let id = cx.props.id.to_string();
-        let interval = progress.read().interval(&id);
-        // let oncomplete = cx.props.oncomplete.clone();
+        let completed = cx.props.completed.and_then(|x| Some(x.clone()));
+        let interval = state.read().interval(&id);
         async move {
             loop {
                 sleep(interval).await;
-                if progress.write().advance(&id) {
-                    // don't clean up the timer as callers need to know when completed
+                if state.write().advance(&id) {
+                    if let Some(signal) = completed {
+                        signal.set(true);
+                    }
                     //cx.props.oncomplete.as_ref().map(|x| x.call(()));
                     break;
                 }

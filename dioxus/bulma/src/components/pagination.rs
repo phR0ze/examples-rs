@@ -33,9 +33,9 @@ pub struct PaginationProps<'a> {
 /// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
 #[allow(non_snake_case)]
 pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
-    let pagination = cx.props.state;
+    let state = cx.props.state;
     let (id1, id2) = (cx.props.id.clone(), cx.props.id.clone());
-    let page = pagination.read().get(&id1);
+    let page = state.read().get(&id1);
     let max_links = cx.props.links_per_side;
 
     let pages_left = page.checked_sub(1).unwrap_or_default();
@@ -55,7 +55,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-previous {prev_css}",
                 onclick: move |_| {
                     if page - 1 > 0 {
-                        pagination.write().set(&id1, page - 1);
+                        state.write().set(&id1, page - 1);
                     }
                 },
                 "Previous"
@@ -63,7 +63,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-next",
                 onclick: move |_| {
                     if page + 1 <= cx.props.total_pages {
-                        pagination.write().set(&id2, page + 1);
+                        state.write().set(&id2, page + 1);
                     }
                 },
                 "Next Page"
@@ -124,13 +124,13 @@ fn PaginationRange<'a>(
 /// * `id: &'a str` id used for pagination lookup
 #[allow(non_snake_case)]
 fn PaginationLink<'a>(cx: Scope<'a, PaginationProps<'a>>, page: usize) -> Element {
-    let pagination = cx.props.state;
+    let state = cx.props.state;
 
     cx.render(rsx! {
         li {
             a { class: "pagination-link",
                 onclick: move |_| {
-                    pagination.write().set(&cx.props.id, page);
+                    state.write().set(&cx.props.id, page);
                 },
                 format!("{page}")
             }
