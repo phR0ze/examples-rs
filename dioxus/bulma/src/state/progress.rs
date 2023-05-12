@@ -129,6 +129,7 @@ impl ProgressState {
     /// Reset the progress value
     pub fn reset(&mut self) {
         self.value = 0.0;
+        self.running = false;
         self.signaled = false;
         if self.start.is_some() {
             self.start = Some(Instant::now());

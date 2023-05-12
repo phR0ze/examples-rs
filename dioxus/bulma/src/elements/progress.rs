@@ -108,24 +108,25 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 
     // Configure timed progress
     if !state.read().running() {
+        log::trace!("ProgressTimed[{}]: created", cx.props.id);
         state.write().timed(cx.props.id, cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
 
     // Submit to Dioxus scheduler which only allows one instance of this future at a time.
     // However if the dependency id changes the future will be regenerated.
-    let future = use_future(&cx, (), |_| {
+    let id = cx.props.id.to_string();
+    let future = use_future(&cx, &id, |id| {
         to_owned![state];
-        log::debug!("Future[{}]: created", state.read().id());
+        log::debug!("Future[{}]: created", &id);
         async move {
             loop {
                 sleep(state.read().interval()).await;
                 if state.write().advance() {
-                    //cx.props.oncomplete.as_ref().map(|x| x.call(()));
                     break;
                 }
             }
-            log::debug!("Future[{}]: completed", state.read().id());
+            log::debug!("Future[{}]: completed", &id);
         }
     });
 
@@ -133,7 +134,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     // ProgressTimed out is called
     if future.value().is_some() {
         log::debug!("Future[{}]: canceled", cx.props.id);
-        future.cancel(cx);
+        future.cancel(&cx);
     }
 
     // Configure CSS class

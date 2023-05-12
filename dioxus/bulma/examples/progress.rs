@@ -149,16 +149,16 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE3);
     log::trace!("ProgressExample[{}]: render", cx.props.id);
 
-    // Reset the timer if its already completed and signaled
-    if state.read().completed() {
-        log::debug!("ProgressExample[{}]: reset timer", cx.props.id);
-        state.write().reset();
+    // Test id changes
+    let mut id = cx.props.id;
+    if state.read().id() != "" {
+        id = "5";
     }
 
     cx.render(rsx! {
         Section { class: "py-2".into(),
             SubTitle { "Timed 1 sec progress" }
-            ProgressTimed { id: cx.props.id,
+            ProgressTimed { id: id,
                 state: state,
                 duration: 1000,
                 color: Colors::Danger,
