@@ -1,10 +1,15 @@
-use bulma::{
-    elements::{Button, Progress, ProgressTimed},
-    layouts::{Column, Columns, Section},
-    prelude::*,
-};
+use bulma::{elements::*, layouts::*, prelude::*};
 
-static PROGRESS_STATE: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+// Only unique component function calls get unique rendering. If you use the same
+// component multiple times in the same context they will all be re-rendered at the same time;
+// while unique component names will only be rendered when their context changes.
+//
+// A unique fermi instance e.g. static STATE1: AtomRef<State> = |_| State::default() and a
+// unique component are both required for the most granular rendering control
+static PROGRESS_STATE1: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static PROGRESS_STATE2: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static PROGRESS_STATE3: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static PROGRESS_STATE4: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 
 fn main() {
     dioxus_desktop::launch_cfg(
@@ -21,165 +26,185 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    println!("render app");
+    println!("render: app");
     fermi::use_init_atom_root(&cx);
 
     // When the ProgressExamples sets the shared state `completed` to true it will
     // trigger Dioxus to re-render this (i.e. `App`) component.
-    let signal_update = fermi::use_atom_ref(&cx, |_| false);
+    let signal1 = fermi::use_atom_ref(&cx, |_| false);
+    let signal2 = fermi::use_atom_ref(&cx, |_| false);
+    let signal3 = fermi::use_atom_ref(&cx, |_| false);
+    let signal4 = fermi::use_atom_ref(&cx, |_| false);
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-        ProgressExamples {
-            completed: signal_update,
-        }
+        ProgressExample1 { id: "1" completed: signal1 }
+        ProgressExample2 { id: "2" completed: signal2 }
+        ProgressExample3 { id: "3", completed: signal3 }
+        //ProgressExample4 { id: "2" }
     })
 }
 
 #[allow(non_snake_case)]
 #[derive(Props)]
-pub struct ProgressExamplesProps<'a> {
+pub struct ProgressExampleProps<'a> {
+    #[props(!optional)]
+    id: &'a str,
+
+    #[props(!optional)]
     completed: &'a fermi::UseAtomRef<bool>,
 }
 
-// By splitting out the progress examples into a separate component we can track
-// rendering calls separately from the the parent component
 #[allow(non_snake_case)]
-fn ProgressExamples<'a>(cx: Scope<'a, ProgressExamplesProps<'a>>) -> Element {
-    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE);
+fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
+    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE1);
+    println!("render: example {}", cx.props.id);
 
-    let progress1 = "progress1";
-    let progress2 = "progress2";
-    let progress3 = "progress3";
-    let progress4 = "progress4";
-    let value1 = state.read().value(progress1);
-    let value2 = state.read().value(progress2);
-    let value3 = state.read().value(progress3);
+    // Reset progress on completion
+    // if state.read().completed() {
+    //     state.write().reset();
+    // }
+
+    let value = state.read().value();
 
     cx.render(rsx! {
         Section {
-            Columns {
-                Column {
-                    Progress { id: progress1,
-                        state: state,
-                        color: Colors::Primary,
-                    }
-                    Button {
-                        color: Colors::Primary,
-                        onclick: move |_| {
-                            state.write().set(progress1, value1 + 0.05)
-                        },
-                        "Increment progress 1"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Warning,
-                        onclick: move |_| {
-                            state.write().reset(progress1);
-                        },
-                        "Reset progress 1"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Success,
-                        onclick: move |_| {
-                            state.write().complete(progress1);
-                        },
-                        "Complete progress 1"
-                    }
-                }
+            Progress { id: cx.props.id,
+                state: state,
+                color: Colors::Primary,
+                completed: cx.props.completed,
             }
-
-            Columns {
-                Column {
-                    Progress { id: progress2,
-                        state: state,
-                        color: Colors::Info,
-                    }
-                    Button {
-                        color: Colors::Info,
-                        onclick: move |_| {
-                            state.write().set(progress2, value2 + 0.05)
-                        },
-                        "Increment progress 2"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Warning,
-                        onclick: move |_| {
-                            state.write().reset(progress2);
-                        },
-                        "Reset progress 2"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Success,
-                        onclick: move |_| {
-                            state.write().complete(progress2);
-                        },
-                        "Complete progress 2"
-                    }
-                }
+            Button {
+                color: Colors::Primary,
+                onclick: move |_| {
+                    state.write().set(value + 0.05)
+                },
+                "Increment progress {cx.props.id}"
             }
-
-            Columns {
-                Column {
-                    Progress { id: progress3,
-                        state: state,
-                        color: Colors::Danger,
-                        value: 0.5,
-                    }
-                    Button {
-                        color: Colors::Info,
-                        is_light: true,
-                        onclick: move |_| {
-                            state.write().set(progress3, value3 + 0.05)
-                        },
-                        "Increment progress 3"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Warning,
-                        onclick: move |_| {
-                            state.write().reset(progress3);
-                        },
-                        "Reset progress 3"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Success,
-                        onclick: move |_| {
-                            state.write().complete(progress3);
-                        },
-                        "Complete progress 3"
-                    }
-                }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Warning,
+                onclick: move |_| {
+                    state.write().reset();
+                },
+                "Reset progress {cx.props.id}"
             }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Success,
+                onclick: move |_| {
+                    state.write().complete();
+                },
+                "Complete progress {cx.props.id}"
+            }
+        }
+    })
+}
 
-            Columns {
-                Column {
-                    ProgressTimed { id: progress4,
-                        state: state,
-                        color: Colors::Warning,
-                        completed: cx.props.completed.into(),
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Warning,
-                        onclick: move |_| {
-                            state.write().reset(progress4);
-                        },
-                        "Reset progress 4"
-                    }
-                    Button {
-                        class: "ml-5".into(),
-                        color: Colors::Success,
-                        onclick: move |_| {
-                            state.write().complete(progress4);
-                        },
-                        "Complete progress 4"
-                    }
-                }
+#[allow(non_snake_case)]
+fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
+    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE2);
+    let value = state.read().value();
+    println!("render: example {}", cx.props.id);
+
+    cx.render(rsx! {
+        Section {
+            Progress { id: cx.props.id,
+                state: state,
+                color: Colors::Info,
+                completed: cx.props.completed,
+            }
+            Button {
+                color: Colors::Info,
+                onclick: move |_| {
+                    state.write().set(value + 0.05)
+                },
+                "Increment progress {cx.props.id}"
+            }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Warning,
+                onclick: move |_| {
+                    state.write().reset();
+                },
+                "Reset progress {cx.props.id}"
+            }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Success,
+                onclick: move |_| {
+                    state.write().complete();
+                },
+                "Complete progress {cx.props.id}"
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
+    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE3);
+    println!("render: example {}", cx.props.id);
+
+    // Reset the timer if its already completed and signaled
+    //if state.read().completed() &&
+
+    cx.render(rsx! {
+        Section {
+            ProgressTimed { id: cx.props.id,
+                state: state,
+                duration: 500,
+                color: Colors::Danger,
+                completed: cx.props.completed,
+            }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Warning,
+                onclick: move |_| {
+                    state.write().reset();
+                },
+                "Reset progress {cx.props.id}"
+            }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Success,
+                onclick: move |_| {
+                    state.write().complete();
+                },
+                "Complete progress {cx.props.id}"
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
+    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE4);
+    println!("render: example {}", cx.props.id);
+
+    cx.render(rsx! {
+        Section {
+            ProgressTimed { id: cx.props.id,
+                state: state,
+                duration: 5000,
+                color: Colors::Warning,
+                completed: cx.props.completed,
+            }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Warning,
+                onclick: move |_| {
+                    state.write().reset();
+                },
+                "Reset progress {cx.props.id}"
+            }
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Success,
+                onclick: move |_| {
+                    state.write().complete();
+                },
+                "Complete progress {cx.props.id}"
             }
         }
     })

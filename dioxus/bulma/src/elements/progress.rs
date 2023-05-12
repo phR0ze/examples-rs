@@ -22,7 +22,10 @@ pub struct ProgressProps<'a> {
     color: Option<Colors>,
 
     #[props(!optional)]
-    state: &'a fermi::UseAtomRef<ProgressState>,
+    state: &'a UseAtomRef<ProgressState>,
+
+    #[props(optional)]
+    completed: Option<&'a UseAtomRef<bool>>,
 }
 
 /// Progress bar
@@ -36,13 +39,20 @@ pub struct ProgressProps<'a> {
 /// * `state: &'a UseAtomRef<ProgressState>` fermi state reference for progress tracking
 #[allow(non_snake_case)]
 pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
-    let progress = cx.props.state;
+    let state = cx.props.state;
 
     // Ensure progress has been configured
-    if !progress.read().exists(cx.props.id) {
-        progress.write().new(cx.props.id, cx.props.max, cx.props.value);
+    if !state.read().running() {
+        state.write().start(cx.props.id, cx.props.max, cx.props.value);
     }
-    let (max, value) = progress.read().get(cx.props.id);
+    let (max, value) = state.read().values();
+
+    // Set completion signal
+    if state.read().completed() && !state.read().signaled() {
+        if let Some(completed) = cx.props.completed {
+            completed.set(state.write().signal());
+        }
+    }
 
     // Configure class
     let mut class = "progress".to_string();
@@ -52,7 +62,6 @@ pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
     if cx.props.color.is_some() {
         class += &format!(" is-{}", cx.props.color.as_ref().unwrap().to_string());
     }
-
     cx.render(rsx! {
         progress {
             class: "{class}",
@@ -97,37 +106,46 @@ pub struct ProgressTimedProps<'a> {
 /// * `completed: Option<&'a UseAtomRef<bool>>` optional completed signal for listeners
 #[allow(non_snake_case)]
 pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
-    println!("progress timed");
+    println!("render: progress timed: {}", cx.props.id);
     let state = cx.props.state;
 
     // Configure timed progress
-    if !state.read().exists(cx.props.id) {
-        state.write().timed(cx.props.id, Instant::now(), cx.props.duration);
+    if !state.read().running() {
+        state.write().timed(cx.props.id, cx.props.duration);
     }
-    let (max, value) = state.read().get(cx.props.id);
+    let (max, value) = state.read().values();
 
-    // Submit to Dioxus scheduler
-    use_future(&cx, (), |_| {
+    // Submit to Dioxus scheduler which only allows one instance of this future at a time
+    let future = use_future(&cx, (), |_| {
         to_owned![state];
         let id = cx.props.id.to_string();
+        println!("future: {}", &id);
+        let interval = state.read().interval();
         let completed = cx.props.completed.and_then(|x| Some(x.clone()));
-        let interval = state.read().interval(&id);
         async move {
             loop {
                 sleep(interval).await;
-                if state.write().advance(&id) {
-                    if let Some(signal) = completed {
-                        signal.set(true);
+                if state.write().advance() {
+                    if !state.read().signaled() {
+                        if let Some(signal) = completed {
+                            signal.set(state.write().signal());
+                        }
                     }
                     //cx.props.oncomplete.as_ref().map(|x| x.call(()));
                     break;
                 }
             }
-            println!("goodbye!");
+            println!("goodbye: {}", &id);
         }
     });
 
-    // Configure class
+    // If the future has commpleted then cancel it to be recreated next time
+    // ProgressTimed out is called
+    if future.value().is_some() {
+        //
+    }
+
+    // Configure CSS class
     let mut class = "progress".to_string();
     if cx.props.size.is_some() {
         class += &format!(" is-{}", cx.props.size.as_ref().unwrap().to_string());
@@ -136,6 +154,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
         class += &format!(" is-{}", cx.props.color.as_ref().unwrap().to_string());
     }
 
+    // Render progress bar
     cx.render(rsx! {
         progress {
             class: "{class}",
