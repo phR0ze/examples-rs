@@ -41,7 +41,7 @@ fn App(cx: Scope) -> Element {
         ProgressExample1 { id: "1" completed: signal1 }
         ProgressExample2 { id: "2" completed: signal2 }
         ProgressExample3 { id: "3", completed: signal3 }
-        //ProgressExample4 { id: "2" }
+        ProgressExample4 { id: "4", completed: signal4 }
     })
 }
 
@@ -58,17 +58,17 @@ pub struct ProgressExampleProps<'a> {
 #[allow(non_snake_case)]
 fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE1);
-    println!("render: example {}", cx.props.id);
+    let value = state.read().value();
+    println!("render: example {}, value: {}", cx.props.id, value);
 
     // Reset progress on completion
-    // if state.read().completed() {
-    //     state.write().reset();
-    // }
-
-    let value = state.read().value();
+    if state.read().completed() {
+        state.write().reset();
+    }
 
     cx.render(rsx! {
-        Section {
+        Section { class: "py-2".into(),
+            SubTitle { "Restarting progress" }
             Progress { id: cx.props.id,
                 state: state,
                 color: Colors::Primary,
@@ -108,7 +108,8 @@ fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     println!("render: example {}", cx.props.id);
 
     cx.render(rsx! {
-        Section {
+        Section { class: "py-2".into(),
+            SubTitle { "Regular progress" }
             Progress { id: cx.props.id,
                 state: state,
                 color: Colors::Info,
@@ -150,10 +151,11 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     //if state.read().completed() &&
 
     cx.render(rsx! {
-        Section {
+        Section { class: "py-2".into(),
+            SubTitle { "Timed 1 sec progress" }
             ProgressTimed { id: cx.props.id,
                 state: state,
-                duration: 500,
+                duration: 1000,
                 color: Colors::Danger,
                 completed: cx.props.completed,
             }
@@ -183,7 +185,8 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     println!("render: example {}", cx.props.id);
 
     cx.render(rsx! {
-        Section {
+        Section { class: "py-2".into(),
+            SubTitle { "Timed 5 sec progress" }
             ProgressTimed { id: cx.props.id,
                 state: state,
                 duration: 5000,
