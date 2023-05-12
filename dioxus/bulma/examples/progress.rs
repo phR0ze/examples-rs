@@ -12,6 +12,8 @@ static PROGRESS_STATE3: fermi::AtomRef<ProgressState> = |_| ProgressState::defau
 static PROGRESS_STATE4: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 
 fn main() {
+    dioxus_logger::init(log::LevelFilter::Trace).expect("failed to init logger");
+
     dioxus_desktop::launch_cfg(
         App,
         dioxus_desktop::Config::new().with_window(
@@ -26,7 +28,7 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    println!("render: app");
+    log::trace!("App: render");
     fermi::use_init_atom_root(&cx);
 
     // When the ProgressExamples sets the shared state `completed` to true it will
@@ -38,10 +40,10 @@ fn App(cx: Scope) -> Element {
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-        ProgressExample1 { id: "1" completed: signal1 }
-        ProgressExample2 { id: "2" completed: signal2 }
+        // ProgressExample1 { id: "1" completed: signal1 }
+        // ProgressExample2 { id: "2" completed: signal2 }
         ProgressExample3 { id: "3", completed: signal3 }
-        ProgressExample4 { id: "4", completed: signal4 }
+        // ProgressExample4 { id: "4", completed: signal4 }
     })
 }
 
@@ -59,7 +61,7 @@ pub struct ProgressExampleProps<'a> {
 fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE1);
     let value = state.read().value();
-    println!("render: example {}, value: {}", cx.props.id, value);
+    log::trace!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
 
     // Reset progress on completion
     if state.read().completed() {
@@ -105,7 +107,7 @@ fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE2);
     let value = state.read().value();
-    println!("render: example {}", cx.props.id);
+    log::trace!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
 
     cx.render(rsx! {
         Section { class: "py-2".into(),
@@ -145,10 +147,13 @@ fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 #[allow(non_snake_case)]
 fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE3);
-    println!("render: example {}", cx.props.id);
+    log::trace!("ProgressExample[{}]: render", cx.props.id);
 
     // Reset the timer if its already completed and signaled
-    //if state.read().completed() &&
+    if state.read().completed() {
+        log::debug!("ProgressExample[{}]: reset timer", cx.props.id);
+        state.write().reset();
+    }
 
     cx.render(rsx! {
         Section { class: "py-2".into(),
@@ -182,7 +187,7 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 #[allow(non_snake_case)]
 fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE4);
-    println!("render: example {}", cx.props.id);
+    log::trace!("ProgressExample[{}]: render", cx.props.id);
 
     cx.render(rsx! {
         Section { class: "py-2".into(),

@@ -1,4 +1,5 @@
 //! Provides progress shared state
+use fermi::UseAtomRef;
 use instant::Instant;
 
 const RESOLUTION: u64 = 500;
@@ -20,6 +21,9 @@ pub struct ProgressState {
     // Track if the progress has been started
     running: bool,
 
+    // Optional signal to trigger
+    signal: Option<UseAtomRef<bool>>,
+
     // Track if progress completion has been signaled
     signaled: bool,
 
@@ -37,9 +41,10 @@ impl Default for ProgressState {
             max: 1.0,
             value: 0.0,
             running: false,
+            signal: None,
             signaled: false,
             start: None,
-            duration: 15000,
+            duration: DEFAULT_DURATION_MS,
         }
     }
 }
@@ -49,8 +54,10 @@ impl ProgressState {
     /// * `id: &str` progress identifier
     /// * `max: f64` progress maximum value
     /// * `value: f64` progress current value
-    pub fn start(&mut self, id: &str, max: f64, value: f64) {
+    /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
+    pub fn start(&mut self, id: &str, max: f64, value: f64, signal: Option<UseAtomRef<bool>>) {
         self.running = true;
+        self.signal = signal;
         self.signaled = false;
         self.id = id.to_string();
         self.max = max;
@@ -60,8 +67,10 @@ impl ProgressState {
     /// Start or restart progress
     /// * `id: &str` id for creating or resetting progress
     /// * `duration: u64` milliseconds to wait before progress is complete
-    pub fn timed(&mut self, id: &str, duration: u64) {
+    /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
+    pub fn timed(&mut self, id: &str, duration: u64, signal: Option<UseAtomRef<bool>>) {
         self.running = true;
+        self.signal = signal;
         self.signaled = false;
         self.id = id.to_string();
         self.start = Some(Instant::now());
@@ -79,7 +88,7 @@ impl ProgressState {
                     self.value = elapsed as f64 / self.duration as f64;
                 }
                 if self.value >= self.max {
-                    self.value = self.max;
+                    self.complete();
                     result = true;
                 }
             }
@@ -90,6 +99,7 @@ impl ProgressState {
     /// Complete the progress
     pub fn complete(&mut self) {
         self.value = self.max;
+        self.signal();
     }
 
     /// Check if the progress bar is completed
@@ -102,6 +112,12 @@ impl ProgressState {
     /// * returns `duration: u64`
     pub fn duration(&self) -> u64 {
         self.duration
+    }
+
+    /// Get the progress identifier
+    /// * returns `id: &str` progress identifier
+    pub fn id(&self) -> &str {
+        &self.id
     }
 
     /// Get the progress timer interval
@@ -130,21 +146,18 @@ impl ProgressState {
     pub fn set(&mut self, value: f64) {
         self.value = value;
         if self.value >= self.max {
-            self.value = self.max;
+            self.complete();
         }
     }
 
-    /// Check if progress already signaled completion
-    /// * returns `true` if already signaled
-    pub fn signaled(&self) -> bool {
-        self.signaled
-    }
-
     /// Set the signaled status to true
-    /// * returns `true` for chaining
-    pub fn signal(&mut self) -> bool {
-        self.signaled = true;
-        true
+    fn signal(&mut self) {
+        if !self.signaled {
+            self.signaled = true;
+            if let Some(signal) = &self.signal {
+                signal.set(true);
+            }
+        }
     }
 
     /// Get the progress value
