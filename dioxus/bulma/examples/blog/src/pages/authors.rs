@@ -9,17 +9,6 @@ use rand::{distributions, Rng};
 pub fn Authors(cx: Scope) -> Element {
     println!("render authors page");
 
-    // Configure a signal that when set to true will trigger this component to re-render
-    // let signal_update = fermi::use_atom_ref(&cx, |_| false);
-
-    // Reset progress after unsubscribing to render events from state changes
-    // so that this page won't be refreshed until `signal_update` is fired but will
-    // always ensure a fresh timer is ready for this page.
-    // let atom: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
-    // let progress = fermi::use_atom_ref(&cx, atom);
-    // fermi::use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
-    // progress.write_silent().reset();
-
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
     let authors: Vec<content::Author> =
@@ -27,8 +16,7 @@ pub fn Authors(cx: Scope) -> Element {
     let id = format!("{}/{}:{}", ROUTES.authors, seeds[0], seeds[1]);
 
     // Create progress state
-    let progress = ProgressState::new(cx);
-    progress.with_notify(cx);
+    let progress = ProgressState::new_with_notify(cx);
 
     cx.render(rsx! {
         Container {
@@ -64,7 +52,6 @@ pub fn Authors(cx: Scope) -> Element {
                 RefreshAuthors {
                     id: id,
                     state: progress,
-                    // completed: signal_update
                 }
             }
         }
@@ -76,7 +63,6 @@ pub fn Authors(cx: Scope) -> Element {
 pub struct RefreshAuthorsProps {
     id: String,
     state: fermi::AtomRef<ProgressState>,
-    // completed: &'a fermi::UseAtomRef<bool>,
 }
 
 /// By pushing the timed progress bar into a sub-component we can keep the parent component
@@ -89,7 +75,6 @@ pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
         ProgressTimed { id: cx.props.id.clone(),
             state: state,
             color: Colors::Primary,
-            // completed: cx.props.completed.into(),
         }
     })
 }

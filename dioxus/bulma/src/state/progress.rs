@@ -51,7 +51,7 @@ impl Default for ProgressState {
 }
 
 pub trait ProgressStateExt {
-    fn with_notify(&self, cx: &Scoped);
+    fn with_notify(self, cx: &Scoped) -> Self;
 }
 
 impl ProgressStateExt for AtomRef<ProgressState> {
@@ -59,23 +59,26 @@ impl ProgressStateExt for AtomRef<ProgressState> {
     /// This will cause a re-render event for the component that calls this function
     /// when the progress is completed.
     /// * `cx: &Scoped` Dioxus scoped context
-    fn with_notify(&self, cx: &Scoped) {
-        let atom_ref = use_atom_ref(&cx, *self);
-        use_atom_root(cx).unsubscribe(self.unique_id(), cx.scope_id());
+    fn with_notify(self, cx: &Scoped) -> Self {
+        let atom_ref = use_atom_ref(&cx, self);
+        // use_atom_root(cx).unsubscribe(self.unique_id(), cx.scope_id());
         atom_ref.write_silent().with_notify(use_atom_ref(cx, |_| false).clone());
+        self
     }
 }
 
 impl ProgressState {
-    /// Create a new AtomRef instance of the state
+    /// Create a new AtomRef instance of the state and configure a notification
+    /// to trigger the caller to re-render when the progress is completed
     /// * `cx: &Scoped` Dioxus scoped state
-    pub fn new(cx: &Scoped) -> AtomRef<Self> {
+    pub fn new_with_notify(cx: &Scoped) -> AtomRef<Self> {
         // Define a new atom ref type then ensure that any previously stored
         // value is rest after we unsubscribe in this context from events to
         // avoid triggering re-renders
         let atom: AtomRef<Self> = |_| Self::default();
         let atom_ref = use_atom_ref(&cx, atom);
         use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
+        atom_ref.write_silent().with_notify(use_atom_ref(cx, |_| false).clone());
         atom_ref.write_silent().reset();
         atom
     }
