@@ -19,6 +19,8 @@ struct AppRoutes<'a> {
 static ROUTES: AppRoutes = AppRoutes { root: "/", posts: "/posts", authors: "/authors" };
 
 fn main() {
+    dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");
+
     #[cfg(target_family = "wasm")]
     bulma::dioxus_web::launch(App);
 

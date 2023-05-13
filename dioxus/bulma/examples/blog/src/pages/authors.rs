@@ -2,7 +2,7 @@ use crate::{
     content::{self, Generated},
     PROGRESS_STATE, ROUTES,
 };
-use bulma::{components::*, dioxus_router::Link, elements::*, layouts::*, prelude::*};
+use bulma::{components::*, dioxus_router::Link, elements::*, fermi::Readable, layouts::*, prelude::*};
 use rand::{distributions, Rng};
 
 #[allow(non_snake_case)]
@@ -11,6 +11,13 @@ pub fn Authors(cx: Scope) -> Element {
 
     // Configure a signal that when set to true will trigger this component to re-render
     let signal_update = fermi::use_atom_ref(&cx, |_| false);
+
+    // Reset progress after unsubscribing to render events from state changes
+    // so that this page won't be refreshed until `signal_update` is fired but will
+    // always ensure a fresh timer is ready for this page.
+    let progress = fermi::use_atom_ref(&cx, PROGRESS_STATE);
+    fermi::use_atom_root(cx).unsubscribe(PROGRESS_STATE.unique_id(), cx.scope_id());
+    progress.write().reset();
 
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
@@ -49,7 +56,10 @@ pub fn Authors(cx: Scope) -> Element {
                         }
                     }
                 }
-                RefreshAuthors { id: id, completed: signal_update }
+                RefreshAuthors {
+                    id: id,
+                    completed: signal_update
+                }
             }
         }
     })
@@ -67,11 +77,10 @@ pub struct RefreshAuthorsProps<'a> {
 /// time the timer fires.
 #[allow(non_snake_case)]
 pub fn RefreshAuthors<'a>(cx: Scope<'a, RefreshAuthorsProps<'a>>) -> Element {
-    let progress = fermi::use_atom_ref(&cx, PROGRESS_STATE);
-    progress.read().completed().then(|| progress.write().reset());
+    let state = fermi::use_atom_ref(cx, PROGRESS_STATE);
     cx.render(rsx! {
         ProgressTimed { id: cx.props.id.clone(),
-            state: progress,
+            state: state,
             color: Colors::Primary,
             completed: cx.props.completed.into(),
         }
