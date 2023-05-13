@@ -7,6 +7,8 @@ const RESOLUTION: u64 = 500;
 const MIN_INTERVAL_MS: u64 = 50;
 const DEFAULT_DURATION_MS: u64 = 15000;
 
+static SIGNAL: AtomRef<bool> = |_| false;
+
 /// Progress shared state
 #[derive(Clone)]
 pub struct ProgressState {
@@ -50,37 +52,27 @@ impl Default for ProgressState {
     }
 }
 
-pub trait ProgressStateExt {
-    fn with_notify(self, cx: &Scoped) -> Self;
-}
-
-impl ProgressStateExt for AtomRef<ProgressState> {
-    /// Subscribe to the completion notification using the Dioxus Scoped context.
-    /// This will cause a re-render event for the component that calls this function
-    /// when the progress is completed.
-    /// * `cx: &Scoped` Dioxus scoped context
-    fn with_notify(self, cx: &Scoped) -> Self {
-        let atom_ref = use_atom_ref(&cx, self);
-        // use_atom_root(cx).unsubscribe(self.unique_id(), cx.scope_id());
-        atom_ref.write_silent().with_notify(use_atom_ref(cx, |_| false).clone());
-        self
-    }
-}
-
 impl ProgressState {
-    /// Create a new AtomRef instance of the state and configure a notification
-    /// to trigger the caller to re-render when the progress is completed
+    /// Subscribe to the progress completion notification which will trigger the
+    /// caller to re-render when the progress is completed
     /// * `cx: &Scoped` Dioxus scoped state
-    pub fn new_with_notify(cx: &Scoped) -> AtomRef<Self> {
-        // Define a new atom ref type then ensure that any previously stored
-        // value is rest after we unsubscribe in this context from events to
-        // avoid triggering re-renders
-        let atom: AtomRef<Self> = |_| Self::default();
+    /// * `atom: &AtomRef` Dioxus scoped state
+    pub fn subscribe(cx: &Scoped, atom: AtomRef<ProgressState>) {
         let atom_ref = use_atom_ref(&cx, atom);
+        println!("after atom_ref");
+
+        // Unsubscribe before making changes to avoid triggering renders
         use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
-        atom_ref.write_silent().with_notify(use_atom_ref(cx, |_| false).clone());
+        println!("after atom_root");
+
+        let signal = use_atom_ref(cx, SIGNAL);
+        println!("after signal");
+
+        atom_ref.write_silent().with_notify(signal.clone());
+        println!("after with_notify");
+
         atom_ref.write_silent().reset();
-        atom
+        println!("after reset");
     }
 
     /// Set the progress identifier

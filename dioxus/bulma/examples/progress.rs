@@ -11,6 +11,7 @@ static PROGRESS_STATE2: fermi::AtomRef<ProgressState> = |_| ProgressState::defau
 static PROGRESS_STATE3: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 static PROGRESS_STATE4: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 static ID3: fermi::AtomRef<i32> = |_| 3;
+static ID4: fermi::AtomRef<i32> = |_| 4;
 
 fn main() {
     dioxus_logger::init(log::LevelFilter::Debug).expect("failed to init logger");
@@ -195,11 +196,13 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE4);
     log::trace!("ProgressExample[{}]: render", cx.props.id);
+    let id4 = fermi::use_atom_ref(&cx, ID4);
+    let id = format!("{}", *id4.read());
 
     cx.render(rsx! {
         Section { class: "py-2".into(),
-            SubTitle { "Timed 5 sec progress" }
-            ProgressTimed { id: cx.props.id.into(),
+            SubTitle { "Timed 5 sec progress restartable" }
+            ProgressTimed { id: id.clone(),
                 state: state,
                 duration: 5000,
                 color: Colors::Warning,
@@ -210,8 +213,10 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 color: Colors::Warning,
                 onclick: move |_| {
                     state.write().reset();
+                    let id4 = fermi::use_atom_ref(&cx, ID4);
+                    *id4.write_silent() += 1;
                 },
-                "Reset progress {cx.props.id}"
+                "Reset progress {id.clone()}"
             }
             Button {
                 class: "ml-5".into(),
@@ -219,7 +224,7 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 onclick: move |_| {
                     state.write().complete();
                 },
-                "Complete progress {cx.props.id}"
+                "Complete progress {id.clone()}"
             }
         }
     })

@@ -5,6 +5,8 @@ use crate::{
 use bulma::{components::*, dioxus_router::Link, elements::*, fermi::Readable, layouts::*, prelude::*};
 use rand::{distributions, Rng};
 
+static PROGRESS_STATE: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+
 #[allow(non_snake_case)]
 pub fn Authors(cx: Scope) -> Element {
     println!("render authors page");
@@ -16,7 +18,8 @@ pub fn Authors(cx: Scope) -> Element {
     let id = format!("{}/{}:{}", ROUTES.authors, seeds[0], seeds[1]);
 
     // Create progress state
-    let progress = ProgressState::new_with_notify(cx);
+    ProgressState::subscribe(cx, PROGRESS_STATE);
+    println!("foo berries");
 
     cx.render(rsx! {
         Container {
@@ -49,10 +52,7 @@ pub fn Authors(cx: Scope) -> Element {
                         }
                     }
                 }
-                RefreshAuthors {
-                    id: id,
-                    state: progress,
-                }
+                RefreshAuthors { id: id }
             }
         }
     })
@@ -62,7 +62,6 @@ pub fn Authors(cx: Scope) -> Element {
 #[derive(Props, PartialEq)]
 pub struct RefreshAuthorsProps {
     id: String,
-    state: fermi::AtomRef<ProgressState>,
 }
 
 /// By pushing the timed progress bar into a sub-component we can keep the parent component
@@ -70,7 +69,7 @@ pub struct RefreshAuthorsProps {
 /// time the timer fires.
 #[allow(non_snake_case)]
 pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
-    let state = fermi::use_atom_ref(cx, cx.props.state);
+    let state = fermi::use_atom_ref(cx, PROGRESS_STATE);
     cx.render(rsx! {
         ProgressTimed { id: cx.props.id.clone(),
             state: state,
