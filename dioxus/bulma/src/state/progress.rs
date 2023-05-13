@@ -1,5 +1,6 @@
 //! Provides progress shared state
-use fermi::{AtomRef, UseAtomRef};
+use dioxus::prelude::Scoped;
+use fermi::{use_atom_ref, use_atom_root, AtomRef, Readable, UseAtomRef};
 use instant::Instant;
 
 const RESOLUTION: u64 = 500;
@@ -51,9 +52,17 @@ impl Default for ProgressState {
 
 impl ProgressState {
     /// Create a new AtomRef instance of the state
-    // pub fn new() -> AtomRef<Self> {
-
-    // }
+    /// * `cx: &Scoped` Dioxus scoped state
+    pub fn new(cx: &Scoped) -> AtomRef<Self> {
+        // Define a new atom ref type then ensure that any previously stored
+        // value is rest after we unsubscribe in this context from events to
+        // avoid triggering re-renders
+        let atom: AtomRef<Self> = |_| Self::default();
+        let atom_ref = use_atom_ref(&cx, atom);
+        use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
+        atom_ref.write_silent().reset();
+        atom
+    }
 
     /// Start or restart progress
     /// * `id: &str` progress identifier

@@ -15,10 +15,11 @@ pub fn Authors(cx: Scope) -> Element {
     // Reset progress after unsubscribing to render events from state changes
     // so that this page won't be refreshed until `signal_update` is fired but will
     // always ensure a fresh timer is ready for this page.
-    let atom: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
-    let progress = fermi::use_atom_ref(&cx, atom);
-    fermi::use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
-    progress.write_silent().reset();
+    let atom = ProgressState::new(cx);
+    // let atom: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+    // let progress = fermi::use_atom_ref(&cx, atom);
+    // fermi::use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
+    // progress.write_silent().reset();
 
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
