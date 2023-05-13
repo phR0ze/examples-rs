@@ -6,7 +6,7 @@ use fermi::UseAtomRef;
 #[derive(Props)]
 pub struct ProgressProps<'a> {
     #[props(!optional)]
-    id: &'a str,
+    id: String,
 
     #[props(default = 1.0)]
     max: f64,
@@ -43,7 +43,7 @@ pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
     // Ensure progress has been configured
     if !state.read().running() {
         state.write().start(
-            cx.props.id,
+            &cx.props.id,
             cx.props.max,
             cx.props.value,
             cx.props.completed.and_then(|x| Some(x.clone())),
@@ -72,7 +72,7 @@ pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
 #[derive(Props)]
 pub struct ProgressTimedProps<'a> {
     #[props(!optional)]
-    id: &'a str,
+    id: String,
 
     #[props(default = 15000)]
     duration: u64,
@@ -108,15 +108,14 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
 
     // Configure timed progress
     if !state.read().running() {
-        log::trace!("ProgressTimed[{}]: created", cx.props.id);
-        state.write().timed(cx.props.id, cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
+        log::debug!("ProgressTimed[{}]: created", cx.props.id);
+        state.write().timed(&cx.props.id, cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
 
-    // Submit to Dioxus scheduler which only allows one instance of this future at a time.
-    // However if the dependency id changes the future will be regenerated.
-    let id = cx.props.id.to_string();
-    let future = use_future(&cx, &id, |id| {
+    // Submit future to the Dioxus scheduler which only allows one instance at a time.
+    // When the `id` value changes the future will be regenerated to include the new values.
+    use_future(&cx, &cx.props.id, |id| {
         to_owned![state];
         log::debug!("Future[{}]: created", &id);
         async move {
@@ -129,13 +128,6 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
             log::debug!("Future[{}]: completed", &id);
         }
     });
-
-    // If the future has commpleted then cancel it to be recreated next time
-    // ProgressTimed out is called
-    if future.value().is_some() {
-        log::debug!("Future[{}]: canceled", cx.props.id);
-        future.cancel(&cx);
-    }
 
     // Configure CSS class
     let mut class = "progress".to_string();

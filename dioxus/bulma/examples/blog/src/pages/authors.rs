@@ -2,13 +2,7 @@ use crate::{
     content::{self, Generated},
     PROGRESS_STATE, ROUTES,
 };
-use bulma::{
-    components::*,
-    dioxus_router::{use_router, Link},
-    elements::*,
-    layouts::*,
-    prelude::*,
-};
+use bulma::{components::*, dioxus_router::Link, elements::*, layouts::*, prelude::*};
 use rand::{distributions, Rng};
 
 #[allow(non_snake_case)]
@@ -73,16 +67,10 @@ pub struct RefreshAuthorsProps<'a> {
 /// time the timer fires.
 #[allow(non_snake_case)]
 pub fn RefreshAuthors<'a>(cx: Scope<'a, RefreshAuthorsProps<'a>>) -> Element {
-    println!("render refresh");
     let progress = fermi::use_atom_ref(&cx, PROGRESS_STATE);
-    if progress.read().completed(&cx.props.id) {
-        println!("completed!");
-        // Write will trigger one final refresh of this component
-        progress.write().remove(&cx.props.id);
-        use_router(cx).replace_route(ROUTES.authors, None, None)
-    }
+    progress.read().completed().then(|| progress.write().reset());
     cx.render(rsx! {
-        ProgressTimed { id: &cx.props.id,
+        ProgressTimed { id: cx.props.id.clone(),
             state: progress,
             color: Colors::Primary,
             completed: cx.props.completed.into(),

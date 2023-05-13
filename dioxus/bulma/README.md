@@ -6,6 +6,7 @@ Researching Dioxus with Bulma
 
 ## BACKLOG
 * Icon support
+* Better logging support
 
 ## COMPLETED
 * Broke out Card components

@@ -10,9 +10,10 @@ static PROGRESS_STATE1: fermi::AtomRef<ProgressState> = |_| ProgressState::defau
 static PROGRESS_STATE2: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 static PROGRESS_STATE3: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 static PROGRESS_STATE4: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static ID3: fermi::AtomRef<i32> = |_| 3;
 
 fn main() {
-    dioxus_logger::init(log::LevelFilter::Trace).expect("failed to init logger");
+    dioxus_logger::init(log::LevelFilter::Debug).expect("failed to init logger");
 
     dioxus_desktop::launch_cfg(
         App,
@@ -28,7 +29,7 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    log::trace!("App: render");
+    log::debug!("App: render");
     fermi::use_init_atom_root(&cx);
 
     // When the ProgressExamples sets the shared state `completed` to true it will
@@ -40,10 +41,10 @@ fn App(cx: Scope) -> Element {
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-        // ProgressExample1 { id: "1" completed: signal1 }
-        // ProgressExample2 { id: "2" completed: signal2 }
+        ProgressExample1 { id: "1" completed: signal1 }
+        ProgressExample2 { id: "2" completed: signal2 }
         ProgressExample3 { id: "3", completed: signal3 }
-        // ProgressExample4 { id: "4", completed: signal4 }
+        ProgressExample4 { id: "4", completed: signal4 }
     })
 }
 
@@ -71,7 +72,7 @@ fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     cx.render(rsx! {
         Section { class: "py-2".into(),
             SubTitle { "Restarting progress" }
-            Progress { id: cx.props.id,
+            Progress { id: cx.props.id.into(),
                 state: state,
                 color: Colors::Primary,
                 completed: cx.props.completed,
@@ -112,7 +113,7 @@ fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     cx.render(rsx! {
         Section { class: "py-2".into(),
             SubTitle { "Regular progress" }
-            Progress { id: cx.props.id,
+            Progress { id: cx.props.id.into(),
                 state: state,
                 color: Colors::Info,
                 completed: cx.props.completed,
@@ -147,18 +148,24 @@ fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 #[allow(non_snake_case)]
 fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = fermi::use_atom_ref(&cx, PROGRESS_STATE3);
-    log::trace!("ProgressExample[{}]: render", cx.props.id);
+    let id3 = fermi::use_atom_ref(&cx, ID3);
 
-    // Test id changes
-    let mut id = cx.props.id;
-    if state.read().id() != "" {
-        id = "5";
+    // Restart the progress timer
+    if state.read().completed() {
+        // Reset the progress state
+        state.write().reset();
+
+        // Change id trigger future to be regenerated
+        *id3.write_silent() += 1;
+        log::debug!("ProgressExample[{}]: reset", id3.read());
     }
+    let id = format!("{}", *id3.read());
 
+    log::trace!("ProgressExample[{}]: render", &id);
     cx.render(rsx! {
         Section { class: "py-2".into(),
-            SubTitle { "Timed 1 sec progress" }
-            ProgressTimed { id: id,
+            SubTitle { "Timed 1 sec progress restarting" }
+            ProgressTimed { id: id.clone(),
                 state: state,
                 duration: 1000,
                 color: Colors::Danger,
@@ -168,17 +175,17 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 class: "ml-5".into(),
                 color: Colors::Warning,
                 onclick: move |_| {
-                    state.write().reset();
+                    // state.write().reset();
                 },
-                "Reset progress {cx.props.id}"
+                "Reset progress {id.clone()}"
             }
             Button {
                 class: "ml-5".into(),
                 color: Colors::Success,
                 onclick: move |_| {
-                    state.write().complete();
+                    // state.write().complete();
                 },
-                "Complete progress {cx.props.id}"
+                "Complete progress {id.clone()}"
             }
         }
     })
@@ -192,7 +199,7 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     cx.render(rsx! {
         Section { class: "py-2".into(),
             SubTitle { "Timed 5 sec progress" }
-            ProgressTimed { id: cx.props.id,
+            ProgressTimed { id: cx.props.id.into(),
                 state: state,
                 duration: 5000,
                 color: Colors::Warning,
