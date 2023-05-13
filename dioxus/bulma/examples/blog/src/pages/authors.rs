@@ -10,12 +10,11 @@ pub fn Authors(cx: Scope) -> Element {
     println!("render authors page");
 
     // Configure a signal that when set to true will trigger this component to re-render
-    let signal_update = fermi::use_atom_ref(&cx, |_| false);
+    // let signal_update = fermi::use_atom_ref(&cx, |_| false);
 
     // Reset progress after unsubscribing to render events from state changes
     // so that this page won't be refreshed until `signal_update` is fired but will
     // always ensure a fresh timer is ready for this page.
-    let atom = ProgressState::new(cx);
     // let atom: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
     // let progress = fermi::use_atom_ref(&cx, atom);
     // fermi::use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
@@ -28,6 +27,8 @@ pub fn Authors(cx: Scope) -> Element {
     let id = format!("{}/{}:{}", ROUTES.authors, seeds[0], seeds[1]);
 
     // Create progress state
+    let progress = ProgressState::new(cx);
+    progress.with_notify(cx);
 
     cx.render(rsx! {
         Container {
@@ -62,8 +63,8 @@ pub fn Authors(cx: Scope) -> Element {
                 }
                 RefreshAuthors {
                     id: id,
-                    state: atom,
-                    completed: signal_update
+                    state: progress,
+                    // completed: signal_update
                 }
             }
         }
@@ -71,24 +72,24 @@ pub fn Authors(cx: Scope) -> Element {
 }
 
 #[allow(non_snake_case)]
-#[derive(Props)]
-pub struct RefreshAuthorsProps<'a> {
+#[derive(Props, PartialEq)]
+pub struct RefreshAuthorsProps {
     id: String,
     state: fermi::AtomRef<ProgressState>,
-    completed: &'a fermi::UseAtomRef<bool>,
+    // completed: &'a fermi::UseAtomRef<bool>,
 }
 
 /// By pushing the timed progress bar into a sub-component we can keep the parent component
 /// page from re-rendering over and over. Instead only this component is re-rendered each
 /// time the timer fires.
 #[allow(non_snake_case)]
-pub fn RefreshAuthors<'a>(cx: Scope<'a, RefreshAuthorsProps<'a>>) -> Element {
+pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
     let state = fermi::use_atom_ref(cx, cx.props.state);
     cx.render(rsx! {
         ProgressTimed { id: cx.props.id.clone(),
             state: state,
             color: Colors::Primary,
-            completed: cx.props.completed.into(),
+            // completed: cx.props.completed.into(),
         }
     })
 }

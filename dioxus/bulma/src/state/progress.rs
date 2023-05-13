@@ -1,6 +1,6 @@
 //! Provides progress shared state
 use dioxus::prelude::Scoped;
-use fermi::{use_atom_ref, use_atom_root, AtomRef, Readable, UseAtomRef};
+use fermi::{use_atom_ref, use_atom_root, AtomRef, AtomRefBuilder, Readable, UseAtomRef};
 use instant::Instant;
 
 const RESOLUTION: u64 = 500;
@@ -50,6 +50,22 @@ impl Default for ProgressState {
     }
 }
 
+pub trait ProgressStateExt {
+    fn with_notify(&self, cx: &Scoped);
+}
+
+impl ProgressStateExt for AtomRef<ProgressState> {
+    /// Subscribe to the completion notification using the Dioxus Scoped context.
+    /// This will cause a re-render event for the component that calls this function
+    /// when the progress is completed.
+    /// * `cx: &Scoped` Dioxus scoped context
+    fn with_notify(&self, cx: &Scoped) {
+        let atom_ref = use_atom_ref(&cx, *self);
+        use_atom_root(cx).unsubscribe(self.unique_id(), cx.scope_id());
+        atom_ref.write_silent().with_notify(use_atom_ref(cx, |_| false).clone());
+    }
+}
+
 impl ProgressState {
     /// Create a new AtomRef instance of the state
     /// * `cx: &Scoped` Dioxus scoped state
@@ -62,6 +78,21 @@ impl ProgressState {
         use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
         atom_ref.write_silent().reset();
         atom
+    }
+
+    /// Set the progress identifier
+    /// * `id: &str` progress identifier
+    pub fn with_id(&mut self, id: &str) -> &mut Self {
+        self.id = id.into();
+        self
+    }
+
+    /// Subscribe to the completion notification using the given custom signal.
+    /// The given signal will be triggered causing a re-render event to the owner.
+    /// when the progress is completed.
+    /// * `signal: UseAtomRef<bool>` fermi atom used as a signal
+    pub fn with_notify(&mut self, signal: UseAtomRef<bool>) {
+        self.signal = Some(signal);
     }
 
     /// Start or restart progress
@@ -84,7 +115,7 @@ impl ProgressState {
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
     pub fn timed(&mut self, id: &str, duration: u64, signal: Option<UseAtomRef<bool>>) {
         self.running = true;
-        self.signal = signal;
+        // self.signal = signal;
         self.signaled = false;
         self.id = id.to_string();
         self.start = Some(Instant::now());
