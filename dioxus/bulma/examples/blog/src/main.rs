@@ -8,7 +8,6 @@ use bulma::{
     prelude::*,
 };
 
-static PROGRESS_STATE: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
 static PAGINATION_STATE: fermi::AtomRef<PaginationState> = |_| PaginationState::default();
 
 struct AppRoutes<'a> {

@@ -1,5 +1,5 @@
 //! Provides progress shared state
-use fermi::UseAtomRef;
+use fermi::{AtomRef, UseAtomRef};
 use instant::Instant;
 
 const RESOLUTION: u64 = 500;
@@ -50,6 +50,11 @@ impl Default for ProgressState {
 }
 
 impl ProgressState {
+    /// Create a new AtomRef instance of the state
+    // pub fn new() -> AtomRef<Self> {
+
+    // }
+
     /// Start or restart progress
     /// * `id: &str` progress identifier
     /// * `max: f64` progress maximum value

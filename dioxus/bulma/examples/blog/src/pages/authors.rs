@@ -1,6 +1,6 @@
 use crate::{
     content::{self, Generated},
-    PROGRESS_STATE, ROUTES,
+    ROUTES,
 };
 use bulma::{components::*, dioxus_router::Link, elements::*, fermi::Readable, layouts::*, prelude::*};
 use rand::{distributions, Rng};
@@ -15,15 +15,18 @@ pub fn Authors(cx: Scope) -> Element {
     // Reset progress after unsubscribing to render events from state changes
     // so that this page won't be refreshed until `signal_update` is fired but will
     // always ensure a fresh timer is ready for this page.
-    let progress = fermi::use_atom_ref(&cx, PROGRESS_STATE);
-    fermi::use_atom_root(cx).unsubscribe(PROGRESS_STATE.unique_id(), cx.scope_id());
-    progress.write().reset();
+    let atom: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+    let progress = fermi::use_atom_ref(&cx, atom);
+    fermi::use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
+    progress.write_silent().reset();
 
     // Generate authors
     let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
     let authors: Vec<content::Author> =
         seeds.iter().map(|&seed| content::Author::generate_from_seed(seed)).collect();
     let id = format!("{}/{}:{}", ROUTES.authors, seeds[0], seeds[1]);
+
+    // Create progress state
 
     cx.render(rsx! {
         Container {
@@ -58,6 +61,7 @@ pub fn Authors(cx: Scope) -> Element {
                 }
                 RefreshAuthors {
                     id: id,
+                    state: atom,
                     completed: signal_update
                 }
             }
@@ -69,6 +73,7 @@ pub fn Authors(cx: Scope) -> Element {
 #[derive(Props)]
 pub struct RefreshAuthorsProps<'a> {
     id: String,
+    state: fermi::AtomRef<ProgressState>,
     completed: &'a fermi::UseAtomRef<bool>,
 }
 
@@ -77,7 +82,7 @@ pub struct RefreshAuthorsProps<'a> {
 /// time the timer fires.
 #[allow(non_snake_case)]
 pub fn RefreshAuthors<'a>(cx: Scope<'a, RefreshAuthorsProps<'a>>) -> Element {
-    let state = fermi::use_atom_ref(cx, PROGRESS_STATE);
+    let state = fermi::use_atom_ref(cx, cx.props.state);
     cx.render(rsx! {
         ProgressTimed { id: cx.props.id.clone(),
             state: state,
