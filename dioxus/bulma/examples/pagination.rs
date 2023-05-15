@@ -22,8 +22,10 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    println!("render app");
     fermi::use_init_atom_root(&cx);
+
+    // By referencing the state object here `App` will receive render events
+    // every time the pagination state objecdt changes
     let state = fermi::use_atom_ref(&cx, PAGINATION_STATE);
     let total_pages = 12;
 
