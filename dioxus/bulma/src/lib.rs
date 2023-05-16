@@ -24,8 +24,8 @@ pub mod prelude {
     pub use crate::{get_bulma_css, utils::*};
     pub use dioxus;
     pub use dioxus::prelude::*;
-    pub use dioxus_router;
-    pub use fermi;
+    pub use dioxus_router::{self, use_router};
+    pub use fermi::{self, use_atom_ref, use_init_atom_root, AtomRef};
 
     #[cfg(any(windows, unix))]
     pub use dioxus_desktop;

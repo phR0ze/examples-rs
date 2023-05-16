@@ -1,54 +1,82 @@
 //! Provides a responsive, usable and flexible pagination component
 //!
 use dioxus::prelude::*;
-use fermi::UseAtomRef;
+use fermi::{use_atom_ref, AtomRef};
 use std::collections::HashMap;
 
 /// Pagination shared state
-pub struct PaginationState {
-    /// Caching for current pages tracking
-    current_pages: HashMap<String, usize>,
+struct PaginationMeta {
+    pages: Vec<String>,
+    current_page: usize,
 }
 
-impl PaginationState {
-    /// Get pagination for the given id
-    /// * `id: &str` identifier for the pagination e.g. a page route
-    pub fn get(&self, id: &str) -> usize {
-        let mut value = *self.current_pages.get(id).unwrap_or(&1) as usize;
-        if value == 0 {
-            value = 1;
+pub struct Pagination {
+    state: HashMap<String, PaginationMeta>,
+}
+
+impl Pagination {
+    /// Set pagination for the given url
+    /// * `url: &str` unique page url for pagination
+    /// * `pages: Vec<String>` pages to keep track of
+    pub fn set(&mut self, url: &str, pages: Vec<String>) {
+        self.state.insert(url.to_string(), PaginationMeta { pages, current_page: 1 });
+    }
+
+    /// Add or update pagination for the given url
+    /// * `url: &str` unique page url for pagination
+    /// * `pages: Vec<String>` pages to keep track of
+    /// * `current_page: usize` current page
+    pub fn set_with_page(&mut self, url: &str, pages: Vec<String>, current_page: usize) {
+        self.state.insert(url.to_string(), PaginationMeta { pages, current_page });
+    }
+
+    /// Get the current pagination page
+    /// * `url: &str` unique page url for pagination
+    /// * returns `usize` current page
+    pub fn current_page(&self, url: &str) -> usize {
+        match self.state.get(url) {
+            Some(x) => x.current_page,
+            _ => 1, // default
         }
-        value
     }
 
-    /// Set pagination for the given id
-    /// * `id: &str` identifier for the pagination e.g. a page route
+    /// Set the current pagination page
+    /// * `url: &str` unique page url for pagination
     /// * `page: usize` current page to set
-    pub fn set(&mut self, id: &str, page: usize) {
-        self.current_pages.insert(id.to_string(), page);
+    pub fn set_current_page(&mut self, url: &str, page: usize) {
+        if let Some(ref mut x) = self.state.get_mut(url) {
+            x.current_page = page;
+        }
+    }
+
+    /// Get the total number of pages
+    /// * `url: &str` unique page url for pagination
+    /// * returns `usize` total pages
+    pub fn total_pages(&self, url: &str) -> usize {
+        match self.state.get(url) {
+            Some(x) => x.pages.len(),
+            _ => 0, // default
+        }
     }
 }
 
-impl Default for PaginationState {
+impl Default for Pagination {
     fn default() -> Self {
-        PaginationState { current_pages: HashMap::new() }
+        Pagination { state: HashMap::new() }
     }
 }
 
 #[allow(non_snake_case)]
-#[derive(Props)]
-pub struct PaginationProps<'a> {
+#[derive(Props, PartialEq)]
+pub struct PaginationProps {
     #[props(!optional)]
-    id: &'a str,
-
-    #[props(!optional)]
-    total_pages: usize,
+    url: String,
 
     #[props(default = 3)]
     links_per_side: usize,
 
     #[props(!optional)]
-    state: &'a UseAtomRef<PaginationState>,
+    state: fermi::Atom<Pagination>,
 }
 
 /// Pagination is the parent of all the pagination components and must be used
@@ -63,14 +91,14 @@ pub struct PaginationProps<'a> {
 /// * `links_per_side: usize` number of links to show to the left and right of the current page
 /// * `state: &'a UseAtomRef<GlobalState>` global fermi state reference for tracking
 #[allow(non_snake_case)]
-pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
-    let state = cx.props.state;
-    let (id1, id2) = (cx.props.id.clone(), cx.props.id.clone());
-    let page = state.read().get(&id1);
+pub fn Pagination(cx: Scope<PaginationProps>) -> Element {
+    let state = fermi::use_atom_state(cx, cx.props.state);
+
+    let page = state.current_page(&cx.props.url);
     let max_links = cx.props.links_per_side;
 
     let pages_left = page.checked_sub(1).unwrap_or_default();
-    let pages_right = cx.props.total_pages - page;
+    let pages_right = state.total_pages(&cx.props.url) - page;
     let mut links_left = max_links.min(pages_left);
     // If not all left links were displayed then add them to the right side
     let links_right = max_links.min(pages_right) + max_links.checked_sub(links_left).unwrap_or_default();
@@ -86,15 +114,16 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
             a { class: "pagination-previous {prev_css}",
                 onclick: move |_| {
                     if page - 1 > 0 {
-                        state.write().set(&id1, page - 1);
+                        // state.set_current_page(&cx.props.url, page - 1);
                     }
                 },
                 "Previous"
             }
             a { class: "pagination-next",
                 onclick: move |_| {
-                    if page + 1 <= cx.props.total_pages {
-                        state.write().set(&id2, page + 1);
+                    if page + 1 <= state.total_pages(&cx.props.url) {
+                        // state.set_current_page(&cx.props.url, page + 1);
+                        log::info!("next page {}", state.current_page(&cx.props.url));
                     }
                 },
                 "Next Page"
@@ -114,9 +143,7 @@ pub fn Pagination<'a>(cx: Scope<'a, PaginationProps<'a>>) -> Element {
 /// * `max` is the max number of pages to display as links for this pagination range
 /// * `left` signals the optional ellipsis would be to the left
 #[allow(non_snake_case)]
-fn PaginationRange<'a>(
-    cx: Scope<'a, PaginationProps<'a>>, mut pages: Vec<usize>, max: usize, left: bool,
-) -> Element {
+fn PaginationRange(cx: Scope<PaginationProps>, mut pages: Vec<usize>, max: usize, left: bool) -> Element {
     cx.render(if pages.len() > max {
         if left {
             // Split off everything at index max and beyond
@@ -154,14 +181,14 @@ fn PaginationRange<'a>(
 /// ### Properties
 /// * `id: &'a str` id used for pagination lookup
 #[allow(non_snake_case)]
-fn PaginationLink<'a>(cx: Scope<'a, PaginationProps<'a>>, page: usize) -> Element {
-    let state = cx.props.state;
+fn PaginationLink(cx: Scope<PaginationProps>, page: usize) -> Element {
+    let mut state = fermi::use_atom_state(cx, cx.props.state);
 
     cx.render(rsx! {
         li {
             a { class: "pagination-link",
                 onclick: move |_| {
-                    state.write().set(&cx.props.id, page);
+                    // state.set_current_page(&cx.props.url, page);
                 },
                 format!("{page}")
             }
