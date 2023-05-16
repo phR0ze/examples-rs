@@ -114,20 +114,26 @@ fn Page3(cx: Scope) -> Element {
     log::info!("Rendering: Page3");
 
     // Setup state flags. You need to clone them to get a non reference type
+    static RESET: fermi::AtomRef<bool> = |_| false;
     static LOAD: fermi::AtomRef<bool> = |_| false;
     static FAIL: fermi::AtomRef<bool> = |_| false;
+    let reset = fermi::use_atom_ref(cx, RESET).clone();
     let load = fermi::use_atom_ref(cx, LOAD).clone();
     let fail = fermi::use_atom_ref(cx, FAIL).clone();
     let load2 = load.clone();
     let fail2 = fail.clone();
+    let reset2 = *reset.read();
 
     // Setup persistent data store
     static COUNTS: fermi::AtomRef<Vec<i32>> = |_| vec![0];
     let counts = fermi::use_atom_ref(cx, COUNTS).clone();
     let counts2 = counts.clone();
 
-    // Mimic loading state
-    let future: &UseFuture<Result<(), ()>> = use_future(cx, (), |_| async move {
+    // Mimic loading state by using a future to submit this work to the Dioxus scheduler
+    // which only allows one instance of this future to run. When the `dependencies` tuple
+    // changes values the future will be regenerated.
+    let future: &UseFuture<Result<(), ()>> = use_future(cx, &reset2, |_| async move {
+        log::info!("regen future!");
         to_owned![load, fail, counts];
         loop {
             tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
@@ -135,6 +141,7 @@ fn Page3(cx: Scope) -> Element {
                 break;
             }
         }
+        log::info!("future completed!");
         if *load.read() {
             // Load data
             counts.write().extend([1, 2, 3, 4, 5]);
@@ -151,6 +158,15 @@ fn Page3(cx: Scope) -> Element {
             Section {
                 Title { "Success loading content!" }
                 SubTitle { "Counts: {str_cnts}" }
+                Button {
+                    color: Colors::Danger,
+                    onclick: move |_| {
+                        *load2.write_silent() = false;
+                        *reset.write_silent() = !reset2;
+                        counts2.write().clear();
+                    },
+                    "RESET"
+                }
             }
         },
         Some(Err(_)) => rsx! {
