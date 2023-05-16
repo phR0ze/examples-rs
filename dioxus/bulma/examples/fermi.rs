@@ -1,14 +1,10 @@
 use bulma::{
     components::*,
-    dioxus_router::{Link, Route, Router},
+    dioxus_router::{Route, Router},
     elements::*,
     layouts::*,
     prelude::*,
 };
-use fermi::AtomRoot;
-
-// Global state
-static PAGINATION: fermi::Atom<Pagination> = |_| Pagination::default();
 
 fn main() {
     dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");
@@ -17,7 +13,6 @@ fn main() {
         App,
         dioxus_desktop::Config::new().with_window(
             dioxus_desktop::WindowBuilder::new()
-                .with_title("Progress Example")
                 .with_resizable(true)
                 .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
@@ -113,28 +108,39 @@ fn Page2(cx: Scope) -> Element {
 fn Page3(cx: Scope) -> Element {
     log::info!("Rendering: Page3");
 
-    // Setup state flags. You need to clone them to get a non reference type
+    // Using this flag to trigger a refresh of `Page3` based on the future
+    // restarting so the view is updated and not stale
+    static REFRESH: fermi::AtomRef<bool> = |_| false;
+    let refresh = fermi::use_atom_ref(cx, REFRESH).clone();
+
+    // Using this flag to change the future's dependencies to trigger it to regen
     static RESET: fermi::AtomRef<bool> = |_| false;
+    let reset = fermi::use_atom_ref(cx, RESET).clone();
+    let reset2 = *reset.read();
+
+    //  Using these to flags to control the output of the future for testing
     static LOAD: fermi::AtomRef<bool> = |_| false;
     static FAIL: fermi::AtomRef<bool> = |_| false;
-    let reset = fermi::use_atom_ref(cx, RESET).clone();
     let load = fermi::use_atom_ref(cx, LOAD).clone();
     let fail = fermi::use_atom_ref(cx, FAIL).clone();
     let load2 = load.clone();
     let fail2 = fail.clone();
-    let reset2 = *reset.read();
 
-    // Setup persistent data store
+    // Actual data to display
     static COUNTS: fermi::AtomRef<Vec<i32>> = |_| vec![0];
     let counts = fermi::use_atom_ref(cx, COUNTS).clone();
     let counts2 = counts.clone();
 
     // Mimic loading state by using a future to submit this work to the Dioxus scheduler
     // which only allows one instance of this future to run. When the `dependencies` tuple
-    // changes values the future will be regenerated.
-    let future: &UseFuture<Result<(), ()>> = use_future(cx, &reset2, |_| async move {
+    // changes values the future will be regenerated; however despite the regen the returned
+    // future.value() remains Some(_) triggering the wrong flow. At first I thought it was
+    // a race condition but refreshing the parent component doesn't fix it and the
+    // future.value() remains Some(_) even though the regen hasn't completed.
+    let future = use_future(cx, &reset2, |reset| async move {
         log::info!("regen future!");
-        to_owned![load, fail, counts];
+        to_owned![load, fail, counts, refresh];
+        *refresh.write() = reset;
         loop {
             tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
             if *load.read() || *fail.read() {
@@ -152,6 +158,11 @@ fn Page3(cx: Scope) -> Element {
     });
 
     let str_cnts = format!("{:?}", counts2.read());
+    if future.value().is_some() {
+        log::info!("SHOULDN'T BE");
+    } else {
+        log::info!("IS NOT");
+    }
 
     cx.render(match future.value() {
         Some(Ok(_)) => rsx! {
