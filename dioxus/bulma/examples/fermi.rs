@@ -1,8 +1,8 @@
 use bulma::{
     components::*,
     dioxus_router::{Link, Route, Router},
-    elements::Title,
-    layouts::Section,
+    elements::*,
+    layouts::*,
     prelude::*,
 };
 use fermi::AtomRoot;
@@ -31,24 +31,149 @@ fn App(cx: Scope) -> Element {
     // Init global state system
     fermi::use_init_atom_root(cx);
 
-    // Load test data
-    // let state = use_atom_ref(cx, PAGINATION);
-    // state.write_silent().set("/posts", (1..=12).map(|x| x.to_string()).collect::<Vec<String>>());
-    // state.write_silent().set("/authors", (1..=22).map(|x| x.to_string()).collect::<Vec<String>>());
-
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
         Router {
             Header {},
-
-            div {
-                Link { to: "/posts", Posts {} },
-            }
-            Route { to: "/", AtomRootExample {} },
-            // Route { to: "/authors", Authors {} },
-            // Link { to: "/posts", Posts {} },
-            // Link { to: "/authors", Authors {} },
+            Route { to: "/", Page1 {} },
+            Route { to: "/2", Page2 {} },
+            Route { to: "/3", Page3 {} },
         }
+    })
+}
+
+/// Use `fermi::use_atom_state` for primitive objects with no methods. This call will register
+/// the calling component to receive render events each time the state changes. You must use the
+/// fermi::Atom<T> static construction which can't be used with reference values.
+#[allow(non_snake_case)]
+fn Page1(cx: Scope) -> Element {
+    log::info!("Rendering: Page1");
+    static COUNT: fermi::Atom<i32> = |_| 0;
+    let mut count = fermi::use_atom_state(cx, COUNT);
+
+    cx.render(rsx! {
+        Section {
+            Title { "Page 1"}
+            SubTitle { "Count: {count}" }
+            Button {
+                color: Colors::Danger,
+                onclick: move |_| { count -= 1 },
+                "-"
+            }
+            Button { class: "ml-1",
+                color: Colors::Primary,
+                onclick: move |_| { count += 1 },
+                "+"
+            }
+            Button { class: "ml-1",
+                color: Colors::Primary,
+                onclick: move |_| { count.set(5) },
+                "set(5)"
+            }
+            Button { class: "ml-1",
+                color: Colors::Primary,
+                onclick: move |_| { count.modify(|x| x + 2) },
+                "modify(|x| x + 2)"
+            }
+        }
+    })
+}
+
+/// Use `fermi::use_atom_ref` for complex objects that have methods and fields. This provides
+/// interior mutability with RefCell using the `read` and `write` functions. This requires the
+/// use of `fermi::AtomRef<T> to initialize your object`
+#[allow(non_snake_case)]
+fn Page2(cx: Scope) -> Element {
+    log::info!("Rendering: Page2");
+    static COUNTS: fermi::AtomRef<Vec<i32>> = |_| vec![0];
+    let counts = fermi::use_atom_ref(cx, COUNTS);
+    let count = *counts.read().last().unwrap() + 1;
+    let str_cnts = format!("{:?}", counts.read());
+
+    cx.render(rsx! {
+        Section {
+            Title { "Page 2"}
+            SubTitle { "Counts: {str_cnts}" }
+            Button {
+                color: Colors::Danger,
+                onclick: move |_| { counts.write().pop(); },
+                "-"
+            }
+            Button { class: "ml-1",
+                color: Colors::Primary,
+                onclick: move |_| { counts.write().push(count) },
+                "+"
+            }
+        }
+    })
+}
+
+/// Use the `use_future` in conjunction with `use_atom_ref` to load data and persist it.
+#[allow(non_snake_case)]
+fn Page3(cx: Scope) -> Element {
+    log::info!("Rendering: Page3");
+
+    // Setup state flags. You need to clone them to get a non reference type
+    static LOAD: fermi::AtomRef<bool> = |_| false;
+    static FAIL: fermi::AtomRef<bool> = |_| false;
+    let load = fermi::use_atom_ref(cx, LOAD).clone();
+    let fail = fermi::use_atom_ref(cx, FAIL).clone();
+    let load2 = load.clone();
+    let fail2 = fail.clone();
+
+    // Setup persistent data store
+    static COUNTS: fermi::AtomRef<Vec<i32>> = |_| vec![0];
+    let counts = fermi::use_atom_ref(cx, COUNTS).clone();
+    let counts2 = counts.clone();
+
+    // Mimic loading state
+    let future: &UseFuture<Result<(), ()>> = use_future(cx, (), |_| async move {
+        to_owned![load, fail, counts];
+        loop {
+            tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
+            if *load.read() || *fail.read() {
+                break;
+            }
+        }
+        if *load.read() {
+            // Load data
+            counts.write().extend([1, 2, 3, 4, 5]);
+            Ok(())
+        } else {
+            Err(())
+        }
+    });
+
+    let str_cnts = format!("{:?}", counts2.read());
+
+    cx.render(match future.value() {
+        Some(Ok(_)) => rsx! {
+            Section {
+                Title { "Success loading content!" }
+                SubTitle { "Counts: {str_cnts}" }
+            }
+        },
+        Some(Err(_)) => rsx! {
+            Section {
+                Title { "Failed loading content!" }
+            }
+        },
+        None => rsx! {
+            Section {
+                Title { "loading content..."}
+                SubTitle { "Counts: {str_cnts}" }
+                Button {
+                    color: Colors::Danger,
+                    onclick: move |_| { *fail2.write() = true; },
+                    "FAIL"
+                }
+                Button { class: "ml-1",
+                    color: Colors::Primary,
+                    onclick: move |_| { *load2.write() = true; },
+                    "LOAD"
+                }
+            }
+        },
     })
 }
 
@@ -57,98 +182,21 @@ pub fn Header(cx: Scope) -> Element {
     cx.render(rsx! {
         Navbar {
             color: Colors::Primary,
-            div {
-                class: "navbar-menu",
-                div {
-                    class: "navbar-start",
-                    a {
-                        class: "navbar-item",
-                        onclick: move |_| {
-                            use_router(cx).push_route("/", None, None)
-                        },
-                        "Home"
+            NavbarMenu {
+                NavbarStart {
+                    NavbarItem {
+                        onclick: move |_| { use_router(cx).push_route("/", None, None) },
+                        "Page 1"
                     }
-                    a {
-                        class: "navbar-item",
-                        onclick: move |_| {
-                            use_router(cx).push_route("/posts", None, None)
-                        },
-                        "Posts"
+                    NavbarItem {
+                        onclick: move |_| { use_router(cx).push_route("/2", None, None) },
+                        "Page 2"
                     }
-                    div {
-                        class: "navbar-item has-dropdown is-hoverable",
-                        div {
-                            class: "navbar-link",
-                            "More"
-                        }
-                        div {
-                            class: "navbar-dropdown",
-                            a {
-                                class: "navbar-item",
-                                "About"
-                            }
-                            a {
-                                class: "navbar-item",
-                                onclick: move |_| {
-                                    use_router(cx).push_route("/authors", None, None)
-                                },
-                                "Meet the authors"
-                            }
-                        }
+                    NavbarItem {
+                        onclick: move |_| { use_router(cx).push_route("/3", None, None) },
+                        "Page 3"
                     }
                 }
-            }
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn AtomRootExample(cx: Scope) -> Element {
-    cx.render(rsx! {
-        div {
-            "no comprendo"
-        }
-    })
-}
-
-#[allow(non_snake_case)]
-fn Posts(cx: Scope) -> Element {
-    log::info!("Rendering: Posts");
-
-    // Example content loading
-    let future = use_future(cx, (), |_| async move {
-        // let state = fermi::use_atom_root(cx);
-        // let pagination = state.read(PAGINATION);
-        // pagination.set("/posts", (1..=12).map(|x| x.to_string()).collect::<Vec<String>>());
-    });
-
-    // Render page
-    match future.value() {
-        Some(_) => {
-            let url = "/posts".to_string();
-            let state = fermi::use_atom_state(cx, PAGINATION);
-            let page = state.current_page(&url);
-            cx.render(rsx! {
-                Section {
-                    Title { "Page: {page}" }
-                    Pagination { url: "/posts".to_string(),
-                        state: PAGINATION,
-                    }
-                }
-            })
-        },
-        _ => cx.render(rsx! { div { "loading posts..."} }),
-    }
-}
-
-#[allow(non_snake_case)]
-fn Authors(cx: Scope) -> Element {
-    log::info!("Rendering: Authors");
-
-    cx.render(rsx! {
-        Section {
-            Pagination { url: "/authors".to_string(),
-                state: PAGINATION,
             }
         }
     })

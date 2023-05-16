@@ -1,6 +1,6 @@
 use bulma::{
     components::*,
-    dioxus_router::{Link, Route, Router},
+    dioxus_router::{Route, Router},
     elements::Title,
     layouts::Section,
     prelude::*,
