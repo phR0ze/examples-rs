@@ -14,7 +14,6 @@ fn main() {
         App,
         dioxus_desktop::Config::new().with_window(
             dioxus_desktop::WindowBuilder::new()
-                .with_title("Bulma Example")
                 .with_resizable(true)
                 .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
