@@ -1,7 +1,7 @@
 //! Provides progress
 use crate::utils::*;
 use dioxus::prelude::*;
-use fermi::UseAtomRef;
+use fermi::{use_atom_ref, AtomRef, UseAtomRef};
 use instant::Instant;
 
 const RESOLUTION: u64 = 500;
@@ -37,14 +37,6 @@ impl Default for Progress {
 }
 
 impl Progress {
-    /// Subscribe to the completion notification using the given custom signal.
-    /// The given signal will be triggered causing a re-render event to the owner.
-    /// when the progress is completed.
-    /// * `signal: UseAtomRef<bool>` fermi atom used as a signal
-    pub fn with_notify(&mut self, signal: UseAtomRef<bool>) {
-        self.signal = Some(signal);
-    }
-
     /// Start or restart progress
     /// * `max: f64` progress maximum value
     /// * `value: f64` progress current value
@@ -61,7 +53,7 @@ impl Progress {
     /// * `duration: u64` milliseconds to wait before progress is complete
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
     pub fn timed(&mut self, duration: u64, signal: Option<UseAtomRef<bool>>) {
-        // self.signal = signal;
+        self.signal = signal;
         self.signaled = false;
         self.started = Some(Instant::now());
         self.duration = duration;
@@ -152,9 +144,6 @@ impl Progress {
 #[allow(non_snake_case)]
 #[derive(Props)]
 pub struct ProgressProps<'a> {
-    #[props(!optional)]
-    id: String,
-
     #[props(default = 1.0)]
     max: f64,
 
@@ -168,7 +157,7 @@ pub struct ProgressProps<'a> {
     color: Option<Colors>,
 
     #[props(!optional)]
-    state: &'a UseAtomRef<Progress>,
+    state: AtomRef<Progress>,
 
     #[props(optional)]
     completed: Option<&'a UseAtomRef<bool>>,
@@ -176,19 +165,25 @@ pub struct ProgressProps<'a> {
 
 /// Progress bar
 ///
+/// ### Detail
+/// Progress specifically uses the `AtomRef` form of state to avoid forcing the parent
+/// to receive render updates if not desired
+///
 /// ### Properties
-/// * `id: String` id used for progress state lookup
 /// * `max: f64` max value for the progress bar, defaults to 1.0
 /// * `value: f64` current value of the progress bar, defaults to 0.0
 /// * `size: Option<Sizes>` optional CSS size of the progress bar
 /// * `color: Option<Colors>` optional CSS color of the progress bar
-/// * `state: &'a UseAtomRef<ProgressState>` fermi state reference for progress tracking
+/// * `state: AtomRef<Progress>` fermi state reference for progress tracking
+/// * `completed: Option<&'a UseAtomRef<bool>>` optional completed signal for listeners
 #[allow(non_snake_case)]
 pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
-    let state = cx.props.state;
+    let state = use_atom_ref(cx, cx.props.state);
 
     // Ensure progress has been configured
-    if !state.read().started() {
+    // By checking if it has been completed here we don't automatically restart the progress
+    // if started gets reset to None on complete. This keeps the restart an intentional action.
+    if !state.read().started() && !state.read().completed() {
         state.write().start(cx.props.max, cx.props.value, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
@@ -226,7 +221,7 @@ pub struct ProgressTimedProps<'a> {
     color: Option<Colors>,
 
     #[props(!optional)]
-    state: &'a UseAtomRef<Progress>,
+    state: AtomRef<Progress>,
 
     #[props(optional)]
     completed: Option<&'a UseAtomRef<bool>>,
@@ -235,22 +230,29 @@ pub struct ProgressTimedProps<'a> {
 /// Timed progress bar provides will automatically increment every 50ms until it hits 100%
 /// of the specified duration.  Unique ids must be used or you'll have cross timer updates
 /// happening
+//
+/// ### Detail
+/// Progress specifically uses the `AtomRef` form of state to avoid forcing the parent
+/// to receive render updates if not desired. Using `UseAtomRef` for the signal for the opposite
+/// reason to make registering for events convenient.
 ///
 /// ### Properties
 /// * `id: String` progress restart will occur every time the id changes
 /// * `duration: usize` milliseconds to wait before completing the progress bar, default 15000
 /// * `size: Option<Sizes>` optional CSS size of the progress bar
 /// * `color: Option<Colors>` optional CSS color of the progress bar
-/// * `state: &'a UseAtomRef<ProgressState>` fermi state reference for progress tracking
+/// * `state: AtomRef<Progress>` fermi state reference for progress tracking
 /// * `completed: Option<&'a UseAtomRef<bool>>` optional completed signal for listeners
 #[allow(non_snake_case)]
 pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     log::trace!("ProgressTimed[{}]: rendered", cx.props.id);
-    let state = cx.props.state;
+    let state = use_atom_ref(cx, cx.props.state);
 
     // Configure timed progress
-    if !state.read().started() {
-        log::debug!("ProgressTimed[{}]: created", cx.props.id);
+    // By checking if it has been completed here we don't automatically restart the progress
+    // if started gets reset to None on complete. This keeps the restart an intentional action.
+    if !state.read().started() && !state.read().completed() {
+        log::debug!("ProgressTimed[{}]: started", cx.props.id);
         state.write().timed(cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
@@ -259,7 +261,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     // When the `id` value changes the future will be regenerated to include the new values.
     use_future(&cx, &cx.props.id, |id| {
         to_owned![state];
-        log::debug!("Future[{}]: created", &id);
+        log::debug!("Future[{}]: created", id);
         async move {
             loop {
                 sleep(state.read().interval()).await;
@@ -267,7 +269,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
                     break;
                 }
             }
-            log::debug!("Future[{}]: completed", &id);
+            log::debug!("Future[{}]: completed", id);
         }
     });
 

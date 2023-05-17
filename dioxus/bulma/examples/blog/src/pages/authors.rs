@@ -2,14 +2,7 @@ use crate::{
     content::{self, Generated},
     ROUTES,
 };
-use bulma::{
-    components::*,
-    dioxus_router::Link,
-    elements::*,
-    fermi::{use_atom_root, Readable},
-    layouts::*,
-    prelude::*,
-};
+use bulma::{components::*, dioxus_router::Link, elements::*, layouts::*, prelude::*};
 use rand::{distributions::Standard, Rng};
 
 static SIGNAL: AtomRef<bool> = |_| false;
@@ -18,8 +11,6 @@ static PROGRESS: AtomRef<Progress> = |_| Progress::default();
 #[allow(non_snake_case)]
 pub fn Authors(cx: Scope) -> Element {
     println!("render authors page");
-    let state = use_atom_ref(cx, PROGRESS);
-    unsubscribe_atom(cx, cx.scope_id(), PROGRESS.unique_id());
     let signal = use_atom_ref(cx, SIGNAL);
 
     // Generate authors
@@ -60,31 +51,35 @@ pub fn Authors(cx: Scope) -> Element {
                         }
                     }
                 }
-                RefreshAuthors { id: id }
+                ProgressTimed { id: id,
+                    state: PROGRESS,
+                    color: Colors::Primary,
+                    completed: signal,
+                }
             }
         }
     })
 }
 
-#[allow(non_snake_case)]
-#[derive(Props, PartialEq)]
-pub struct RefreshAuthorsProps {
-    id: String,
-}
+// #[allow(non_snake_case)]
+// #[derive(Props, PartialEq)]
+// pub struct RefreshAuthorsProps {
+//     id: String,
+// }
 
-/// By pushing the timed progress bar into a sub-component we can keep the parent component
-/// page from re-rendering over and over. Instead only this component is re-rendered each
-/// time the timer fires.
-#[allow(non_snake_case)]
-pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
-    let state = use_atom_ref(cx, PROGRESS);
-    cx.render(rsx! {
-        ProgressTimed { id: cx.props.id.clone(),
-            state: state,
-            color: Colors::Primary,
-        }
-    })
-}
+// /// By pushing the timed progress bar into a sub-component we can keep the parent component
+// /// page from re-rendering over and over. Instead only this component is re-rendered each
+// /// time the timer fires.
+// #[allow(non_snake_case)]
+// pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
+//     let state = use_atom_ref(cx, PROGRESS);
+//     cx.render(rsx! {
+//         ProgressTimed { id: cx.props.id.clone(),
+//             state: state,
+//             color: Colors::Primary,
+//         }
+//     })
+// }
 
 #[allow(non_snake_case)]
 #[derive(PartialEq, Props)]

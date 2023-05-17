@@ -18,6 +18,7 @@ fn main() {
 // UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
+    let white = "White".to_string();
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
         Section {
@@ -26,7 +27,7 @@ fn App(cx: Scope) -> Element {
                 Column {
                     Button {
                         color: Colors::White,
-                        "White"
+                        white.clone(),
                     }
                 }
                 Column {
@@ -106,7 +107,7 @@ fn App(cx: Scope) -> Element {
                     Button {
                         color: Colors::White,
                         is_light: true,
-                        "White"
+                        white,
                     }
                 }
                 Column {

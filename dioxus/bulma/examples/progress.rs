@@ -1,4 +1,4 @@
-use bulma::{elements::*, layouts::*, prelude::*};
+use bulma::{components::*, elements::*, layouts::*, prelude::*};
 
 static PROGRESS1: AtomRef<Progress> = |_| Progress::default();
 static PROGRESS2: AtomRef<Progress> = |_| Progress::default();
@@ -6,7 +6,7 @@ static PROGRESS3: AtomRef<Progress> = |_| Progress::default();
 static PROGRESS4: AtomRef<Progress> = |_| Progress::default();
 
 fn main() {
-    dioxus_logger::init(log::LevelFilter::Debug).expect("failed to init logger");
+    dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");
 
     dioxus_desktop::launch_cfg(
         App,
@@ -20,22 +20,54 @@ fn main() {
 
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    log::debug!("App: render");
+    log::info!("Rendering: App");
     fermi::use_init_atom_root(&cx);
-
-    // When the ProgressExamples sets the shared state `completed` to true it will
-    // trigger Dioxus to re-render this (i.e. `App`) component.
-    let signal1 = use_atom_ref(&cx, |_| false);
-    let signal2 = use_atom_ref(&cx, |_| false);
-    let signal3 = use_atom_ref(&cx, |_| false);
-    let signal4 = use_atom_ref(&cx, |_| false);
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-        ProgressExample1 { id: "1" completed: signal1 }
-        ProgressExample2 { id: "2" completed: signal2 }
-        ProgressExample3 { id: "3", completed: signal3 }
-        ProgressExample4 { id: "4", completed: signal4 }
+        Router {
+            Header {},
+            Route { to: "/", Page1 {} },
+            Route { to: "/2", Page2 {} },
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Page2(cx: Scope) -> Element {
+    log::info!("Rendering: Page2");
+    static COUNTS: fermi::AtomRef<Vec<i32>> = |_| vec![0];
+    let counts = fermi::use_atom_ref(cx, COUNTS);
+    let count = *counts.read().last().unwrap() + 1;
+    let str_cnts = format!("{:?}", counts.read());
+
+    cx.render(rsx! {
+        Section {
+            Title { "Page 2"}
+            SubTitle { "Counts: {str_cnts}" }
+            Button {
+                color: Colors::Danger,
+                onclick: move |_| { counts.write().pop(); },
+                "-"
+            }
+            Button { class: "ml-1",
+                color: Colors::Primary,
+                onclick: move |_| { counts.write().push(count) },
+                "+"
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Page1(cx: Scope) -> Element {
+    log::info!("Rendering: Page1");
+
+    cx.render(rsx! {
+        ProgressExample1 { id: "1" }
+        ProgressExample2 { id: "2" }
+        ProgressExample3 { id: "3" }
+        ProgressExample4 { id: "4" }
     })
 }
 
@@ -44,16 +76,13 @@ fn App(cx: Scope) -> Element {
 pub struct ProgressExampleProps<'a> {
     #[props(!optional)]
     id: &'a str,
-
-    #[props(!optional)]
-    completed: &'a UseAtomRef<bool>,
 }
 
 #[allow(non_snake_case)]
 fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = use_atom_ref(&cx, PROGRESS1);
     let value = state.read().value();
-    log::trace!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
+    log::info!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
 
     // Reset progress on completion
     if state.read().completed() {
@@ -62,11 +91,10 @@ fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 
     cx.render(rsx! {
         Section { class: "py-2".into(),
-            SubTitle { "Restarting progress" }
-            Progress { id: cx.props.id.into(),
-                state: state,
+            SubTitle { "Progress that will automatically restart when completed" }
+            Progress {
+                state: PROGRESS1,
                 color: Colors::Primary,
-                completed: cx.props.completed,
             }
             Button {
                 color: Colors::Primary,
@@ -99,15 +127,14 @@ fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = use_atom_ref(&cx, PROGRESS2);
     let value = state.read().value();
-    log::trace!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
+    log::info!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
 
     cx.render(rsx! {
         Section { class: "py-2".into(),
-            SubTitle { "Regular progress" }
-            Progress { id: cx.props.id.into(),
-                state: state,
+            SubTitle { "Progress without any automation" }
+            Progress {
+                state: PROGRESS2,
                 color: Colors::Info,
-                completed: cx.props.completed,
             }
             Button {
                 color: Colors::Info,
@@ -156,28 +183,23 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     log::trace!("ProgressExample[{}]: render", &id);
     cx.render(rsx! {
         Section { class: "py-2".into(),
-            SubTitle { "Timed 1 sec progress restarting" }
+            SubTitle { "Timed progress restarting every 1 sec" }
             ProgressTimed { id: id.clone(),
-                state: state,
+                state: PROGRESS3,
                 duration: 1000,
                 color: Colors::Danger,
-                completed: cx.props.completed,
             }
             Button {
                 class: "ml-5".into(),
                 color: Colors::Warning,
-                onclick: move |_| {
-                    // state.write().reset();
-                },
-                "Reset progress {id.clone()}"
+                state: ButtonState::Disabled,
+                "Reset progress {id}"
             }
             Button {
                 class: "ml-5".into(),
                 color: Colors::Success,
-                onclick: move |_| {
-                    // state.write().complete();
-                },
-                "Complete progress {id.clone()}"
+                state: ButtonState::Disabled,
+                "Complete progress {id}"
             }
         }
     })
@@ -189,17 +211,11 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let state = use_atom_ref(&cx, PROGRESS4);
     log::trace!("ProgressExample[{}]: render", cx.props.id);
     let id4 = use_atom_ref(&cx, ID4);
-    let id = format!("{}", *id4.read());
 
-    cx.render(rsx! {
-        Section { class: "py-2".into(),
-            SubTitle { "Timed 5 sec progress restartable" }
-            ProgressTimed { id: id.clone(),
-                state: state,
-                duration: 5000,
-                color: Colors::Warning,
-                completed: cx.props.completed,
-            }
+    // Calculate conditional button state
+    let id = format!("{}", *id4.read());
+    let reset_btn = if state.read().completed() {
+        rsx! {
             Button {
                 class: "ml-5".into(),
                 color: Colors::Warning,
@@ -207,15 +223,59 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                     state.write().reset();
                     *id4.write_silent() += 1;
                 },
-                "Reset progress {id.clone()}"
+                "Reset progress {id}"
             }
+        }
+    } else {
+        rsx! {
+            Button {
+                class: "ml-5".into(),
+                color: Colors::Warning,
+                state: ButtonState::Disabled,
+                "Reset progress {id}"
+            }
+        }
+    };
+
+    let id = format!("{}", *id4.read());
+    cx.render(rsx! {
+        Section { class: "py-2".into(),
+            SubTitle { "Timed progress for 5 sec that is restartable" }
+            ProgressTimed { id: id.clone(),
+                state: PROGRESS4,
+                duration: 5000,
+                color: Colors::Warning,
+            }
+            reset_btn
             Button {
                 class: "ml-5".into(),
                 color: Colors::Success,
+                state: ButtonState::Disabled,
                 onclick: move |_| {
                     state.write().complete();
                 },
-                "Complete progress {id.clone()}"
+                "Complete progress {id}"
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+pub fn Header(cx: Scope) -> Element {
+    cx.render(rsx! {
+        Navbar {
+            color: Colors::Primary,
+            NavbarMenu {
+                NavbarStart {
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/", None, None),
+                        "Page 1"
+                    }
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/2", None, None),
+                        "Page 2"
+                    }
+                }
             }
         }
     })
