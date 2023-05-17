@@ -1,14 +1,5 @@
-use bulma::{
-    components::*,
-    dioxus_router::{Route, Router},
-    elements::*,
-    layouts::*,
-    prelude::*,
-};
-use rand::{
-    distributions::{self, Standard},
-    Rng,
-};
+use bulma::{components::*, elements::*, layouts::*, prelude::*};
+use rand::Rng;
 
 fn main() {
     dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");

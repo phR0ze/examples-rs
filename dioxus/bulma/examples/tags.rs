@@ -1,8 +1,4 @@
-use bulma::{
-    elements::{Tag, TagLink, Tags},
-    layouts::{Column, Columns, Container},
-    prelude::*,
-};
+use bulma::{elements::*, layouts::*, prelude::*};
 
 fn main() {
     #[cfg(target_family = "wasm")]

@@ -1,15 +1,9 @@
 use bulma::{elements::*, layouts::*, prelude::*};
 
-// Only unique component function calls get unique rendering. If you use the same
-// component multiple times in the same context they will all be re-rendered at the same time;
-// while unique component names will only be rendered when their context changes.
-//
-// A unique fermi instance e.g. static STATE1: AtomRef<State> = |_| State::default() and a
-// unique component are both required for the most granular rendering control
-static PROGRESS_STATE1: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
-static PROGRESS_STATE2: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
-static PROGRESS_STATE3: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
-static PROGRESS_STATE4: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static PROGRESS_STATE1: fermi::AtomRef<Progress> = |_| Progress::default();
+static PROGRESS_STATE2: fermi::AtomRef<Progress> = |_| Progress::default();
+static PROGRESS_STATE3: fermi::AtomRef<Progress> = |_| Progress::default();
+static PROGRESS_STATE4: fermi::AtomRef<Progress> = |_| Progress::default();
 static ID3: fermi::AtomRef<i32> = |_| 3;
 static ID4: fermi::AtomRef<i32> = |_| 4;
 

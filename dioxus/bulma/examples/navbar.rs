@@ -1,10 +1,4 @@
-use bulma::{
-    components::*,
-    dioxus_router::{Route, Router},
-    elements::Title,
-    layouts::Section,
-    prelude::*,
-};
+use bulma::{components::*, elements::*, layouts::*, prelude::*};
 
 fn main() {
     dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");

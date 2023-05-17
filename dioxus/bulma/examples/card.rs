@@ -1,9 +1,4 @@
-use bulma::{
-    components::{Card, CardContent, CardFooter, CardHeader, CardImage},
-    elements::{Image, SubTitle, Title},
-    layouts::{Column, Columns, Container},
-    prelude::*,
-};
+use bulma::{components::*, elements::*, layouts::*, prelude::*};
 
 fn main() {
     #[cfg(target_family = "wasm")]

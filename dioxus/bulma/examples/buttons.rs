@@ -1,8 +1,4 @@
-use bulma::{
-    elements::{Button, Title},
-    layouts::{Column, Columns, Section},
-    prelude::*,
-};
+use bulma::{elements::*, layouts::*, prelude::*};
 
 fn main() {
     #[cfg(target_family = "wasm")]
