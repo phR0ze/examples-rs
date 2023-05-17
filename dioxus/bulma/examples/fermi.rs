@@ -217,15 +217,15 @@ pub fn Header(cx: Scope) -> Element {
             NavbarMenu {
                 NavbarStart {
                     NavbarItem {
-                        onclick: move |_| { use_router(cx).push_route("/", None, None) },
+                        onclick: move |_| use_router(cx).push_route("/", None, None),
                         "Page 1"
                     }
                     NavbarItem {
-                        onclick: move |_| { use_router(cx).push_route("/2", None, None) },
+                        onclick: move |_| use_router(cx).push_route("/2", None, None),
                         "Page 2"
                     }
                     NavbarItem {
-                        onclick: move |_| { use_router(cx).push_route("/3", None, None) },
+                        onclick: move |_| use_router(cx).push_route("/3", None, None),
                         "Page 3"
                     }
                 }

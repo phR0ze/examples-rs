@@ -25,7 +25,7 @@ pub mod prelude {
     pub use dioxus;
     pub use dioxus::prelude::*;
     pub use dioxus_router::{self, use_route, use_router, Route, Router};
-    pub use fermi::{self, use_atom_ref, use_init_atom_root, AtomRef};
+    pub use fermi::{self, use_atom_ref, use_init_atom_root, AtomRef, UseAtomRef};
 
     #[cfg(any(windows, unix))]
     pub use dioxus_desktop;

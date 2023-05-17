@@ -2,25 +2,33 @@ use crate::{
     content::{self, Generated},
     ROUTES,
 };
-use bulma::{components::*, dioxus_router::Link, elements::*, fermi::Readable, layouts::*, prelude::*};
-use rand::{distributions, Rng};
+use bulma::{
+    components::*,
+    dioxus_router::Link,
+    elements::*,
+    fermi::{use_atom_root, Readable},
+    layouts::*,
+    prelude::*,
+};
+use rand::{distributions::Standard, Rng};
 
-static PROGRESS_STATE: fermi::AtomRef<ProgressState> = |_| ProgressState::default();
+static SIGNAL: AtomRef<bool> = |_| false;
+static PROGRESS: AtomRef<Progress> = |_| Progress::default();
 
 #[allow(non_snake_case)]
 pub fn Authors(cx: Scope) -> Element {
     println!("render authors page");
+    let state = use_atom_ref(cx, PROGRESS);
+    unsubscribe_atom(cx, cx.scope_id(), PROGRESS.unique_id());
+    let signal = use_atom_ref(cx, SIGNAL);
 
     // Generate authors
-    let seeds: Vec<u64> = rand::thread_rng().sample_iter(distributions::Standard).take(2).collect();
+    let seeds: Vec<u64> = rand::thread_rng().sample_iter(Standard).take(2).collect();
     let authors: Vec<content::Author> =
         seeds.iter().map(|&seed| content::Author::generate_from_seed(seed)).collect();
     let id = format!("{}/{}:{}", ROUTES.authors, seeds[0], seeds[1]);
 
     // Create progress state
-    ProgressState::subscribe(cx, PROGRESS_STATE);
-    println!("foo berries");
-
     cx.render(rsx! {
         Container {
             section { class: "hero",
@@ -69,7 +77,7 @@ pub struct RefreshAuthorsProps {
 /// time the timer fires.
 #[allow(non_snake_case)]
 pub fn RefreshAuthors(cx: Scope<RefreshAuthorsProps>) -> Element {
-    let state = fermi::use_atom_ref(cx, PROGRESS_STATE);
+    let state = use_atom_ref(cx, PROGRESS);
     cx.render(rsx! {
         ProgressTimed { id: cx.props.id.clone(),
             state: state,

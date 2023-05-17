@@ -5,19 +5,14 @@ edition = "2021"
 
 [dependencies]
 log = "0.4.17"
-#fermi = "0.3.0"
-#dioxus = "0.3.2"
-fermi = { path = "../../../temp/dioxus/packages/fermi" }
-dioxus = { path = "../../../temp/dioxus/packages/dioxus" }
-dioxus-router = { path = "../../../temp/dioxus/packages/router" }
-dioxus-hooks = { path = "../../../temp/dioxus/packages/hooks" }
-#dioxus-router = "0.3.0"
+fermi = "0.3.0"
+dioxus = "0.3.2"
+dioxus-router = "0.3.0"
 dioxus-free-icons = { version = "0.6.0", features = ["font-awesome-brands", "font-awesome-regular", "font-awesome-solid"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 
 [target.'cfg(any(unix, windows))'.dependencies]
-#dioxus-desktop = { version = "0.3.0", features = ["transparent"] }
-dioxus-desktop = { path = "../../../temp/dioxus/packages/desktop" }
+dioxus-desktop = { version = "0.3.0", features = ["transparent"] }
 tokio = { version = "1.28.0", features = ["time"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]

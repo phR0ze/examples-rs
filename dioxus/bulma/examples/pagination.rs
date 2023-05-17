@@ -64,7 +64,7 @@ fn Posts(cx: Scope) -> Element {
                 Section {
                     Title { "Posts" }
                     SubTitle { "Page: {page}" }
-                    Pagination { url: "/posts".to_string(),
+                    Pagination { url: "/posts".into(),
                         state: state,
                     }
                 }
@@ -131,11 +131,11 @@ pub fn Header(cx: Scope) -> Element {
             NavbarMenu {
                 NavbarStart {
                     NavbarItem {
-                        onclick: move |_| { use_router(cx).push_route("/posts", None, None) },
+                        onclick: move |_| use_router(cx).push_route("/posts", None, None),
                         "Posts"
                     }
                     NavbarItem {
-                        onclick: move |_| { use_router(cx).push_route("/authors", None, None) },
+                        onclick: move |_| use_router(cx).push_route("/authors", None, None),
                         "Authors"
                     }
                 }

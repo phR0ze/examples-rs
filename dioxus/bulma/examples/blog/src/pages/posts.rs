@@ -1,20 +1,32 @@
 use crate::{
     content::{self, Generated},
-    PAGINATION_STATE, ROUTES,
+    ROUTES,
 };
 use bulma::{components::*, elements::*, layouts::*, prelude::*};
+use rand::Rng;
+
+static PAGINATION: AtomRef<Pagination> = |_| Pagination::default();
 
 #[allow(non_snake_case)]
 pub fn Posts(cx: Scope) -> Element {
-    let pagination = fermi::use_atom_ref(&cx, PAGINATION_STATE);
+    let pagination = use_atom_ref(&cx, PAGINATION);
 
-    let per_page = 9;
     let cols = 3;
+    let per_page = 9;
     let per_col = per_page / cols;
-    let total_pages = 12;
 
-    // Generate posts
-    let start_seed = pagination.read().get(ROUTES.posts) * per_page;
+    // Generate content
+    use_future(cx, (), |_| {
+        to_owned![pagination];
+        async move {
+            // Generate some random total page count
+            let pages = rand::thread_rng().gen_range(10..100);
+            pagination.write().set(ROUTES.posts, (1..=pages).map(|x| x.to_string()).collect::<Vec<String>>());
+        }
+    });
+
+    // Generate content for the indicated page
+    let start_seed = pagination.read().current_page(ROUTES.posts) * per_page;
     let mut posts =
         (0..per_page).map(|seed_offset| content::PostMeta::generate_from_seed((start_seed + seed_offset) as u64));
 
@@ -38,9 +50,8 @@ pub fn Posts(cx: Scope) -> Element {
                         }
                     }
                 }
-                Pagination{ id: ROUTES.posts,
+                Pagination { url: ROUTES.posts.into(),
                     state: pagination,
-                    total_pages: total_pages,
                 }
             }
         }

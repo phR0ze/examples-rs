@@ -1,11 +1,9 @@
 use bulma::{elements::*, layouts::*, prelude::*};
 
-static PROGRESS_STATE1: fermi::AtomRef<Progress> = |_| Progress::default();
-static PROGRESS_STATE2: fermi::AtomRef<Progress> = |_| Progress::default();
-static PROGRESS_STATE3: fermi::AtomRef<Progress> = |_| Progress::default();
-static PROGRESS_STATE4: fermi::AtomRef<Progress> = |_| Progress::default();
-static ID3: fermi::AtomRef<i32> = |_| 3;
-static ID4: fermi::AtomRef<i32> = |_| 4;
+static PROGRESS1: AtomRef<Progress> = |_| Progress::default();
+static PROGRESS2: AtomRef<Progress> = |_| Progress::default();
+static PROGRESS3: AtomRef<Progress> = |_| Progress::default();
+static PROGRESS4: AtomRef<Progress> = |_| Progress::default();
 
 fn main() {
     dioxus_logger::init(log::LevelFilter::Debug).expect("failed to init logger");
@@ -48,12 +46,12 @@ pub struct ProgressExampleProps<'a> {
     id: &'a str,
 
     #[props(!optional)]
-    completed: &'a fermi::UseAtomRef<bool>,
+    completed: &'a UseAtomRef<bool>,
 }
 
 #[allow(non_snake_case)]
 fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
-    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE1);
+    let state = use_atom_ref(&cx, PROGRESS1);
     let value = state.read().value();
     log::trace!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
 
@@ -99,7 +97,7 @@ fn ProgressExample1<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 
 #[allow(non_snake_case)]
 fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
-    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE2);
+    let state = use_atom_ref(&cx, PROGRESS2);
     let value = state.read().value();
     log::trace!("ProgressExample[{}]: render, value: {}", cx.props.id, value);
 
@@ -140,8 +138,9 @@ fn ProgressExample2<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 
 #[allow(non_snake_case)]
 fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
-    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE3);
-    let id3 = fermi::use_atom_ref(&cx, ID3);
+    static ID3: AtomRef<i32> = |_| 3;
+    let state = use_atom_ref(&cx, PROGRESS3);
+    let id3 = use_atom_ref(&cx, ID3);
 
     // Restart the progress timer
     if state.read().completed() {
@@ -186,9 +185,10 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
 
 #[allow(non_snake_case)]
 fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
-    let state = fermi::use_atom_ref(&cx, PROGRESS_STATE4);
+    static ID4: AtomRef<i32> = |_| 4;
+    let state = use_atom_ref(&cx, PROGRESS4);
     log::trace!("ProgressExample[{}]: render", cx.props.id);
-    let id4 = fermi::use_atom_ref(&cx, ID4);
+    let id4 = use_atom_ref(&cx, ID4);
     let id = format!("{}", *id4.read());
 
     cx.render(rsx! {
@@ -205,7 +205,6 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 color: Colors::Warning,
                 onclick: move |_| {
                     state.write().reset();
-                    let id4 = fermi::use_atom_ref(&cx, ID4);
                     *id4.write_silent() += 1;
                 },
                 "Reset progress {id.clone()}"

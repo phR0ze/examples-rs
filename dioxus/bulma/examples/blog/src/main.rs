@@ -1,14 +1,7 @@
-//! Dioxus Bulma example
-//!
 mod content;
 mod pages;
 
-use bulma::{
-    dioxus_router::{Route, Router},
-    prelude::*,
-};
-
-static PAGINATION_STATE: fermi::AtomRef<PaginationState> = |_| PaginationState::default();
+use bulma::prelude::*;
 
 struct AppRoutes<'a> {
     pub root: &'a str,
@@ -28,7 +21,6 @@ fn main() {
         App,
         bulma::dioxus_desktop::Config::new().with_window(
             bulma::dioxus_desktop::WindowBuilder::new()
-                .with_title("Bulma Example")
                 .with_resizable(true)
                 .with_inner_size(bulma::dioxus_desktop::LogicalSize::new(1200, 700)),
         ),

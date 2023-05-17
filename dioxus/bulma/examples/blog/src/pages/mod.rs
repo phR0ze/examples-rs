@@ -9,7 +9,7 @@ pub use home::*;
 // pub use post::*;
 pub use posts::*;
 
-use bulma::{components::*, dioxus_router::use_router, prelude::*};
+use bulma::{components::*, prelude::*};
 
 #[allow(non_snake_case)]
 pub fn Header(cx: Scope) -> Element {
@@ -17,43 +17,21 @@ pub fn Header(cx: Scope) -> Element {
         Navbar {
             color: Colors::Info,
             brand: "https://bulma.io/images/bulma-logo.png".into(),
-            div {
-                class: "navbar-menu",
-                div {
-                    class: "navbar-start",
-                    a {
-                        class: "navbar-item",
-                        onclick: move |_| {
-                            use_router(cx).push_route("/", None, None)
-                        },
+            NavbarMenu {
+                NavbarStart {
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/", None, None),
                         "Home"
                     }
-                    a {
-                        class: "navbar-item",
-                        onclick: move |_| {
-                            use_router(cx).push_route("/posts", None, None)
-                        },
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/posts", None, None),
                         "Posts"
                     }
-                    div {
-                        class: "navbar-item has-dropdown is-hoverable",
-                        div {
-                            class: "navbar-link",
-                            "More"
-                        }
-                        div {
-                            class: "navbar-dropdown",
-                            a {
-                                class: "navbar-item",
-                                "About"
-                            }
-                            a {
-                                class: "navbar-item",
-                                onclick: move |_| {
-                                    use_router(cx).push_route("/authors", None, None)
-                                },
-                                "Meet the authors"
-                            }
+                    NavbarDropdown {
+                        title: "More".into(),
+                        NavbarItem {
+                            onclick: move |_| use_router(cx).push_route("/authors", None, None),
+                            "Meet the authors"
                         }
                     }
                 }

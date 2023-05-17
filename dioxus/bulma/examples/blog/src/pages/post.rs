@@ -8,7 +8,7 @@ use bulma::{
 #[allow(non_snake_case)]
 pub fn Post(cx: Scope) -> Element {
     let route = use_route(cx);
-    let content = route.parse_segment::<u64>("post").unwrap_or(default)
+    let content = route.parse_segment::<u64>("post").unwrap_or(default);
 
     let content = match route.parse_segment::<u64>("post") {
         Some(result) => match result {

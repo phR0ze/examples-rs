@@ -1,8 +1,7 @@
 //! Provides progress
 use crate::utils::*;
-use dioxus::prelude::Scoped;
 use dioxus::prelude::*;
-use fermi::{use_atom_ref, use_atom_root, AtomRef, Readable, UseAtomRef};
+use fermi::UseAtomRef;
 use instant::Instant;
 
 const RESOLUTION: u64 = 500;
@@ -18,9 +17,6 @@ pub struct Progress {
     // Current progress value
     value: f64,
 
-    // Track if the progress has been started
-    running: bool,
-
     // Optional signal to trigger
     signal: Option<UseAtomRef<bool>>,
 
@@ -28,7 +24,7 @@ pub struct Progress {
     signaled: bool,
 
     // Instant the progress timer started
-    start: Option<Instant>,
+    started: Option<Instant>,
 
     // Duration of the progress bar in milliseconds if timed
     duration: u64,
@@ -36,15 +32,7 @@ pub struct Progress {
 
 impl Default for Progress {
     fn default() -> Self {
-        Self {
-            max: 1.0,
-            value: 0.0,
-            running: false,
-            signal: None,
-            signaled: false,
-            start: None,
-            duration: DEFAULT_DURATION_MS,
-        }
+        Self { max: 1.0, value: 0.0, signal: None, signaled: false, started: None, duration: DEFAULT_DURATION_MS }
     }
 }
 
@@ -62,10 +50,10 @@ impl Progress {
     /// * `value: f64` progress current value
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
     pub fn start(&mut self, max: f64, value: f64, signal: Option<UseAtomRef<bool>>) {
-        self.running = true;
         self.signal = signal;
         self.signaled = false;
         self.max = max;
+        self.started = Some(Instant::now());
         self.value = value;
     }
 
@@ -73,10 +61,9 @@ impl Progress {
     /// * `duration: u64` milliseconds to wait before progress is complete
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
     pub fn timed(&mut self, duration: u64, signal: Option<UseAtomRef<bool>>) {
-        self.running = true;
         // self.signal = signal;
         self.signaled = false;
-        self.start = Some(Instant::now());
+        self.started = Some(Instant::now());
         self.duration = duration;
     }
 
@@ -84,16 +71,14 @@ impl Progress {
     /// * `returns: bool` true if completed
     pub fn advance(&mut self) -> bool {
         let mut result = false;
-        if self.running {
-            if let Some(start) = self.start {
-                if self.value < self.max {
-                    let elapsed = start.elapsed().as_millis() as u64;
-                    self.value = elapsed as f64 / self.duration as f64;
-                }
-                if self.value >= self.max {
-                    self.complete();
-                    result = true;
-                }
+        if let Some(started) = self.started {
+            if self.value < self.max {
+                let elapsed = started.elapsed().as_millis() as u64;
+                self.value = elapsed as f64 / self.duration as f64;
+            }
+            if self.value >= self.max {
+                self.complete();
+                result = true;
             }
         }
         result
@@ -102,7 +87,13 @@ impl Progress {
     /// Complete the progress
     pub fn complete(&mut self) {
         self.value = self.max;
-        self.signal();
+        self.started = None;
+        if !self.signaled {
+            self.signaled = true;
+            if let Some(signal) = &self.signal {
+                signal.set(true);
+            }
+        }
     }
 
     /// Check if the progress bar is completed
@@ -126,17 +117,8 @@ impl Progress {
     /// Reset the progress value
     pub fn reset(&mut self) {
         self.value = 0.0;
-        self.running = false;
         self.signaled = false;
-        if self.start.is_some() {
-            self.start = Some(Instant::now());
-        }
-    }
-
-    /// Check if progress is running
-    /// * returns `true` when progress has been started using the start method
-    pub fn running(&self) -> bool {
-        self.running
+        self.started = None;
     }
 
     /// Set the progress value
@@ -148,14 +130,10 @@ impl Progress {
         }
     }
 
-    /// Set the signaled status to true
-    fn signal(&mut self) {
-        if !self.signaled {
-            self.signaled = true;
-            if let Some(signal) = &self.signal {
-                signal.set(true);
-            }
-        }
+    /// Determine if the progress is started or not
+    /// * returns `bool` true if started
+    pub fn started(&self) -> bool {
+        self.started.is_some()
     }
 
     /// Get the progress value
@@ -210,7 +188,7 @@ pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
     let state = cx.props.state;
 
     // Ensure progress has been configured
-    if !state.read().running() {
+    if !state.read().started() {
         state.write().start(cx.props.max, cx.props.value, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
@@ -259,7 +237,7 @@ pub struct ProgressTimedProps<'a> {
 /// happening
 ///
 /// ### Properties
-/// * `id: String` id used for progress state lookup
+/// * `id: String` progress restart will occur every time the id changes
 /// * `duration: usize` milliseconds to wait before completing the progress bar, default 15000
 /// * `size: Option<Sizes>` optional CSS size of the progress bar
 /// * `color: Option<Colors>` optional CSS color of the progress bar
@@ -271,7 +249,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     let state = cx.props.state;
 
     // Configure timed progress
-    if !state.read().running() {
+    if !state.read().started() {
         log::debug!("ProgressTimed[{}]: created", cx.props.id);
         state.write().timed(cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
     }
