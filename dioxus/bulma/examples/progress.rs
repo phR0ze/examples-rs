@@ -20,7 +20,6 @@ fn main() {
     )
 }
 
-// UI entry point
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
     log::debug!("App: render");
@@ -28,10 +27,10 @@ fn App(cx: Scope) -> Element {
 
     // When the ProgressExamples sets the shared state `completed` to true it will
     // trigger Dioxus to re-render this (i.e. `App`) component.
-    let signal1 = fermi::use_atom_ref(&cx, |_| false);
-    let signal2 = fermi::use_atom_ref(&cx, |_| false);
-    let signal3 = fermi::use_atom_ref(&cx, |_| false);
-    let signal4 = fermi::use_atom_ref(&cx, |_| false);
+    let signal1 = use_atom_ref(&cx, |_| false);
+    let signal2 = use_atom_ref(&cx, |_| false);
+    let signal3 = use_atom_ref(&cx, |_| false);
+    let signal4 = use_atom_ref(&cx, |_| false);
 
     cx.render(rsx! {
         style { "{get_bulma_css()}" },

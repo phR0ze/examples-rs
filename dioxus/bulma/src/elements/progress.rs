@@ -9,14 +9,9 @@ const RESOLUTION: u64 = 500;
 const MIN_INTERVAL_MS: u64 = 50;
 const DEFAULT_DURATION_MS: u64 = 15000;
 
-static SIGNAL: AtomRef<bool> = |_| false;
-
 /// Progress shared state
 #[derive(Clone)]
 pub struct Progress {
-    // Progress identifier
-    id: String,
-
     // Max progress value
     max: f64,
 
@@ -42,7 +37,6 @@ pub struct Progress {
 impl Default for Progress {
     fn default() -> Self {
         Self {
-            id: String::new(),
             max: 1.0,
             value: 0.0,
             running: false,
@@ -55,35 +49,6 @@ impl Default for Progress {
 }
 
 impl Progress {
-    /// Subscribe to the progress completion notification which will trigger the
-    /// caller to re-render when the progress is completed
-    /// * `cx: &Scoped` Dioxus scoped state
-    /// * `atom: &AtomRef` Dioxus scoped state
-    pub fn subscribe(cx: &Scoped, atom: AtomRef<Progress>) {
-        let atom_ref = use_atom_ref(&cx, atom);
-        println!("after atom_ref");
-
-        // Unsubscribe before making changes to avoid triggering renders
-        use_atom_root(cx).unsubscribe(atom.unique_id(), cx.scope_id());
-        println!("after atom_root");
-
-        let signal = use_atom_ref(cx, SIGNAL);
-        println!("after signal");
-
-        atom_ref.write_silent().with_notify(signal.clone());
-        println!("after with_notify");
-
-        atom_ref.write_silent().reset();
-        println!("after reset");
-    }
-
-    /// Set the progress identifier
-    /// * `id: &str` progress identifier
-    pub fn with_id(&mut self, id: &str) -> &mut Self {
-        self.id = id.into();
-        self
-    }
-
     /// Subscribe to the completion notification using the given custom signal.
     /// The given signal will be triggered causing a re-render event to the owner.
     /// when the progress is completed.
@@ -93,28 +58,24 @@ impl Progress {
     }
 
     /// Start or restart progress
-    /// * `id: &str` progress identifier
     /// * `max: f64` progress maximum value
     /// * `value: f64` progress current value
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
-    pub fn start(&mut self, id: &str, max: f64, value: f64, signal: Option<UseAtomRef<bool>>) {
+    pub fn start(&mut self, max: f64, value: f64, signal: Option<UseAtomRef<bool>>) {
         self.running = true;
         self.signal = signal;
         self.signaled = false;
-        self.id = id.to_string();
         self.max = max;
         self.value = value;
     }
 
     /// Start or restart progress
-    /// * `id: &str` id for creating or resetting progress
     /// * `duration: u64` milliseconds to wait before progress is complete
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
-    pub fn timed(&mut self, id: &str, duration: u64, signal: Option<UseAtomRef<bool>>) {
+    pub fn timed(&mut self, duration: u64, signal: Option<UseAtomRef<bool>>) {
         self.running = true;
         // self.signal = signal;
         self.signaled = false;
-        self.id = id.to_string();
         self.start = Some(Instant::now());
         self.duration = duration;
     }
@@ -154,12 +115,6 @@ impl Progress {
     /// * returns `duration: u64`
     pub fn duration(&self) -> u64 {
         self.duration
-    }
-
-    /// Get the progress identifier
-    /// * returns `id: &str` progress identifier
-    pub fn id(&self) -> &str {
-        &self.id
     }
 
     /// Get the progress timer interval
@@ -256,12 +211,7 @@ pub fn Progress<'a>(cx: Scope<'a, ProgressProps<'a>>) -> Element {
 
     // Ensure progress has been configured
     if !state.read().running() {
-        state.write().start(
-            &cx.props.id,
-            cx.props.max,
-            cx.props.value,
-            cx.props.completed.and_then(|x| Some(x.clone())),
-        );
+        state.write().start(cx.props.max, cx.props.value, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
 
@@ -323,7 +273,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     // Configure timed progress
     if !state.read().running() {
         log::debug!("ProgressTimed[{}]: created", cx.props.id);
-        state.write().timed(&cx.props.id, cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
+        state.write().timed(cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
     }
     let (max, value) = state.read().values();
 
