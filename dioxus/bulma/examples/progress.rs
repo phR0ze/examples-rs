@@ -67,7 +67,7 @@ fn Page1(cx: Scope) -> Element {
         ProgressExample1 { id: "1" }
         ProgressExample2 { id: "2" }
         ProgressExample3 { id: "3" }
-        ProgressExample4 { id: "4" }
+        // ProgressExample4 { id: "4" }
     })
 }
 
@@ -189,17 +189,28 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 duration: 1000,
                 color: Colors::Danger,
             }
-            Button {
-                class: "ml-5".into(),
-                color: Colors::Warning,
-                state: ButtonState::Disabled,
-                "Reset progress {id}"
-            }
-            Button {
-                class: "ml-5".into(),
-                color: Colors::Success,
-                state: ButtonState::Disabled,
-                "Complete progress {id}"
+            if state.read().running() {
+                rsx! {
+                    Button {
+                        class: "ml-5 px-1".into(),
+                        color: Colors::Warning,
+                        onclick: move |_| {
+                            state.write().pause();
+                        },
+                        "Pause "
+                    }
+                }
+            } else {
+                rsx! {
+                    Button {
+                        class: "ml-5 px-1".into(),
+                        color: Colors::Primary,
+                        onclick: move |_| {
+                            state.write().resume();
+                        },
+                        "Resume"
+                    }
+                }
             }
         }
     })
@@ -213,6 +224,8 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
     let id4 = use_atom_ref(&cx, ID4);
 
     // Calculate conditional button state
+    // Note: values in a rsx! string block e.g. "Reset progress {id}" don't follow
+    // standard borrow rules and are apparently internally cloned so no need to consider them.
     let id = format!("{}", *id4.read());
     let reset_btn = if state.read().completed() {
         rsx! {
@@ -246,6 +259,8 @@ fn ProgressExample4<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 duration: 5000,
                 color: Colors::Warning,
             }
+            // Note I could have just as easily included the above here if if I
+            // cloned a separate id object rather than just assign over.
             reset_btn
             Button {
                 class: "ml-5".into(),
@@ -268,11 +283,11 @@ pub fn Header(cx: Scope) -> Element {
             NavbarMenu {
                 NavbarStart {
                     NavbarItem {
-                        onclick: move |_| use_router(cx).push_route("/", None, None),
+                        onclick: move |_| use_router(cx).replace_route("/", None, None),
                         "Page 1"
                     }
                     NavbarItem {
-                        onclick: move |_| use_router(cx).push_route("/2", None, None),
+                        onclick: move |_| use_router(cx).replace_route("/2", None, None),
                         "Page 2"
                     }
                 }

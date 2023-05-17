@@ -17,6 +17,9 @@ pub struct Progress {
     // Current progress value
     value: f64,
 
+    // Pause the progress
+    pause: bool,
+
     // Optional signal to trigger
     signal: Option<UseAtomRef<bool>>,
 
@@ -32,7 +35,15 @@ pub struct Progress {
 
 impl Default for Progress {
     fn default() -> Self {
-        Self { max: 1.0, value: 0.0, signal: None, signaled: false, started: None, duration: DEFAULT_DURATION_MS }
+        Self {
+            max: 1.0,
+            value: 0.0,
+            pause: false,
+            signal: None,
+            signaled: false,
+            started: None,
+            duration: DEFAULT_DURATION_MS,
+        }
     }
 }
 
@@ -100,6 +111,11 @@ impl Progress {
         self.duration
     }
 
+    /// Pause progress from advancing
+    pub fn pause(&mut self) {
+        self.pause = true;
+    }
+
     /// Get the progress timer interval
     /// * returns `interval: u64` milliseconds to wait before firing
     pub fn interval(&self) -> u64 {
@@ -111,6 +127,17 @@ impl Progress {
         self.value = 0.0;
         self.signaled = false;
         self.started = None;
+    }
+
+    /// Resume progress advancing if paused
+    pub fn resume(&mut self) {
+        self.pause = false;
+    }
+
+    /// Running if started and not yet completed and not paused
+    /// * returns `bool`
+    pub fn running(&self) -> bool {
+        self.started() && !self.completed() && !self.pause
     }
 
     /// Set the progress value
@@ -261,7 +288,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     // When the `id` value changes the future will be regenerated to include the new values.
     use_future(&cx, &cx.props.id, |id| {
         to_owned![state];
-        log::debug!("Future[{}]: created", id);
+        log::info!("Future[{}]: created", id);
         async move {
             loop {
                 sleep(state.read().interval()).await;
@@ -269,7 +296,7 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
                     break;
                 }
             }
-            log::debug!("Future[{}]: completed", id);
+            log::info!("Future[{}]: completed", id);
         }
     });
 

@@ -17,8 +17,14 @@ object per type or even more ganular depending. In this way we can avoid un-rela
 component re-renders.
 
 ## BACKLOG
-* Icon support
-* Better logging support
+
+## SOMETIME
+* Progress is crashing with a `already borrowed: BorrowMutError`
+    * allow to complete
+    * navigate away from page
+    * navigate back to page
+    * click reset
+* Progress time running not time since started
 
 ## COMPLETED
 * Broke out Card components
