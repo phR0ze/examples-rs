@@ -67,7 +67,7 @@ fn Page1(cx: Scope) -> Element {
         ProgressExample1 { id: "1" }
         ProgressExample2 { id: "2" }
         ProgressExample3 { id: "3" }
-        // ProgressExample4 { id: "4" }
+        ProgressExample4 { id: "4" }
     })
 }
 
@@ -193,11 +193,11 @@ fn ProgressExample3<'a>(cx: Scope<'a, ProgressExampleProps<'a>>) -> Element {
                 rsx! {
                     Button {
                         class: "ml-5 px-1".into(),
-                        color: Colors::Warning,
+                        color: Colors::Danger,
                         onclick: move |_| {
                             state.write().pause();
                         },
-                        "Pause "
+                        "Crash the app with BorrowMutError"
                     }
                 }
             } else {

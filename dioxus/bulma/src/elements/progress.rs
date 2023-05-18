@@ -53,21 +53,14 @@ impl Progress {
     /// * `value: f64` progress current value
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
     pub fn start(&mut self, max: f64, value: f64, signal: Option<UseAtomRef<bool>>) {
-        self.signal = signal;
-        self.signaled = false;
-        self.max = max;
-        self.started = Some(Instant::now());
-        self.value = value;
+        *self = Self { max, value, signal, started: Some(Instant::now()), ..Default::default() };
     }
 
     /// Start or restart progress
     /// * `duration: u64` milliseconds to wait before progress is complete
     /// * `signal: Option<UseAtomRef<bool>>` is an optional signal to send out to listeners
     pub fn timed(&mut self, duration: u64, signal: Option<UseAtomRef<bool>>) {
-        self.signal = signal;
-        self.signaled = false;
-        self.started = Some(Instant::now());
-        self.duration = duration;
+        *self = Self { signal, duration, started: Some(Instant::now()), ..Default::default() };
     }
 
     /// Advance the timed progress
@@ -275,20 +268,16 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
     log::trace!("ProgressTimed[{}]: rendered", cx.props.id);
     let state = use_atom_ref(cx, cx.props.state);
 
-    // Configure timed progress
-    // By checking if it has been completed here we don't automatically restart the progress
-    // if started gets reset to None on complete. This keeps the restart an intentional action.
-    if !state.read().started() && !state.read().completed() {
-        log::debug!("ProgressTimed[{}]: started", cx.props.id);
-        state.write().timed(cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
-    }
-    let (max, value) = state.read().values();
-
     // Submit future to the Dioxus scheduler which only allows one instance at a time.
     // When the `id` value changes the future will be regenerated to include the new values.
     use_future(&cx, &cx.props.id, |id| {
         to_owned![state];
+
+        // Create the new progress state to work with. This will be triggered
+        // every time the future is regnerated based on a new id being passed in.
         log::info!("Future[{}]: created", id);
+        state.write().timed(cx.props.duration, cx.props.completed.and_then(|x| Some(x.clone())));
+
         async move {
             loop {
                 sleep(state.read().interval()).await;
@@ -299,6 +288,8 @@ pub fn ProgressTimed<'a>(cx: Scope<'a, ProgressTimedProps<'a>>) -> Element {
             log::info!("Future[{}]: completed", id);
         }
     });
+
+    let (max, value) = state.read().values();
 
     // Configure CSS class
     let mut class = "progress".to_string();
