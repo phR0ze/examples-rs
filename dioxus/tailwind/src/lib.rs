@@ -1,7 +1,7 @@
 // mod utils;
 
-// // Exports
-// pub mod components;
+// Exports
+pub mod components;
 // pub mod elements;
 // pub mod layouts;
 pub mod icons {
