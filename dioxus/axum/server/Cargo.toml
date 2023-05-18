@@ -5,6 +5,9 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.9", features = ["ws"] }
+tokio = { version = "1.25.0", features = ["macros", "rt-multi-thread"] }
+sea-orm = { version = "^0", features = [ "sqlx-sqlite", "runtime-tokio-rustls", "macros" ] }
+
 # tower-http = { version = "0.4.0", features = ["fs", "trace"] }
 # tungstenite = "0.19.0" # To use error type
 
@@ -18,7 +21,6 @@ axum = { version = "0.6.9", features = ["ws"] }
 # chrono = { version = "0.4.24", features = ["serde"] }
 # unicode-segmentation = "1.10.1"
 
-# tokio = { version = "1.25.0", features = ["macros", "rt-multi-thread"] }
 # once_cell = "1.17.1"
 # futures = "0.3.26"
 # async-trait = "0.1.65"
