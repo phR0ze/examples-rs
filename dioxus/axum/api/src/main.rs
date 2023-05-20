@@ -60,18 +60,6 @@ fn init_router(state: AppState) -> Router {
         .with_state(state)
 }
 
-// Initialize the database connection and ensure any pending migrations are run.
-// This fuction should be run on boot and preserved in state to avoid overhead.
-async fn init_db(db_url: &str) -> Result<DatabaseConnection, DbErr> {
-    info!("Connecting to '{}' database!", db_url);
-    let db = Database::connect(db_url).await?;
-
-    info!("Applying all pending database migrations...");
-    migrations::Migrator::up(&db, None).await.expect("Failed to execute migrations!");
-
-    Ok(db)
-}
-
 // Signal detection for graceful shutdown
 async fn shutdown_signals() {
     let ctrl_c = async { signal::ctrl_c().await.expect("Failed to init Ctrl+C handler") };

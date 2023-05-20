@@ -54,7 +54,7 @@ impl MigrationTrait for Migration {
                     .table(User::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(User::Id).integer().not_null().auto_increment().primary_key())
-                    .col(ColumnDef::new(User::Name).string().not_null())
+                    .col(ColumnDef::new(User::Name).string().not_null().unique_key())
                     .col(ColumnDef::new(User::CreatedAt).date_time().not_null().default(Expr::current_timestamp()))
                     .col(
                         ColumnDef::new(User::ModifiedAt).date_time().not_null().default(Expr::current_timestamp()),
@@ -70,7 +70,7 @@ impl MigrationTrait for Migration {
                     .table(Category::Table)
                     .if_not_exists()
                     .col(ColumnDef::new(Category::Id).integer().not_null().auto_increment().primary_key())
-                    .col(ColumnDef::new(Category::Name).string().not_null())
+                    .col(ColumnDef::new(Category::Name).string().not_null().unique_key())
                     .col(ColumnDef::new(Category::Value).integer().not_null())
                     .col(
                         ColumnDef::new(Category::CreatedAt)

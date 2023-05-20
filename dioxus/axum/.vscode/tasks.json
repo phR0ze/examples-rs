@@ -5,6 +5,16 @@
             "label": "Run",
             "type": "shell",
             "command": "cargo run --bin axum-example-api"
+        },
+        {
+            "type": "cargo",
+            "command": "build",
+            "problemMatcher": [
+                "$rustc",
+                "$rust-panic"
+            ],
+            "group": "build",
+            "label": "rust: cargo build"
         }
     ]
 }
