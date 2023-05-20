@@ -1,19 +1,27 @@
 use crate::model::*;
 use crate::state::AppState;
 use axum::{
-    extract::{Query, State},
+    extract::{Path, Query, State},
     http::StatusCode,
-    response::Html,
+    response::{Html, IntoResponse},
+    Json,
 };
+use serde::{Deserialize, Serialize};
+use serde_json::json;
+use tracing::{debug, error, info};
 
 pub async fn root(State(state): State<AppState>) -> String {
     let users = user::get(&state.db).await.unwrap();
     format!("{:?}", users)
 }
 
-pub async fn users(State(state): State<AppState>) -> &'static str {
-    // let db = state.db.
-    "Display users from db"
+pub async fn user(State(state): State<AppState>, Path(user): Path<i32>) -> impl IntoResponse {
+    // let user = user::get_by_id(&state.db, user).await.unwrap();
+    // (StatusCode::OK, Json(user))
+    let greeting = format!("{}", user);
+    let hello = String::from("Hello ");
+
+    (StatusCode::OK, Json(json!({ "message": hello + &greeting })))
 }
 
 // async fn root(

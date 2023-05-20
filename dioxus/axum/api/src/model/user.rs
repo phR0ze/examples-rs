@@ -6,13 +6,13 @@ use sea_orm::{
 };
 
 /// Create the given user in the database
-pub async fn create(db: &DatabaseConnection, name: &str) -> Result<Model, DbErr> {
+pub async fn create(db: &DatabaseConnection, name: &str) -> Result<Model, anyhow::Error> {
     let entity = ActiveModel { name: Set(name.to_owned()), ..Default::default() }.insert(db).await?;
     Ok(entity)
 }
 
 /// Create the given user in the database if it doesn't exist
-pub async fn create_if_not(db: &DatabaseConnection, name: &str) -> Result<Model, DbErr> {
+pub async fn create_if_not(db: &DatabaseConnection, name: &str) -> Result<Model, anyhow::Error> {
     Ok(match get_by_name(db, name).await? {
         Some(entity) => entity,
         _ => create(db, name).await?,
@@ -20,27 +20,27 @@ pub async fn create_if_not(db: &DatabaseConnection, name: &str) -> Result<Model,
 }
 
 /// Get all users from the database
-pub async fn get(db: &DatabaseConnection) -> Result<Vec<Model>, DbErr> {
+pub async fn get(db: &DatabaseConnection) -> Result<Vec<Model>, anyhow::Error> {
     Ok(Entity::find().all(db).await?)
 }
 
 /// Get the given user from the database by id
-pub async fn get_by_id(db: &DatabaseConnection, id: i32) -> Result<Option<Model>, DbErr> {
+pub async fn get_by_id(db: &DatabaseConnection, id: i32) -> Result<Option<Model>, anyhow::Error> {
     Ok(Entity::find_by_id(id).one(db).await?)
 }
 
 /// Get the given user from the database by name
-pub async fn get_by_name(db: &DatabaseConnection, name: &str) -> Result<Option<Model>, DbErr> {
+pub async fn get_by_name(db: &DatabaseConnection, name: &str) -> Result<Option<Model>, anyhow::Error> {
     Ok(Entity::find().filter(Column::Name.eq(name)).one(db).await?)
 }
 
 /// Check if the given user exists in the database
-pub async fn exists(db: &DatabaseConnection, name: &str) -> Result<bool, DbErr> {
+pub async fn exists(db: &DatabaseConnection, name: &str) -> Result<bool, anyhow::Error> {
     Ok(Entity::find().filter(Column::Name.eq(name)).one(db).await?.is_some())
 }
 
 /// Update the given user in the database by id
-pub async fn update(db: &DatabaseConnection, id: i32, name: &str) -> Result<Model, DbErr> {
+pub async fn update(db: &DatabaseConnection, id: i32, name: &str) -> Result<Model, anyhow::Error> {
     // Only fields included with `Set` will be actually updated
     let entity = ActiveModel {
         id: Set(id),
@@ -55,7 +55,7 @@ pub async fn update(db: &DatabaseConnection, id: i32, name: &str) -> Result<Mode
 
 /// Delete the given user from the database. This will also wipe out all associated data
 /// in other data tables for this user.
-pub async fn delete(db: &DatabaseConnection, id: i32) -> Result<DeleteResult, DbErr> {
+pub async fn delete(db: &DatabaseConnection, id: i32) -> Result<DeleteResult, anyhow::Error> {
     // Delete all rewards for the user
     // Delete all points for the user
     // Delete the user

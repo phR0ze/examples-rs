@@ -1,8 +1,13 @@
 use axum_example_api::prelude::*;
 
-use axum::{routing::get, Router};
-use std::{env, net::SocketAddr, str::FromStr};
+use axum::{
+    http::StatusCode,
+    routing::{get, get_service},
+    Router,
+};
+use std::{env, io, net::SocketAddr, str::FromStr};
 use tokio::signal::{self, unix};
+use tower_http::services::{ServeDir, ServeFile};
 use tracing::{debug, error, info};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
@@ -54,9 +59,20 @@ async fn main() {
 // Configure the router
 fn init_router(state: AppState) -> Router {
     Router::new()
-        .route("/", get(handlers::root))
-        .route("/api/users", get(handlers::users))
+        .route("/", get_service(ServeFile::new("static/hello.html")))//.handle_error(|error: io::Error| async move {
+        //     (
+        //         StatusCode::INTERNAL_SERVER_ERROR,
+        //         format!("Unhandled internal error: {}", error),
+        //     )
+        // }))
+        .route("/api/user/:user", get(handlers::user))
         //.route("/delete/:id", post(delete_post))
+
+        // User tower-http to serve a custom 404 page for all unmatched routes
+        .fallback_service(
+            ServeDir::new("static")
+                .not_found_service(ServeFile::new("static/not_found.html")),
+        )
         .with_state(state)
 }
 
