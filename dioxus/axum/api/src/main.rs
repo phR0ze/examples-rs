@@ -1,13 +1,15 @@
-use once_cell::sync::OnceCell;
+mod migrations;
+
+use once_cell::sync::Lazy;
 use sea_orm::{entity::*, error::*, query::*, sea_query, Database, DatabaseConnection, DbConn, DbErr};
+use sea_orm_migration::prelude::*;
 use std::env;
 use tokio::signal::{self, unix};
 use tracing::{debug, error, info};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
-//const DATABASE_URL: &str = "sqlite:./sqlite.db?mode=rwc";
-//static DB_CONN: Lazy<DatabaseConnection> = Lazy::new(|| );
-static DATABASE_URL: OnceCell<String> = OnceCell::new();
+static DATABASE_URL: Lazy<String> =
+    Lazy::new(|| env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:./sqlite.db?mode=rwc".into()));
 
 #[tokio::main]
 async fn main() {
@@ -22,27 +24,35 @@ async fn main() {
     // Initialize logging
     tracing_subscriber::fmt()
         .with_env_filter(
-            EnvFilter::builder().with_default_directive(LevelFilter::TRACE.into()).from_env_lossy(),
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::TRACE.into())
+                .from_env_lossy()
+                .add_directive("sqlx=warn".parse().unwrap()),
             //.add_directive("hyper=warn,mio=warn,sqlx=warn,tower_http=warn".parse().unwrap()),
         )
         .init();
     info!("Booting API for Axum example...");
     info!("Logging initialized!");
 
-    //thread 'main' panicked at 'foobar', api/src/main.rs:27:36
-    //Panic: panicked at 'foobar', api/src/main.rs:32:36
-
     // Load configuration
 
     // Configure database connection falling back on in memory db for testing
-    let base_url = env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite::memory:".to_owned());
-    DATABASE_URL.set(base_url.clone()).expect("Failed to set global database connection url");
-    info!("Connecting to '{}' database!", &base_url);
-    let _ = db();
+    // Note: use DATABASE_URL="sqlite::memory:" for the in memory test database
+    let _ = init_db().await.expect("Failed to initialize the db connection!");
+
+    error!("Exiting");
 }
 
-async fn db() -> DatabaseConnection {
-    Database::connect(DATABASE_URL.get().unwrap()).await.expect("Failed to connect to the database")
+// Run any migrations that need to run creating the schema if necessary
+// then return a connection to use throughout
+async fn init_db() -> Result<DatabaseConnection, DbErr> {
+    info!("Connecting to '{}' database!", *DATABASE_URL);
+    let db = Database::connect(&*DATABASE_URL).await?;
+
+    info!("Applying all pending database migrations...");
+    migrations::Migrator::up(&db, None).await.expect("Failed to execute migrations!");
+
+    Ok(db)
 }
 
 // Signal detection for graceful shutdown

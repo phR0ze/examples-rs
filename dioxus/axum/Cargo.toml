@@ -3,7 +3,7 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["api", "migration"]
+members = ["api"]
 
 # [dependencies]
 # axum-exmple-api = { path = "api" }
