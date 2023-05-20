@@ -1,16 +1,20 @@
+use dioxus::prelude::*;
+use dioxus_logger;
+use fermi::*;
+
 fn main() {
     dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");
 
     #[cfg(target_family = "wasm")]
-    bulma::dioxus_web::launch(App);
+    dioxus_web::launch(App);
 
     #[cfg(any(windows, unix))]
-    bulma::dioxus_desktop::launch_cfg(
+    dioxus_desktop::launch_cfg(
         App,
-        bulma::dioxus_desktop::Config::new().with_window(
-            bulma::dioxus_desktop::WindowBuilder::new()
+        dioxus_desktop::Config::new().with_window(
+            dioxus_desktop::WindowBuilder::new()
                 .with_resizable(true)
-                .with_inner_size(bulma::dioxus_desktop::LogicalSize::new(1200, 700)),
+                .with_inner_size(dioxus_desktop::LogicalSize::new(1200, 700)),
         ),
     )
 }

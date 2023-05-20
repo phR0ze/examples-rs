@@ -1,4 +1,4 @@
-use backend::prelude::*;
+use ::backend::prelude::*;
 
 #[tokio::main]
 async fn main() {
