@@ -1,7 +1,7 @@
-pub mod category;
-pub mod points;
-pub mod rewards;
-pub mod user;
+mod category;
+mod points;
+mod rewards;
+mod user;
 
 pub use category::Entity as Category;
 pub use points::Entity as Points;

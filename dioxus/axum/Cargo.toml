@@ -5,5 +5,5 @@ edition = "2021"
 [workspace]
 members = ["api"]
 
-# [dependencies]
-# axum-exmple-api = { path = "api" }
+[workspace.dependencies]
+axum-example-api = { path = "api" }

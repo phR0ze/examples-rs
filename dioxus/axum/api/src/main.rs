@@ -1,13 +1,6 @@
-mod handlers;
-mod migrations;
-mod state;
+use axum_example_api::prelude::*;
 
-use crate::handlers::*;
-use crate::state::AppState;
 use axum::{routing::get, Router};
-use once_cell::sync::Lazy;
-use sea_orm::{entity::*, error::*, query::*, sea_query, Database, DatabaseConnection, DbConn, DbErr};
-use sea_orm_migration::prelude::*;
 use std::{env, net::SocketAddr, str::FromStr};
 use tokio::signal::{self, unix};
 use tracing::{debug, error, info};
