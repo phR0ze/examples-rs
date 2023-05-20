@@ -16,5 +16,11 @@ async fn main() {
     category::create_if_not(&db, "category2", 10).await.unwrap();
     category::create_if_not(&db, "category3", 100).await.unwrap();
 
-    user::update(&db, 1, "userfoo").await.unwrap();
+    points::create(&db, 1, 3, 10).await.unwrap();
+    points::create(&db, 2, 2, 100).await.unwrap();
+    points::create(&db, 3, 1, 1000).await.unwrap();
+
+    rewards::create(&db, 1, 10).await.unwrap();
+    rewards::create(&db, 2, 100).await.unwrap();
+    rewards::create(&db, 3, 1000).await.unwrap();
 }

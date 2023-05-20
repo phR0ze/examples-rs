@@ -40,10 +40,16 @@ pub async fn exists(db: &DatabaseConnection, name: &str) -> Result<bool, DbErr> 
 
 /// Update the given category in the database by id
 pub async fn update(db: &DatabaseConnection, id: i32, name: &str, value: i32) -> Result<Model, DbErr> {
-    // Don't update the created_at value
-    let entity = ActiveModel { id: Set(id), name: Set(name.to_owned()), value: Set(value), ..Default::default() }
-        .update(db)
-        .await?;
+    // Only fields included with `Set` will be actually updated
+    let entity = ActiveModel {
+        id: Set(id),
+        name: Set(name.to_owned()),
+        value: Set(value),
+        modified_at: Set(super::now()),
+        ..Default::default()
+    }
+    .update(db)
+    .await?;
     Ok(entity)
 }
 

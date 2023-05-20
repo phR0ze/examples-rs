@@ -1,8 +1,8 @@
-pub use crate::model::entities::user::*;
+use crate::model::entities::user::*;
 
 use sea_orm::{
-    sea_query::Expr, ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, DbErr, DeleteResult,
-    EntityTrait, QueryFilter,
+    ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, DbErr, DeleteResult, EntityTrait,
+    QueryFilter,
 };
 
 /// Create the given user in the database
@@ -45,7 +45,7 @@ pub async fn update(db: &DatabaseConnection, id: i32, name: &str) -> Result<Mode
     let entity = ActiveModel {
         id: Set(id),
         name: Set(name.to_owned()),
-        modified_at: Set(chrono::Utc::now().naive_local().timestamp()),
+        modified_at: Set(super::now()),
         ..Default::default()
     }
     .update(db)

@@ -1,3 +1,4 @@
+use crate::model::*;
 use crate::state::AppState;
 use axum::{
     extract::{Query, State},
@@ -5,9 +6,9 @@ use axum::{
     response::Html,
 };
 
-pub async fn root(State(state): State<AppState>) -> &'static str {
-    //state.db.
-    "Display users from db"
+pub async fn root(State(state): State<AppState>) -> String {
+    let users = user::get(&state.db).await.unwrap();
+    format!("{:?}", users)
 }
 
 pub async fn users(State(state): State<AppState>) -> &'static str {

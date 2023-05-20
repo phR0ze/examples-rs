@@ -12,6 +12,9 @@ enum User {
     ModifiedAt,
 }
 
+/// Category describes the type of points that we are working with.
+/// * `Name` is a short but descriptive name for the category
+/// * `Value` is the suggested number of points for these kinds of points
 #[derive(Iden)]
 enum Category {
     Table,

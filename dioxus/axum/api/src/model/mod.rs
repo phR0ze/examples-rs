@@ -1,6 +1,8 @@
 mod entities;
 
 pub mod category;
+pub mod points;
+pub mod rewards;
 pub mod user;
 
 use crate::migrations;
@@ -27,4 +29,10 @@ pub async fn refresh_db() -> DatabaseConnection {
     let db = Database::connect("sqlite::memory:").await.expect("Failed to connect to database");
     migrations::Migrator::refresh(&db).await.expect("Failed to execute migrations!");
     db
+}
+
+// Get current time with out sub-seconds component to keep it simple in the database
+pub fn now() -> chrono::NaiveDateTime {
+    let timestamp = chrono::Utc::now().naive_local().timestamp();
+    chrono::NaiveDateTime::from_timestamp_opt(timestamp, 0).unwrap()
 }
