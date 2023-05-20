@@ -1,15 +1,17 @@
+mod handlers;
 mod migrations;
+mod state;
 
+use crate::handlers::*;
+use crate::state::AppState;
+use axum::{routing::get, Router};
 use once_cell::sync::Lazy;
 use sea_orm::{entity::*, error::*, query::*, sea_query, Database, DatabaseConnection, DbConn, DbErr};
 use sea_orm_migration::prelude::*;
-use std::env;
+use std::{env, net::SocketAddr, str::FromStr};
 use tokio::signal::{self, unix};
 use tracing::{debug, error, info};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter};
-
-static DATABASE_URL: Lazy<String> =
-    Lazy::new(|| env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:./sqlite.db?mode=rwc".into()));
 
 #[tokio::main]
 async fn main() {
@@ -27,27 +29,49 @@ async fn main() {
             EnvFilter::builder()
                 .with_default_directive(LevelFilter::TRACE.into())
                 .from_env_lossy()
-                .add_directive("sqlx=warn".parse().unwrap()),
-            //.add_directive("hyper=warn,mio=warn,sqlx=warn,tower_http=warn".parse().unwrap()),
+                .add_directive("sqlx=warn".parse().unwrap())
+                .add_directive("mio=warn".parse().unwrap())
+                .add_directive("hyper=warn".parse().unwrap()),
         )
         .init();
     info!("Booting API for Axum example...");
     info!("Logging initialized!");
 
     // Load configuration
+    // Database url can be overridden with "sqlite::memory:" for testing
+    info!("Loading configuration...");
+    dotenvy::dotenv().ok();
+    let db_url = env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:./sqlite.db?mode=rwc".into());
+    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".into());
+    let port = env::var("PORT").unwrap_or_else(|_| "3000".into());
+    let server_url = format!("{host}:{port}");
+    let state = AppState { db: init_db(&db_url).await.expect("Failed to initialize the db connection!") };
 
-    // Configure database connection falling back on in memory db for testing
-    // Note: use DATABASE_URL="sqlite::memory:" for the in memory test database
-    let _ = init_db().await.expect("Failed to initialize the db connection!");
+    info!("Listening on {}", server_url);
+    let addr = SocketAddr::from_str(&server_url).unwrap();
+    axum::Server::bind(&addr)
+        .serve(init_router(state).into_make_service())
+        .with_graceful_shutdown(shutdown_signals())
+        .await
+        .expect("Unable to start server!");
 
-    error!("Exiting");
+    debug!("Exiting");
 }
 
-// Run any migrations that need to run creating the schema if necessary
-// then return a connection to use throughout
-async fn init_db() -> Result<DatabaseConnection, DbErr> {
-    info!("Connecting to '{}' database!", *DATABASE_URL);
-    let db = Database::connect(&*DATABASE_URL).await?;
+// Configure the router
+fn init_router(state: AppState) -> Router {
+    Router::new()
+        .route("/", get(handlers::root))
+        .route("/api", get(handlers::api))
+        //.route("/delete/:id", post(delete_post))
+        .with_state(state)
+}
+
+// Initialize the database connection and ensure any pending migrations are run.
+// This fuction should be run on boot and preserved in state to avoid overhead.
+async fn init_db(db_url: &str) -> Result<DatabaseConnection, DbErr> {
+    info!("Connecting to '{}' database!", db_url);
+    let db = Database::connect(db_url).await?;
 
     info!("Applying all pending database migrations...");
     migrations::Migrator::up(&db, None).await.expect("Failed to execute migrations!");
@@ -56,7 +80,7 @@ async fn init_db() -> Result<DatabaseConnection, DbErr> {
 }
 
 // Signal detection for graceful shutdown
-async fn shutdown_signal() {
+async fn shutdown_signals() {
     let ctrl_c = async { signal::ctrl_c().await.expect("Failed to init Ctrl+C handler") };
     #[cfg(unix)]
     let terminate =
@@ -64,9 +88,10 @@ async fn shutdown_signal() {
     #[cfg(not(unix))]
     let terminate = std::future::pending();
 
+    // Listen for typical signals
     tokio::select! {
         _ = ctrl_c => {},
         _ = terminate => {},
     }
-    info!("Shutting down gracefully ...")
+    info!("Shutting down gracefully...")
 }
