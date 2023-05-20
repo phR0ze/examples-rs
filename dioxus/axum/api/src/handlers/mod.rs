@@ -5,12 +5,14 @@ use axum::{
     response::Html,
 };
 
-pub async fn root() -> &'static str {
+pub async fn root(State(state): State<AppState>) -> &'static str {
+    //state.db.
     "Display users from db"
 }
 
-pub async fn api() -> &'static str {
-    "API here"
+pub async fn users(State(state): State<AppState>) -> &'static str {
+    // let db = state.db.
+    "Display users from db"
 }
 
 // async fn root(

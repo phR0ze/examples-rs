@@ -62,7 +62,7 @@ async fn main() {
 fn init_router(state: AppState) -> Router {
     Router::new()
         .route("/", get(handlers::root))
-        .route("/api", get(handlers::api))
+        .route("/api/users", get(handlers::users))
         //.route("/delete/:id", post(delete_post))
         .with_state(state)
 }
