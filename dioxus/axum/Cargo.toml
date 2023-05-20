@@ -3,7 +3,8 @@ version = "0.1.0"
 edition = "2021"
 
 [workspace]
-members = ["api"]
+members = ["backend", "frontend"]
 
 [workspace.dependencies]
-axum-example-api = { path = "api" }
+backend = { path = "backend" }
+frontend = { path = "frontend" }

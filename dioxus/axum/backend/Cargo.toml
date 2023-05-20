@@ -1,5 +1,5 @@
 [package]
-name = "axum-example-api"
+name = "backend"
 version = { workspace = true }
 edition = { workspace = true }
 
