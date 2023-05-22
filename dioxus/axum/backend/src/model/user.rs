@@ -1,4 +1,4 @@
-use crate::model::entities::user::*;
+pub use crate::model::entities::user::*;
 
 use sea_orm::{
     ActiveModelTrait, ActiveValue::Set, ColumnTrait, DatabaseConnection, DbErr, DeleteResult, EntityTrait,

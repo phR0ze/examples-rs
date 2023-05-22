@@ -1,13 +1,18 @@
 use ::backend::prelude::*;
 
 use axum::{
-    http::StatusCode,
+    body::{boxed, Body},
+    http::{Response, StatusCode},
+    response::IntoResponse,
     routing::{get, get_service},
     Router,
 };
-use std::{env, io, net::SocketAddr, str::FromStr};
+use std::{env, io, net::SocketAddr, path::PathBuf, str::FromStr};
+use tokio::fs;
 use tokio::signal::{self, unix};
+use tower::{ServiceBuilder, ServiceExt};
 use tower_http::services::{ServeDir, ServeFile};
+use tower_http::trace::{self, TraceLayer};
 use tracing::{debug, error, info};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
@@ -31,6 +36,7 @@ async fn main() {
                 .add_directive("mio=warn".parse().unwrap())
                 .add_directive("hyper=warn".parse().unwrap()),
         )
+        //.with_writer(tracing_appender::rolling::daily("./logs", "info").with_max_level(tracing::Level::INFO))
         .init();
     info!("Booting API for Axum example...");
     info!("Logging initialized!");
@@ -59,20 +65,54 @@ async fn main() {
 // Configure the router
 fn init_router(state: AppState) -> Router {
     Router::new()
-        .route("/", get_service(ServeFile::new("static/hello.html")))//.handle_error(|error: io::Error| async move {
-        //     (
-        //         StatusCode::INTERNAL_SERVER_ERROR,
-        //         format!("Unhandled internal error: {}", error),
-        //     )
-        // }))
+        //.route("/", get_service(ServeDir::new("frontend/dist")))//.handle_error(|error: io::Error| async move {
         .route("/api/user/:user", get(handlers::user))
+
+        // Add request logging
+        .layer(TraceLayer::new_for_http()
+            .make_span_with(trace::DefaultMakeSpan::new()
+                .level(tracing::Level::INFO))
+            .on_response(trace::DefaultOnResponse::new()
+                .level(tracing::Level::INFO)),
+        )
         //.route("/delete/:id", post(delete_post))
 
         // User tower-http to serve a custom 404 page for all unmatched routes
-        .fallback_service(
-            ServeDir::new("static")
-                .not_found_service(ServeFile::new("static/not_found.html")),
-        )
+        // .fallback_service(
+        //     ServeDir::new("static")
+        //         .not_found_service(ServeFile::new("static/not_found.html")),
+        // )
+        // .fallback_service(get(|req| async move {
+        //     match ServeDir::new("dist").oneshot(req).await {
+        //         Ok(res) => {
+        //             let status = res.status();
+        //             match status {
+        //                 StatusCode::NOT_FOUND => {
+        //                     let index_path = PathBuf::from("dist").join("index.html");
+        //                     let index_content = match fs::read_to_string(index_path).await {
+        //                         Err(_) => {
+        //                             return Response::builder()
+        //                                 .status(StatusCode::NOT_FOUND)
+        //                                 .body(boxed(Body::from("index file not found")))
+        //                                 .unwrap()
+        //                         }
+        //                         Ok(index_content) => index_content,
+        //                     };
+
+        //                     Response::builder()
+        //                         .status(StatusCode::OK)
+        //                         .body(boxed(Body::from(index_content)))
+        //                         .unwrap()
+        //                 }
+        //                 _ => res.map(boxed),
+        //             }
+        //         }
+        //         Err(err) => Response::builder()
+        //             .status(StatusCode::INTERNAL_SERVER_ERROR)
+        //             .body(boxed(Body::from(format!("error: {err}"))))
+        //             .expect("error response"),
+        //     }
+        // }))
         .with_state(state)
 }
 

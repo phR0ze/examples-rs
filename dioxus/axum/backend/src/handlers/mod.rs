@@ -8,20 +8,21 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use tracing::{debug, error, info};
+use tracing::{debug, error, info, warn};
 
 pub async fn root(State(state): State<AppState>) -> String {
     let users = user::get(&state.db).await.unwrap();
     format!("{:?}", users)
 }
 
-pub async fn user(State(state): State<AppState>, Path(user): Path<i32>) -> impl IntoResponse {
-    // let user = user::get_by_id(&state.db, user).await.unwrap();
-    // (StatusCode::OK, Json(user))
-    let greeting = format!("{}", user);
-    let hello = String::from("Hello ");
-
-    (StatusCode::OK, Json(json!({ "message": hello + &greeting })))
+pub async fn user(State(state): State<AppState>, Path(user_id): Path<i32>) -> impl IntoResponse {
+    match user::get_by_id(&state.db, user_id).await {
+        Ok(user) => match user {
+            Some(user) => Json(user).into_response(),
+            _ => StatusCode::NOT_FOUND.into_response(),
+        },
+        _ => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
 }
 
 // async fn root(

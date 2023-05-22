@@ -2,6 +2,11 @@ use dioxus::prelude::*;
 use dioxus_logger;
 use fermi::*;
 
+// Get BULMA styles as a static str
+pub fn get_bulma_css() -> &'static str {
+    include_str!("../bulma.min.css")
+}
+
 fn main() {
     dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");
 
@@ -25,7 +30,7 @@ fn App(cx: Scope) -> Element {
     fermi::use_init_atom_root(&cx);
 
     cx.render(rsx! {
-        //style { "{get_bulma_css()}" },
+        style { "{get_bulma_css()}" },
         // Router {
         //     pages::Header {},
         //     pages::Footer {}
