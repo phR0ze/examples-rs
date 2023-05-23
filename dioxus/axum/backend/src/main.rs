@@ -66,6 +66,7 @@ async fn main() {
 fn init_router(state: AppState) -> Router {
     Router::new()
         //.route("/", get_service(ServeDir::new("frontend/dist")))//.handle_error(|error: io::Error| async move {
+        .route("/api/user", get(handlers::users))
         .route("/api/user/:user", get(handlers::user))
 
         // Add request logging

@@ -25,6 +25,13 @@ pub async fn user(State(state): State<AppState>, Path(user_id): Path<i32>) -> im
     }
 }
 
+pub async fn users(State(state): State<AppState>) -> impl IntoResponse {
+    match user::get(&state.db).await {
+        Ok(users) => Json(users).into_response(),
+        _ => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
 // async fn root(
 //     state: State<AppState>, Query(params): Query<Params>, cookies: Cookies,
 // ) -> Result<Html<String>, (StatusCode, &'static str)> {
