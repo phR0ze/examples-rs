@@ -46,10 +46,9 @@ pub fn app(db: DatabaseConnection) -> Router {
         .route("/api/rewards", get(handlers::get_rewards).post(handlers::create_reward))
         .route("/api/rewards/:reward", get(handlers::get_reward).put(handlers::update_reward))
 
-        // Request logging
+        // Request/response logging
         .layer(TraceLayer::new_for_http()
-            .make_span_with(trace::DefaultMakeSpan::new()
-                .level(tracing::Level::INFO))
+            // Make on_response INFO level logging, its DEBUG by default
             .on_response(trace::DefaultOnResponse::new()
                 .level(tracing::Level::INFO)),
         )
