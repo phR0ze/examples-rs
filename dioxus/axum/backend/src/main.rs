@@ -1,19 +1,7 @@
 use ::backend::prelude::*;
-
-use axum::{
-    body::{boxed, Body},
-    http::{Response, StatusCode},
-    response::IntoResponse,
-    routing::{get, get_service},
-    Router,
-};
-use std::{env, io, net::SocketAddr, path::PathBuf, str::FromStr};
-use tokio::fs;
+use std::{env, net::SocketAddr, str::FromStr};
 use tokio::signal::{self, unix};
-use tower::{ServiceBuilder, ServiceExt};
-use tower_http::services::{ServeDir, ServeFile};
-use tower_http::trace::{self, TraceLayer};
-use tracing::{warn, error, info};
+use tracing::{error, info, warn};
 use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
 #[tokio::main]
@@ -49,80 +37,17 @@ async fn main() {
     let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".into());
     let port = env::var("PORT").unwrap_or_else(|_| "3000".into());
     let server_url = format!("{host}:{port}");
-    let state = AppState { db: init_db(&db_url).await.expect("Failed to initialize the db connection!") };
+    let db = init_db(&db_url).await.expect("Failed to initialize the db connection!");
 
     info!("Listening on {}", server_url);
     let addr = SocketAddr::from_str(&server_url).unwrap();
     axum::Server::bind(&addr)
-        .serve(init_router(state).into_make_service())
+        .serve(crate::app(db).into_make_service())
         .with_graceful_shutdown(shutdown_signals())
         .await
         .expect("Unable to start server!");
 
     warn!("Exiting");
-}
-
-// Configure the router
-fn init_router(state: AppState) -> Router {
-    Router::new()
-        //.route("/", get_service(ServeDir::new("frontend/dist")))//.handle_error(|error: io::Error| async move {
-        // Static content handler
-        .route("/", get(handlers::root))
-        
-        // API handlers
-        .route("/api/user", get(handlers::get_users).post(handlers::create_user))
-        .route("/api/user/:user", get(handlers::get_user).put(handlers::update_user))
-        .route("/api/category", get(handlers::categories))
-        .route("/api/category/:category", get(handlers::category))
-        .route("/api/rewards", get(handlers::get_rewards).post(handlers::create_reward))
-        .route("/api/rewards/:reward", get(handlers::get_reward).put(handlers::update_reward))
-
-        // Request logging
-        .layer(TraceLayer::new_for_http()
-            .make_span_with(trace::DefaultMakeSpan::new()
-                .level(tracing::Level::INFO))
-            .on_response(trace::DefaultOnResponse::new()
-                .level(tracing::Level::INFO)),
-        )
-        //.route("/delete/:id", post(delete_post))
-
-        // User tower-http to serve a custom 404 page for all unmatched routes
-        // .fallback_service(
-        //     ServeDir::new("static")
-        //         .not_found_service(ServeFile::new("static/not_found.html")),
-        // )
-        // .fallback_service(get(|req| async move {
-        //     match ServeDir::new("dist").oneshot(req).await {
-        //         Ok(res) => {
-        //             let status = res.status();
-        //             match status {
-        //                 StatusCode::NOT_FOUND => {
-        //                     let index_path = PathBuf::from("dist").join("index.html");
-        //                     let index_content = match fs::read_to_string(index_path).await {
-        //                         Err(_) => {
-        //                             return Response::builder()
-        //                                 .status(StatusCode::NOT_FOUND)
-        //                                 .body(boxed(Body::from("index file not found")))
-        //                                 .unwrap()
-        //                         }
-        //                         Ok(index_content) => index_content,
-        //                     };
-
-        //                     Response::builder()
-        //                         .status(StatusCode::OK)
-        //                         .body(boxed(Body::from(index_content)))
-        //                         .unwrap()
-        //                 }
-        //                 _ => res.map(boxed),
-        //             }
-        //         }
-        //         Err(err) => Response::builder()
-        //             .status(StatusCode::INTERNAL_SERVER_ERROR)
-        //             .body(boxed(Body::from(format!("error: {err}"))))
-        //             .expect("error response"),
-        //     }
-        // }))
-        .with_state(state)
 }
 
 // Signal detection for graceful shutdown
@@ -140,4 +65,29 @@ async fn shutdown_signals() {
         _ = terminate => {},
     }
     info!("Shutting down gracefully...")
+}
+
+// Unit tests
+// -------------------------------------------------------------------------------------------------
+#[cfg(test)]
+mod tests {
+    use crate::app;
+    use crate::test_db;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use tower::ServiceExt; // for `oneshot` and `ready`
+
+    #[tokio::test]
+    async fn test_not_found() {
+        let res = app(test_db().await)
+            .oneshot(Request::builder().uri("/does-not-exist").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+        let body = hyper::body::to_bytes(res.into_body()).await.unwrap();
+        assert!(body.is_empty());
+    }
 }

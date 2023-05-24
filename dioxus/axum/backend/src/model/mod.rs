@@ -23,9 +23,8 @@ pub async fn init_db(db_url: &str) -> Result<DatabaseConnection, DbErr> {
     Ok(db)
 }
 
-/// Initialize the database connection first dropping all data then running migrations.
-/// This is hardcoded to the in memory test db just to be sure.
-pub async fn refresh_db() -> DatabaseConnection {
+/// Initialize an in memory test database
+pub async fn test_db() -> DatabaseConnection {
     let db = Database::connect("sqlite::memory:").await.expect("Failed to connect to database");
     migrations::Migrator::refresh(&db).await.expect("Failed to execute migrations!");
     db

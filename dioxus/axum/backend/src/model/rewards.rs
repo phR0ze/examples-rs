@@ -55,7 +55,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_crud() {
-        let db = refresh_db().await;
+        let db = test_db().await;
 
         // Load test data
         user::create_if_not(&db, "user1").await.unwrap();

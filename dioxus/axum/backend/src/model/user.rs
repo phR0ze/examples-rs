@@ -67,7 +67,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_crud() {
-        let db = refresh_db().await;
+        let db = test_db().await;
 
         // Create
         user::create(&db, "foo1").await.unwrap();

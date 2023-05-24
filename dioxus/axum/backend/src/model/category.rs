@@ -61,7 +61,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_crud() {
-        let db = refresh_db().await;
+        let db = test_db().await;
 
         category::create(&db, "category1", 1).await.unwrap();
         category::create(&db, "category2", 10).await.unwrap();
