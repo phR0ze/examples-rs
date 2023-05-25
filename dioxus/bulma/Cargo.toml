@@ -17,7 +17,7 @@ tokio = { version = "1.28.0", features = ["time"] }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 dioxus-web = "0.3.1"
-gloo-timers = { version = "0.2.6", features = ["futures"], optional = true }
+gloo-timers = { version = "0.2.6", features = ["futures"] }
 
 [dev-dependencies]
 getrandom = { version = "0.2", features = ["js"] }

@@ -1,33 +1,29 @@
 [application]
 
-# App (Project) Name
+# dioxus project name
 name = "frontend"
 
-# Dioxus App Default Platform
-# desktop, web, mobile, ssr
+# default platfrom
+# you can also use `dioxus serve/build --platform XXX` to use other platform
+# value: web | desktop
 default_platform = "web"
 
-# `build` & `serve` dist path
+# Web `build` & `serve` dist path
 out_dir = "dist"
 
-# resource (public) file folder
+# resource (static) file folder
 asset_dir = "public"
 
 [web.app]
 
 # HTML title tag content
-title = "Fullstack example"
+title = "Dioxus | An elegant GUI library for Rust"
 
 [web.watcher]
 
-# when watcher trigger, regenerate the `index.html`
-reload_html = true
-
-# which files or dirs will be watcher monitoring
-watch_path = ["src", "public", "index.html"]
-
-# let the SPA handle any non "/" path
 index_on_404 = true
+
+watch_path = ["src"]
 
 # include `assets` in web platform
 [web.resource]
@@ -43,3 +39,9 @@ script = []
 # Javascript code file
 # serve: [dev-server] only
 script = []
+
+[application.plugins]
+
+available = true
+
+required = []

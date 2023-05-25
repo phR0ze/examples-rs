@@ -1,11 +1,7 @@
+use bulma::{components::*, elements::*, layouts::*, prelude::*};
 use dioxus::prelude::*;
 use dioxus_logger;
 use fermi::*;
-
-// Get BULMA styles as a static str
-pub fn get_bulma_css() -> &'static str {
-    include_str!("../bulma.min.css")
-}
 
 fn main() {
     dioxus_logger::init(log::LevelFilter::Info).expect("failed to init logger");
@@ -24,22 +20,70 @@ fn main() {
     )
 }
 
-// UI entry point that will only get called once on startup
 #[allow(non_snake_case)]
 fn App(cx: Scope) -> Element {
-    fermi::use_init_atom_root(&cx);
-
     cx.render(rsx! {
         style { "{get_bulma_css()}" },
-        // Router {
-        //     pages::Header {},
-        //     pages::Footer {}
-        // }
-        NotFoundPage {}
+        Router {
+            Header {},
+            Route { to: "/", Page1 {} },
+            Route { to: "/2", Page2 {} },
+            Route { to: "/3", Page3 {} },
+        }
     })
 }
 
 #[allow(non_snake_case)]
-fn NotFoundPage(cx: Scope) -> Element {
-    cx.render(rsx! { p { "404 Page not found - Dioxus" } })
+pub fn Header(cx: Scope) -> Element {
+    cx.render(rsx! {
+        Navbar {
+            color: Colors::Primary,
+            NavbarMenu {
+                NavbarStart {
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/", None, None),
+                        "Page 1"
+                    }
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/2", None, None),
+                        "Page 2"
+                    }
+                    NavbarItem {
+                        onclick: move |_| use_router(cx).push_route("/3", None, None),
+                        "Page 3"
+                    }
+                    NavbarDropdown {
+                        title: "Pages".into(),
+                        NavbarItem {
+                            onclick: move |_| use_router(cx).push_route("/", None, None),
+                            "Page 1"
+                        }
+                        NavbarItem {
+                            onclick: move |_| use_router(cx).push_route("/2", None, None),
+                            "Page 2"
+                        }
+                        NavbarItem {
+                            onclick: move |_| use_router(cx).push_route("/3", None, None),
+                            "Page 3"
+                        }
+                    }
+                }
+            }
+        }
+    })
+}
+
+#[allow(non_snake_case)]
+fn Page1(cx: Scope) -> Element {
+    cx.render(rsx! { Section { Title { "Page 1"} } })
+}
+
+#[allow(non_snake_case)]
+fn Page2(cx: Scope) -> Element {
+    cx.render(rsx! { Section { Title { "Page 2"} } })
+}
+
+#[allow(non_snake_case)]
+fn Page3(cx: Scope) -> Element {
+    cx.render(rsx! { Section { Title { "Page 3"} } })
 }
