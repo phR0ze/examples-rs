@@ -19,6 +19,7 @@ use std::path::PathBuf;
 use axum::{
     body::{boxed, Body},
     http::{Response, StatusCode},
+    response::Html,
     routing::get,
     Router,
 };
@@ -40,6 +41,11 @@ pub fn app(db: DatabaseConnection) -> Router {
         .route("/api/category/:category", get(handlers::category))
         .route("/api/rewards", get(handlers::get_rewards).post(handlers::create_reward))
         .route("/api/rewards/:reward", get(handlers::get_reward).put(handlers::update_reward))
+
+        // Test route
+        .route("/foo", get(|| async move {
+            (StatusCode::NOT_FOUND, Html("<h1>404 NOT FOUND</h1>"))
+        }))
 
         // Static content handler for WASM SPA
         .fallback_service(get(|req| async move {
