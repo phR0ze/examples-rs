@@ -19,7 +19,6 @@ use std::path::PathBuf;
 use axum::{
     body::{boxed, Body},
     http::{Response, StatusCode},
-    response::Html,
     routing::get,
     Router,
 };
@@ -42,12 +41,7 @@ pub fn app(db: DatabaseConnection) -> Router {
         .route("/api/rewards", get(handlers::get_rewards).post(handlers::create_reward))
         .route("/api/rewards/:reward", get(handlers::get_reward).put(handlers::update_reward))
 
-        // Test route
-        .route("/foo", get(|| async move {
-            (StatusCode::NOT_FOUND, Html("<h1>404 NOT FOUND</h1>"))
-        }))
-
-        // Static content handler for WASM SPA
+        // Redirect all other routes to out WASM SPA
         .fallback_service(get(|req| async move {
             match ServeDir::new("frontend/dist").oneshot(req).await {
                 Ok(res) => {
@@ -55,16 +49,7 @@ pub fn app(db: DatabaseConnection) -> Router {
                     match status {
                         StatusCode::NOT_FOUND => {
                             let index_path = PathBuf::from("frontend/dist").join("index.html");
-                            let index_content = match fs::read_to_string(index_path).await {
-                                Err(_) => {
-                                    return Response::builder()
-                                        .status(StatusCode::NOT_FOUND)
-                                        .body(boxed(Body::from("index file not found")))
-                                        .unwrap()
-                                }
-                                Ok(index_content) => index_content,
-                            };
-
+                            let index_content = fs::read_to_string(index_path).await.expect("index file not found");
                             Response::builder()
                                 .status(StatusCode::OK)
                                 .body(boxed(Body::from(index_content)))
