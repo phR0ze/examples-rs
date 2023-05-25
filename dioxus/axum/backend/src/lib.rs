@@ -17,61 +17,22 @@ pub mod prelude {
 use std::path::PathBuf;
 
 use axum::{
-    body::{boxed, Full, HttpBody, Body },
-    http::{header::{HeaderName, HeaderValue}, Method, Response, StatusCode},
-    routing::{get, get_service},
+    body::{boxed, Body},
+    http::{Response, StatusCode},
+    routing::get,
     Router,
 };
 use sea_orm::DatabaseConnection;
 use tokio::fs;
-use tower::{ServiceBuilder, ServiceExt};
+use tower::ServiceExt;
 use tower_http::{
-    services::fs::{ServeDir, ServeFileSystemResponseBody},
-    ServiceBuilderExt,
-    cors::{Any, CorsLayer},
+    services::fs::ServeDir,
     trace::{self, TraceLayer},
 };
-use tracing::{error, info, warn};
-use tracing_subscriber::{filter::LevelFilter, EnvFilter};
 
 // Configure the router
 pub fn app(db: DatabaseConnection) -> Router {
-
-    // let file_service = ServiceBuilder::new()
-    //     .override_response_header(
-    //         HeaderName::from_static("cross-origin-embedder-policy"),
-    //         HeaderValue::from_static("unsafe-none"),
-    //     )
-    //     .override_response_header(HeaderName::from_static("cross-origin-opener-policy"), HeaderValue::from_static("unsafe-none"))
-    //     .and_then(
-    //         move |response: Response<ServeFileSystemResponseBody>| async move {
-    //             let response = if response.status() == StatusCode::NOT_FOUND
-    //             {
-    //                 let body = Full::from(
-    //                     std::fs::read_to_string("frontend/dist/index.html")
-    //                     .ok()
-    //                     .unwrap(),
-    //                 )
-    //                 .map_err(|err| match err {})
-    //                 .boxed();
-    //                 Response::builder()
-    //                     .status(StatusCode::OK)
-    //                     .body(body)
-    //                     .unwrap()
-    //             } else {
-    //                 response.map(|body| body.boxed())
-    //             };
-    //             Ok(response)
-    //         },
-    //     )
-    //     .service(ServeDir::new("frontend/dist"));
-
     Router::new()
-        // Static content handler
-        // pwd is root of project when running from root and `frontend/dist` accurately serves
-        .route("/", get_service(ServeDir::new("frontend/dist")))//.handle_error(|error: io::Error| async move {
-        // .fallback(get_service(ServiceBuilder::new()))
- 
         // API handlers
         .route("/api/user", get(handlers::get_users).post(handlers::create_user))
         .route("/api/user/:user", get(handlers::get_user).put(handlers::update_user).delete(handlers::delete_user))
@@ -80,6 +41,7 @@ pub fn app(db: DatabaseConnection) -> Router {
         .route("/api/rewards", get(handlers::get_rewards).post(handlers::create_reward))
         .route("/api/rewards/:reward", get(handlers::get_reward).put(handlers::update_reward))
 
+        // Static content handler for WASM SPA
         .fallback_service(get(|req| async move {
             match ServeDir::new("frontend/dist").oneshot(req).await {
                 Ok(res) => {
@@ -111,14 +73,6 @@ pub fn app(db: DatabaseConnection) -> Router {
                     .expect("error response"),
             }
         }))
-        // .fallback(
-        //     get_service(file_service).handle_error(|error: std::io::Error| async move {
-        //         (
-        //             StatusCode::INTERNAL_SERVER_ERROR,
-        //             format!("Unhandled internal error: {}", error),
-        //         )
-        //     }),
-        // )
 
         // Request/response logging
         .layer(TraceLayer::new_for_http()
@@ -127,14 +81,12 @@ pub fn app(db: DatabaseConnection) -> Router {
                 .level(tracing::Level::INFO)),
         )
 
-        // Configure cors restrictions
-        // Taken from dioxus-cli
-        // TODO: revisit this to understand implications
-        .layer(CorsLayer::new()
-            .allow_methods([Method::GET, Method::POST])
-            .allow_origin(Any)
-            .allow_headers(Any)
-        )
+        // TODO: are cores restrictions needed
+        // .layer(CorsLayer::new()
+        //     .allow_methods([Method::GET, Method::POST])
+        //     .allow_origin(Any)
+        //     .allow_headers(Any)
+        // )
 
         // Add custom state object with db handle
         .with_state(state::AppState { db })
